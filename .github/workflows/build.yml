@@ -5,6 +5,8 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+  release:
+    types: [published]
 
 jobs:
   verify:
@@ -106,23 +108,21 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v4
+
       - uses: actions/download-artifact@v4
         with:
           pattern: release-*
           path: release
           merge-multiple: true
 
-      - name: Create the release
+      - name: Attach the downloads to the release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" release/* \
-            --repo "$GITHUB_REPOSITORY" \
-            --title "LogReader $GITHUB_REF_NAME" \
-            --notes "Downloads:
-          - **LogReader-macOS.zip**: the macOS app. Unzip it and move LogReader to Applications. The first time, right-click the app and choose Open, because it isn't signed by Apple.
-          - **LogReader-Windows.zip**: the Windows app. Unzip it and run LogReader.exe inside the LogReader folder.
-          - **LogReader-Linux.tar.gz**: the Linux app. Extract it and run LogReader/bin/LogReader.
-          - **LogReader.jar**: works on any system with Java 21 or newer: java -jar LogReader.jar
-
-          The three native apps include Java, so nothing else needs to be installed."
+          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" release/* --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" release/* --repo "$GITHUB_REPOSITORY" \
+              --title "LogReader $GITHUB_REF_NAME" --notes-file .github/RELEASE_NOTES.md
+          fi
