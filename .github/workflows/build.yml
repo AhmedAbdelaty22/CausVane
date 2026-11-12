@@ -69,3 +69,60 @@ jobs:
           path: |
             target/LogReader.jar
             dist/
+
+      # The steps below run only when a version tag such as v1.0.0 is pushed.
+      - name: Package for release (macOS)
+        if: startsWith(github.ref, 'refs/tags/v') && runner.os == 'macOS'
+        run: |
+          mkdir release
+          ditto -c -k --keepParent dist/LogReader.app release/LogReader-macOS.zip
+          cp target/LogReader.jar release/
+
+      - name: Package for release (Linux)
+        if: startsWith(github.ref, 'refs/tags/v') && runner.os == 'Linux'
+        run: |
+          mkdir release
+          tar -czf release/LogReader-Linux.tar.gz -C dist LogReader
+
+      - name: Package for release (Windows)
+        if: startsWith(github.ref, 'refs/tags/v') && runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory release | Out-Null
+          Compress-Archive -Path dist/LogReader -DestinationPath release/LogReader-Windows.zip
+
+      - name: Keep release files
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ runner.os }}
+          path: release/
+
+  # Publishes a GitHub Release with the downloads after all three systems pass.
+  release:
+    needs: verify
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          path: release
+          merge-multiple: true
+
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" release/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "LogReader $GITHUB_REF_NAME" \
+            --notes "Downloads:
+          - **LogReader-macOS.zip**: the macOS app. Unzip it and move LogReader to Applications. The first time, right-click the app and choose Open, because it isn't signed by Apple.
+          - **LogReader-Windows.zip**: the Windows app. Unzip it and run LogReader.exe inside the LogReader folder.
+          - **LogReader-Linux.tar.gz**: the Linux app. Extract it and run LogReader/bin/LogReader.
+          - **LogReader.jar**: works on any system with Java 21 or newer: java -jar LogReader.jar
+
+          The three native apps include Java, so nothing else needs to be installed."
