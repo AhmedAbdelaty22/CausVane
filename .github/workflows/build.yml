@@ -72,38 +72,38 @@ jobs:
             target/LogReader.jar
             dist/
 
-      # The steps below run only when a version tag such as v1.0.0 is pushed.
+      # The steps below run only when a release is published on GitHub.
       - name: Package for release (macOS)
-        if: startsWith(github.ref, 'refs/tags/v') && runner.os == 'macOS'
+        if: github.event_name == 'release' && runner.os == 'macOS'
         run: |
           mkdir release
           ditto -c -k --keepParent dist/LogReader.app release/LogReader-macOS.zip
           cp target/LogReader.jar release/
 
       - name: Package for release (Linux)
-        if: startsWith(github.ref, 'refs/tags/v') && runner.os == 'Linux'
+        if: github.event_name == 'release' && runner.os == 'Linux'
         run: |
           mkdir release
           tar -czf release/LogReader-Linux.tar.gz -C dist LogReader
 
       - name: Package for release (Windows)
-        if: startsWith(github.ref, 'refs/tags/v') && runner.os == 'Windows'
+        if: github.event_name == 'release' && runner.os == 'Windows'
         shell: pwsh
         run: |
           New-Item -ItemType Directory release | Out-Null
           Compress-Archive -Path dist/LogReader -DestinationPath release/LogReader-Windows.zip
 
       - name: Keep release files
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: github.event_name == 'release'
         uses: actions/upload-artifact@v4
         with:
           name: release-${{ runner.os }}
           path: release/
 
-  # Publishes a GitHub Release with the downloads after all three systems pass.
+  # Attaches the downloads to the published release after all three systems pass.
   release:
     needs: verify
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: github.event_name == 'release'
     runs-on: ubuntu-latest
     permissions:
       contents: write
