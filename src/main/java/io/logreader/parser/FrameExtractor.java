@@ -239,8 +239,8 @@ public sealed interface FrameExtractor {
     }
 
     /**
-     * Fallback for any {@code <filepath>:<line>[:<column>]} reference with a known source extension
-     * (PHP, Ruby, Rust, C/C++, Elixir, Swift, ...), plus PHP's {@code in file.php on line N}.
+     * Fallback for any {@code <filepath>:<line>[:<column>]} reference with a known source extension,
+     * whatever the language, plus the {@code in <file> on line N} form.
      */
     record GenericFrames() implements FrameExtractor {
         private static final String EXTENSIONS =

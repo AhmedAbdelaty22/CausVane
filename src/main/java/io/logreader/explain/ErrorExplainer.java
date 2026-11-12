@@ -10,8 +10,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Explains errors in plain language from a built-in knowledge base of common failures across
- * Java, .NET, Python, JavaScript, Go, PHP, Ruby, Rust and native code. Works offline: rules match on
+ * Explains errors in plain language from a built-in knowledge base of failures that are common to
+ * applications in any language. Works offline: rules match on
  * the exception type and message of the root cause first, then on the reported error.
  */
 public final class ErrorExplainer {

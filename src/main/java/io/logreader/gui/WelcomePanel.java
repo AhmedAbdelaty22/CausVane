@@ -44,12 +44,8 @@ final class WelcomePanel extends JPanel {
         open.setMargin(new java.awt.Insets(8, 22, 8, 22));
         open.addActionListener(e -> onOpen.run());
 
-        JLabel formats = new JLabel("Java · Kotlin · Scala · .NET · Python · Node.js · Go · PHP · Ruby · Rust · C/C++ · JSON logs");
-        formats.setForeground(Theme.DIM);
-        formats.setFont(formats.getFont().deriveFont(12f));
-
         for (Component c : new Component[] {arrow, Box.createVerticalStrut(6), title, Box.createVerticalStrut(8), subtitle,
-                Box.createVerticalStrut(24), open, Box.createVerticalStrut(24), formats}) {
+                Box.createVerticalStrut(24), open}) {
             if (c instanceof javax.swing.JComponent jc) {
                 jc.setAlignmentX(Component.CENTER_ALIGNMENT);
             }

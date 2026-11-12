@@ -2,8 +2,8 @@
 
 Desktop GUI and CLI for support engineers: open any application log and get the
 deduplicated errors, each pinpointed to the exact file, function and line of its
-root cause. Works on logs from Java/Kotlin/Scala, .NET, Python, Node.js, Go, PHP,
-Ruby, Rust, C/C++ and on JSON-structured logs.
+root cause. It works on the logs of any application, whatever language or
+framework it was built with, in plain-text or JSON form.
 
 For every error it also explains, in plain language, what the error means, the
 likely causes and what to check next, using a built-in offline knowledge base of
@@ -72,8 +72,8 @@ one byte offset per 256 lines are kept in memory, so file size is not a limit.
 
 ### Behaviours worth knowing
 
-- **Pinpoint** = first application frame of the deepest root cause (`Caused by:`,
-  .NET `--->`, JS `[cause]:`, the first traceback of a chained Python error). If the
+- **Pinpoint** = first application frame of the deepest root cause (the innermost
+  nested cause in a chained error, however the log marks nesting). If the
   root cause has no application frame, the enclosing exception's frames are used; if
   the whole trace is library code, the top frame is shown and labelled as such.
 - **Timestamps** are shown as written in the log (zone offsets are not applied).
@@ -89,6 +89,6 @@ To treat more packages as framework code, pass extra prefixes to
 
 ## Samples
 
-`samples/` contains realistic logs for Spring Boot, ASP.NET Core, Django, Express,
-mixed JSON loggers (logstash, pino, structlog, Serilog), and a Go service log with
-raw PHP, Ruby, Rust and gdb crash output mixed in.
+`samples/` contains realistic logs from several kinds of applications: web
+services, background jobs, JSON-structured loggers, and a service log with raw
+crash output mixed in. Use them to try the app.
