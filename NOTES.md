@@ -105,7 +105,7 @@ if you added it.
 
 For a proper installer with a Start-menu entry and an entry under "Installed apps",
 install the WiX Toolset, change `app-image` to `msi` in `packaging\build-app.bat`,
-and run it again. It produces `dist\LogReader-1.0.0.msi`; double-click to install.
+and run it again. It produces `dist\LogReader-1.0.1.msi`; double-click to install.
 
 **Option B: the JAR**
 
