@@ -1,0 +1,76 @@
+[2026-03-14 13:40:02,118] INFO django.server: Watching for file changes with StatReloader
+[2026-03-14 13:40:02,902] INFO shop.apps: Shop service ready (workers=4)
+[2026-03-14 13:41:15,440] INFO django.request: "GET /api/products/?page=2 HTTP/1.1" 200 5123 request_id=b7e1c2aa90f1
+[2026-03-14 13:41:58,007] WARNING shop.cache: Redis latency 412 ms for key cart:88410
+[2026-03-14 13:42:31,675] ERROR django.request: Internal Server Error: /api/cart/88410/checkout request_id=4c1d9e77a3b2
+Traceback (most recent call last):
+  File "/srv/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/srv/venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/srv/app/shop/views/checkout.py", line 48, in checkout
+    order = build_order(cart, request.user)
+  File "/srv/app/shop/services/orders.py", line 112, in build_order
+    shipping = quote_shipping(cart.items, user.profile.address)
+  File "/srv/app/shop/services/shipping.py", line 37, in quote_shipping
+    zone = ZONES[address.country_code]
+KeyError: 'XK'
+[2026-03-14 13:42:31,679] INFO django.request: "POST /api/cart/88410/checkout HTTP/1.1" 500 145 request_id=4c1d9e77a3b2
+[2026-03-14 13:44:09,231] ERROR shop.tasks: Task send_receipt[5f0c] raised unexpected: MailDeliveryError('SMTP relay rejected message')
+Traceback (most recent call last):
+  File "/srv/app/shop/mail/smtp.py", line 71, in deliver
+    self._conn.sendmail(sender, recipients, payload)
+  File "/usr/lib/python3.12/smtplib.py", line 891, in sendmail
+    raise SMTPRecipientsRefused(senderrs)
+smtplib.SMTPRecipientsRefused: {'bad@@example.org': (501, b'5.1.3 Bad recipient address syntax')}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/srv/venv/lib/python3.12/site-packages/celery/app/trace.py", line 453, in trace_task
+    R = retval = fun(*args, **kwargs)
+  File "/srv/app/shop/tasks.py", line 29, in send_receipt
+    mailer.deliver(receipt)
+  File "/srv/app/shop/mail/smtp.py", line 74, in deliver
+    raise MailDeliveryError("SMTP relay rejected message") from exc
+shop.mail.errors.MailDeliveryError: SMTP relay rejected message
+[2026-03-14 13:45:50,514] WARNING shop.cache: Redis latency 530 ms for key cart:88432
+[2026-03-14 13:47:22,093] ERROR django.request: Internal Server Error: /api/cart/88455/checkout request_id=e2a07f5b1c66
+Traceback (most recent call last):
+  File "/srv/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/srv/app/shop/views/checkout.py", line 48, in checkout
+    order = build_order(cart, request.user)
+  File "/srv/app/shop/services/orders.py", line 112, in build_order
+    shipping = quote_shipping(cart.items, user.profile.address)
+  File "/srv/app/shop/services/shipping.py", line 37, in quote_shipping
+    zone = ZONES[address.country_code]
+KeyError: 'AQ'
+[2026-03-14 13:49:03,870] ERROR shop.inventory: Stock sync failed for warehouse 3
+Traceback (most recent call last):
+  File "/srv/app/shop/inventory/sync.py", line 88, in sync_warehouse
+    payload = client.fetch(warehouse_id)
+  File "/srv/app/shop/inventory/client.py", line 41, in fetch
+    return response.json()["items"]
+  File "/srv/venv/lib/python3.12/site-packages/requests/models.py", line 978, in json
+    raise RequestsJSONDecodeError(e.msg, e.doc, e.pos)
+requests.exceptions.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+[2026-03-14 13:50:11,402] CRITICAL shop.db: Database connection lost; entering read-only mode
+[2026-03-14 13:50:11,409] ERROR django.request: Internal Server Error: /api/products/ request_id=91bb3d0e44fa
+Traceback (most recent call last):
+  File "/srv/venv/lib/python3.12/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/srv/venv/lib/python3.12/site-packages/psycopg/cursor.py", line 97, in execute
+    raise ex.with_traceback(None)
+psycopg.OperationalError: server closed the connection unexpectedly
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/srv/venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/srv/app/shop/views/products.py", line 23, in list_products
+    return JsonResponse(serialize(Product.objects.active()[:50]))
+  File "/srv/app/shop/models/product.py", line 67, in active
+    return list(self.filter(active=True))
+django.db.utils.OperationalError: server closed the connection unexpectedly

@@ -1,0 +1,55 @@
+2026-03-14T15:20:00.112Z info: API gateway listening on :3000 (pid 211)
+2026-03-14T15:20:41.870Z info: GET /v1/users/8841 200 12ms reqId=k3f9a02
+2026-03-14T15:21:07.335Z warn: Upstream profile-service responded in 1840ms reqId=k3f9a07
+2026-03-14T15:21:30.004Z error: Unhandled error in GET /v1/users/9120/settings reqId=k3f9a0c
+TypeError: Cannot read properties of undefined (reading 'preferences')
+    at mapSettings (/app/src/services/settingsService.js:42:27)
+    at SettingsController.get (/app/src/controllers/settingsController.js:18:20)
+    at Layer.handle [as handle_request] (/app/node_modules/express/lib/router/layer.js:95:5)
+    at next (/app/node_modules/express/lib/router/route.js:144:13)
+    at Route.dispatch (/app/node_modules/express/lib/router/route.js:114:3)
+    at /app/node_modules/express/lib/router/index.js:284:15
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+2026-03-14T15:22:15.981Z info: POST /v1/sessions 201 44ms reqId=k3f9a11
+2026-03-14T15:23:02.660Z error: Failed to sync avatar for user 9120 reqId=k3f9a19
+Error: Avatar upload failed
+    at AvatarService.sync (/app/src/services/avatarService.ts:88:13)
+    at async UserController.updateAvatar (/app/src/controllers/userController.ts:61:5) {
+  [cause]: Error: connect ECONNREFUSED 10.0.4.17:9000
+      at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1595:16)
+      at S3Client.putObject (/app/src/clients/s3Client.ts:34:11)
+      at AvatarService.sync (/app/src/services/avatarService.ts:84:7) {
+    errno: -111,
+    code: 'ECONNREFUSED',
+    syscall: 'connect',
+    address: '10.0.4.17',
+    port: 9000
+  }
+}
+2026-03-14T15:24:48.219Z error: Unhandled error in GET /v1/users/9177/settings reqId=k3f9a23
+TypeError: Cannot read properties of undefined (reading 'preferences')
+    at mapSettings (/app/src/services/settingsService.js:42:27)
+    at SettingsController.get (/app/src/controllers/settingsController.js:18:20)
+    at Layer.handle [as handle_request] (/app/node_modules/express/lib/router/layer.js:95:5)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+2026-03-14T15:25:31.447Z warn: Upstream profile-service responded in 2210ms reqId=k3f9a2b
+2026-03-14T15:26:09.090Z error: JSON body rejected reqId=k3f9a30
+SyntaxError: Unexpected token } in JSON at position 118
+    at JSON.parse (<anonymous>)
+    at parse (/app/node_modules/body-parser/lib/types/json.js:92:19)
+    at /app/node_modules/body-parser/lib/read.js:128:18
+    at invokeCallback (/app/node_modules/raw-body/index.js:238:16)
+    at IncomingMessage.onEnd (/app/node_modules/raw-body/index.js:287:7)
+2026-03-14T15:27:55.713Z error: Unhandled error in GET /v1/users/9203/settings reqId=k3f9a3d
+TypeError: Cannot read properties of undefined (reading 'preferences')
+    at mapSettings (/app/src/services/settingsService.js:42:27)
+    at SettingsController.get (/app/src/controllers/settingsController.js:18:20)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+2026-03-14T15:29:10.300Z error: uncaughtException - shutting down
+RangeError: Maximum call stack size exceeded
+    at flatten (/app/src/utils/tree.js:14:17)
+    at flatten (/app/src/utils/tree.js:17:12)
+    at flatten (/app/src/utils/tree.js:17:12)
+    at buildMenu (/app/src/services/menuService.js:55:10)
+    at Timeout._onTimeout (/app/src/jobs/menuRefresh.js:21:5)
+    at listOnTimeout (node:internal/timers:581:17)

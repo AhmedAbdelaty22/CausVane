@@ -1,0 +1,69 @@
+2026/03/14 19:30:00 INFO starting ingest-worker version=1.14.2 workers=8
+2026/03/14 19:30:04 INFO connected to queue amqp://mq.internal:5672
+2026/03/14 19:31:12 WARN retrying batch 5521 after transient error: i/o timeout
+2026/03/14 19:31:40 ERROR failed to decode message 5530: unexpected end of JSON input (decoder/envelope.go:63)
+2026/03/14 19:32:05 http: panic serving 10.0.3.9:51422: runtime error: invalid memory address or nil pointer dereference
+goroutine 482 [running]:
+net/http.(*conn).serve.func1()
+	/usr/local/go/src/net/http/server.go:1898 +0xbe
+panic({0x7a1c20?, 0xb5d3f0?})
+	/usr/local/go/src/runtime/panic.go:770 +0x132
+github.com/acme/ingest/internal/handlers.(*BatchHandler).Submit(0xc0001a2000, {0x8f1a60, 0xc0002d40e0}, 0xc0003be000)
+	/build/internal/handlers/batch.go:91 +0x2c5
+net/http.HandlerFunc.ServeHTTP(0xc00011e3c0?, {0x8f1a60?, 0xc0002d40e0?}, 0x0?)
+	/usr/local/go/src/net/http/server.go:2166 +0x29
+github.com/go-chi/chi/v5.(*Mux).routeHTTP(0xc0000b2180, {0x8f1a60, 0xc0002d40e0}, 0xc0003be000)
+	/go/pkg/mod/github.com/go-chi/chi/v5@v5.0.12/mux.go:459 +0x21c
+net/http.(*conn).serve(0xc0002a6000, {0x8f2d38, 0xc000124690})
+	/usr/local/go/src/net/http/server.go:2039 +0x5e8
+created by net/http.(*Server).Serve in goroutine 1
+	/usr/local/go/src/net/http/server.go:3285 +0x4b4
+2026/03/14 19:33:27 ERROR failed to decode message 5544: unexpected end of JSON input (decoder/envelope.go:63)
+2026/03/14 19:34:50 INFO flushed 1200 records to warehouse in 842ms
+panic: runtime error: index out of range [12] with length 12
+
+goroutine 1 [running]:
+github.com/acme/ingest/internal/partition.Assign({0xc000180000, 0xc, 0x10}, 0xc)
+	/build/internal/partition/assign.go:47 +0x1f8
+github.com/acme/ingest/internal/worker.(*Pool).Rebalance(0xc0000a8000)
+	/build/internal/worker/pool.go:133 +0x9a
+main.main()
+	/build/cmd/ingest-worker/main.go:58 +0x3d1
+
+goroutine 18 [chan receive]:
+github.com/acme/ingest/internal/worker.(*Pool).loop(0xc0000a8000)
+	/build/internal/worker/pool.go:71 +0x45
+created by github.com/acme/ingest/internal/worker.NewPool in goroutine 1
+	/build/internal/worker/pool.go:52 +0x118
+exit status 2
+PHP Fatal error:  Uncaught App\Exceptions\CartException: Cart 5512 has no shipping method in /var/www/shop/app/Services/CheckoutService.php:142
+Stack trace:
+#0 /var/www/shop/app/Http/Controllers/CheckoutController.php(57): App\Services\CheckoutService->finalize(Object(App\Models\Cart))
+#1 /var/www/shop/vendor/laravel/framework/src/Illuminate/Routing/Controller.php(54): App\Http\Controllers\CheckoutController->store(Object(Illuminate\Http\Request))
+#2 /var/www/shop/vendor/laravel/framework/src/Illuminate/Routing/Router.php(799): Illuminate\Routing\Route->run()
+#3 /var/www/shop/public/index.php(51): Illuminate\Foundation\Http\Kernel->handle(Object(Illuminate\Http\Request))
+#4 {main}
+  thrown in /var/www/shop/app/Services/CheckoutService.php on line 142
+/srv/reports/app/services/revenue_report.rb:64:in `fetch': undefined method `amount_cents' for nil:NilClass (NoMethodError)
+	from /srv/reports/app/services/revenue_report.rb:31:in `block in build'
+	from /srv/reports/vendor/bundle/ruby/3.3.0/gems/activerecord-7.1.3/lib/active_record/relation/delegation.rb:88:in `each'
+	from /srv/reports/app/services/revenue_report.rb:29:in `build'
+	from /srv/reports/app/jobs/nightly_report_job.rb:12:in `perform'
+thread 'tokio-runtime-worker' panicked at src/pipeline/transform.rs:118:27:
+called `Option::unwrap()` on a `None` value
+stack backtrace:
+   0: rust_begin_unwind
+             at /rustc/9b00956e56009bab2aa15d7bff10916599e3d6d6/library/std/src/panicking.rs:645:5
+   1: core::panicking::panic_fmt
+             at /rustc/9b00956e56009bab2aa15d7bff10916599e3d6d6/library/core/src/panicking.rs:72:14
+   2: etl::pipeline::transform::normalize_row
+             at ./src/pipeline/transform.rs:118:27
+   3: etl::pipeline::run
+             at ./src/pipeline/mod.rs:74:21
+   4: tokio::runtime::task::raw::poll
+             at /home/build/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.36.0/src/runtime/task/raw.rs:271:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+Program received signal SIGSEGV, Segmentation fault.
+#0  0x000055555555a1c4 in ImageCache::evict (this=0x0, key=...) at src/cache/image_cache.cpp:203
+#1  0x000055555555b0f2 in Thumbnailer::render (this=0x7fffffffd8a0, request=...) at src/thumbnailer.cpp:88
+#2  0x0000555555556e31 in main (argc=2, argv=0x7fffffffdb48) at src/main.cpp:41

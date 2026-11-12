@@ -1,0 +1,117 @@
+2026-03-14 09:12:01.104  INFO 4821 --- [           main] c.a.orders.OrdersApplication             : Starting OrdersApplication v2.8.1 using Java 21.0.2 with PID 4821
+2026-03-14 09:12:03.557  INFO 4821 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path ''
+2026-03-14 09:12:03.571  INFO 4821 --- [           main] c.a.orders.OrdersApplication             : Started OrdersApplication in 2.911 seconds
+2026-03-14 09:14:22.310  INFO 4821 --- [nio-8080-exec-1] c.a.orders.web.OrderController           : POST /api/orders traceId=7f3a9c21d4e84b10 customer=10442
+2026-03-14 09:14:22.318 DEBUG 4821 --- [nio-8080-exec-1] c.a.orders.repo.OrderRepository          : Executing SQL:
+    INSERT INTO orders (id, customer_id, status, total_cents, created_at)
+    VALUES (?, ?, ?, ?, ?)
+2026-03-14 09:14:22.401  INFO 4821 --- [nio-8080-exec-1] c.a.orders.service.OrderService          : Order 88120 created traceId=7f3a9c21d4e84b10
+2026-03-14 09:15:47.902  WARN 4821 --- [nio-8080-exec-3] c.a.orders.client.InventoryClient        : Inventory service slow: 2140 ms for sku=SKU-99341 traceId=a41c07be55f24d9e
+2026-03-14 09:16:03.118 ERROR 4821 --- [nio-8080-exec-4] c.a.orders.web.GlobalExceptionHandler    : Request failed: POST /api/orders traceId=c90b12aa3e7745f1
+com.acme.orders.service.OrderProcessingException: Could not place order for customer 10457
+	at com.acme.orders.service.OrderService.placeOrder(OrderService.java:87)
+	at com.acme.orders.web.OrderController.create(OrderController.java:41)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:255)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:167)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Caused by: org.springframework.dao.DataAccessResourceFailureException: Unable to acquire JDBC Connection
+	at org.springframework.orm.jpa.vendor.HibernateJpaDialect.convertHibernateAccessException(HibernateJpaDialect.java:259)
+	at com.acme.orders.repo.OrderRepository.save(OrderRepository.java:142)
+	at com.acme.orders.service.OrderService.placeOrder(OrderService.java:83)
+	... 7 more
+Caused by: java.sql.SQLTransientConnectionException: HikariPool-1 - Connection is not available, request timed out after 30000ms.
+	at com.zaxxer.hikari.pool.HikariPool.createTimeoutException(HikariPool.java:696)
+	at com.zaxxer.hikari.pool.HikariPool.getConnection(HikariPool.java:181)
+	at com.zaxxer.hikari.HikariDataSource.getConnection(HikariDataSource.java:100)
+	at com.acme.orders.repo.ConnectionProvider.acquire(ConnectionProvider.java:58)
+	at com.acme.orders.repo.OrderRepository.save(OrderRepository.java:139)
+	... 9 more
+2026-03-14 09:16:03.120  INFO 4821 --- [nio-8080-exec-4] c.a.orders.web.OrderController           : Responded 503 in 30012 ms traceId=c90b12aa3e7745f1
+2026-03-14 09:16:41.775 ERROR 4821 --- [nio-8080-exec-7] c.a.orders.web.GlobalExceptionHandler    : Request failed: GET /api/orders/88121/invoice traceId=1be7d9c04a6f4c22
+java.lang.NullPointerException: Cannot invoke "com.acme.orders.model.Address.getCountry()" because the return value of "com.acme.orders.model.Customer.getBillingAddress()" is null
+	at com.acme.orders.billing.TaxCalculator.rateFor(TaxCalculator.java:64)
+	at com.acme.orders.billing.InvoiceBuilder.build(InvoiceBuilder.java:112)
+	at com.acme.orders.web.InvoiceController.invoice(InvoiceController.java:38)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:255)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-03-14 09:17:10.006  WARN 4821 --- [nio-8080-exec-2] c.a.orders.client.InventoryClient        : Inventory service slow: 3310 ms for sku=SKU-10022 traceId=5d2e8f7719ab4c03
+2026-03-14 09:18:03.344 ERROR 4821 --- [nio-8080-exec-5] c.a.orders.web.GlobalExceptionHandler    : Request failed: POST /api/orders traceId=e4420a9b6c1d4f88
+com.acme.orders.service.OrderProcessingException: Could not place order for customer 10461
+	at com.acme.orders.service.OrderService.placeOrder(OrderService.java:87)
+	at com.acme.orders.web.OrderController.create(OrderController.java:41)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:255)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Caused by: org.springframework.dao.DataAccessResourceFailureException: Unable to acquire JDBC Connection
+	at org.springframework.orm.jpa.vendor.HibernateJpaDialect.convertHibernateAccessException(HibernateJpaDialect.java:259)
+	at com.acme.orders.repo.OrderRepository.save(OrderRepository.java:142)
+	at com.acme.orders.service.OrderService.placeOrder(OrderService.java:83)
+	... 5 more
+Caused by: java.sql.SQLTransientConnectionException: HikariPool-1 - Connection is not available, request timed out after 30000ms.
+	at com.zaxxer.hikari.pool.HikariPool.createTimeoutException(HikariPool.java:696)
+	at com.zaxxer.hikari.pool.HikariPool.getConnection(HikariPool.java:181)
+	at com.zaxxer.hikari.HikariDataSource.getConnection(HikariDataSource.java:100)
+	at com.acme.orders.repo.ConnectionProvider.acquire(ConnectionProvider.java:58)
+	at com.acme.orders.repo.OrderRepository.save(OrderRepository.java:139)
+	... 7 more
+2026-03-14 09:18:40.512  INFO 4821 --- [   scheduling-1] c.a.orders.jobs.ReconciliationJob        : Reconciliation started for 214 orders
+2026-03-14 09:18:41.093 ERROR 4821 --- [   scheduling-1] c.a.orders.jobs.ReconciliationJob        : Reconciliation failed for batch 7
+java.lang.IllegalStateException: Ledger out of balance by 1299 cents for order 88007
+	at com.acme.orders.jobs.LedgerVerifier.verify(LedgerVerifier.kt:51)
+	at com.acme.orders.jobs.ReconciliationJob.reconcileBatch(ReconciliationJob.kt:77)
+	at com.acme.orders.jobs.ReconciliationJob.run(ReconciliationJob.kt:34)
+	at org.springframework.scheduling.support.ScheduledMethodRunnable.run(ScheduledMethodRunnable.java:84)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-03-14 09:19:55.230 ERROR 4821 --- [nio-8080-exec-9] c.a.orders.web.GlobalExceptionHandler    : Request failed: GET /api/orders/88130/invoice traceId=93cf2d1e8b7a4410
+java.lang.NullPointerException: Cannot invoke "com.acme.orders.model.Address.getCountry()" because the return value of "com.acme.orders.model.Customer.getBillingAddress()" is null
+	at com.acme.orders.billing.TaxCalculator.rateFor(TaxCalculator.java:64)
+	at com.acme.orders.billing.InvoiceBuilder.build(InvoiceBuilder.java:112)
+	at com.acme.orders.web.InvoiceController.invoice(InvoiceController.java:38)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-03-14 09:21:12.660 ERROR 4821 --- [nio-8080-exec-6] c.a.orders.client.PaymentClient          : Payment gateway unreachable after 3 attempts traceId=0aa5be7742c94d16
+2026-03-14 09:21:12.661 ERROR 4821 --- [nio-8080-exec-6] c.a.orders.web.GlobalExceptionHandler    : Request failed: POST /api/orders/88133/pay traceId=0aa5be7742c94d16
+com.acme.orders.client.PaymentGatewayException: Charge failed for order 88133
+	at com.acme.orders.client.PaymentClient.charge(PaymentClient.java:96)
+	at com.acme.orders.service.PaymentService.pay(PaymentService.java:52)
+	at com.acme.orders.web.PaymentController.pay(PaymentController.java:29)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Caused by: java.net.SocketTimeoutException: Read timed out
+	at java.base/sun.nio.ch.NioSocketImpl.timedRead(NioSocketImpl.java:278)
+	at java.base/java.net.Socket$SocketInputStream.read(Socket.java:1099)
+	at org.apache.http.impl.execchain.MainClientExec.execute(MainClientExec.java:272)
+	at com.acme.orders.client.PaymentClient.charge(PaymentClient.java:91)
+	... 4 more
+2026-03-14 09:22:30.004  WARN 4821 --- [nio-8080-exec-1] c.a.orders.client.InventoryClient        : Inventory service slow: 2987 ms for sku=SKU-55120 traceId=bb19e03c7d5a4e61
+2026-03-14 09:24:18.871 ERROR 4821 --- [nio-8080-exec-8] c.a.orders.web.GlobalExceptionHandler    : Request failed: POST /api/orders traceId=27d4f6a1c09e4b35
+com.acme.orders.service.OrderProcessingException: Could not place order for customer 10499
+	at com.acme.orders.service.OrderService.placeOrder(OrderService.java:87)
+	at com.acme.orders.web.OrderController.create(OrderController.java:41)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Caused by: org.springframework.dao.DataAccessResourceFailureException: Unable to acquire JDBC Connection
+	at org.springframework.orm.jpa.vendor.HibernateJpaDialect.convertHibernateAccessException(HibernateJpaDialect.java:259)
+	at com.acme.orders.repo.OrderRepository.save(OrderRepository.java:142)
+	... 4 more
+Caused by: java.sql.SQLTransientConnectionException: HikariPool-1 - Connection is not available, request timed out after 30000ms.
+	at com.zaxxer.hikari.pool.HikariPool.createTimeoutException(HikariPool.java:696)
+	at com.zaxxer.hikari.HikariDataSource.getConnection(HikariDataSource.java:100)
+	at com.acme.orders.repo.ConnectionProvider.acquire(ConnectionProvider.java:58)
+	at com.acme.orders.repo.OrderRepository.save(OrderRepository.java:139)
+	... 6 more
+2026-03-14 09:25:02.410  INFO 4821 --- [ionShutdownHook] c.a.orders.OrdersApplication             : Shutting down
+Exception in thread "pool-3-thread-2" java.lang.OutOfMemoryError: Java heap space
+	at java.base/java.util.Arrays.copyOf(Arrays.java:3512)
+	at java.base/java.io.ByteArrayOutputStream.ensureCapacity(ByteArrayOutputStream.java:100)
+	at com.acme.orders.export.CsvExporter.exportAll(CsvExporter.java:73)
+	at com.acme.orders.export.ExportTask.run(ExportTask.java:27)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
