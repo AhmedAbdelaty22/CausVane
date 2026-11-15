@@ -105,7 +105,7 @@ if you added it.
 
 For a proper installer with a Start-menu entry and an entry under "Installed apps",
 install the WiX Toolset, change `app-image` to `msi` in `packaging\build-app.bat`,
-and run it again. It produces `dist\LogReader-1.0.1.msi`; double-click to install.
+and run it again. It produces `dist\LogReader-1.1.0.msi`; double-click to install.
 
 **Option B: the JAR**
 
@@ -350,7 +350,7 @@ Status of each system:
 | Linux | Not run yet. Code audited and adjusted for Linux; run the self-test to confirm |
 
 **Automatic check on all three.** `.github/workflows/build.yml` makes GitHub run,
-on Linux, Windows and macOS for every push: the 111 tests, the CLI on every sample,
+on Linux, Windows and macOS for every push: the 119 tests, the CLI on every sample,
 the GUI self-test, and the native app build. It starts working as soon as the
 project is pushed to a GitHub repository (section 3, option B); each run also
 attaches the built app for each system as a download.
@@ -449,5 +449,5 @@ downloads. Add C when people without Java need it.
 
 1. Change `<version>` in `pom.xml` and `VERSION` in
    `src/main/java/io/logreader/Main.java`.
-2. `mvn clean package` (runs the 111 tests).
+2. `mvn clean package` (runs the 119 tests).
 3. Publish the new `target/LogReader.jar` through whichever channel you chose.

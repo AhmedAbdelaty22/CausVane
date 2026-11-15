@@ -7,8 +7,11 @@ framework it was built with, in plain-text or JSON form.
 
 For every error it also explains, in plain language, what the error means, the
 likely causes and what to check next, using a built-in offline knowledge base of
-about 60 common failure types (database, network, memory, null references, bad
+over 50 rules covering common failure types (database, network, memory, null references, bad
 input, permissions, deployment problems, crashes and more).
+
+Full documentation, with diagrams of how it works, is in
+[docs/LogReader-Documentation.pdf](docs/LogReader-Documentation.pdf).
 
 ## Build
 
@@ -82,6 +85,10 @@ one byte offset per 256 lines are kept in memory, so file size is not a limit.
   sample text. Trace IDs are tracked for up to 500 occurrences per error.
 - **Live tail** publishes an error once the next event starts or the writer pauses,
   so a stack trace still being written is never cut in half.
+- **Untrusted input.** Log text is treated as hostile: control and terminal escape characters are
+  neutralised on reading, log content is escaped in Markdown reports, and the number of distinct
+  errors listed is capped at 10,000 (everything is still counted).
+- `--output` never replaces the log being analyzed, and replaces another existing file only with `--force`.
 - Files are decoded as UTF-8. Lines longer than 64 KB are truncated.
 
 To treat more packages as framework code, pass extra prefixes to

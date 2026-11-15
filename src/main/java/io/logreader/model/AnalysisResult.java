@@ -12,6 +12,8 @@ import java.util.List;
  * @param warningCount occurrences at WARN level
  * @param groups       deduplicated errors, most frequent first
  * @param timeline     errors and warnings per slice of time, in chronological order
+ * @param unlistedOccurrences problems counted in the totals but not listed, because the log held more
+ *                     distinct errors than the listing limit
  */
 public record AnalysisResult(
         Path file,
@@ -23,7 +25,8 @@ public record AnalysisResult(
         LocalDateTime firstTimestamp,
         LocalDateTime lastTimestamp,
         List<ErrorGroup> groups,
-        List<TimeBucket> timeline) {
+        List<TimeBucket> timeline,
+        long unlistedOccurrences) {
 
     public AnalysisResult {
         groups = List.copyOf(groups);

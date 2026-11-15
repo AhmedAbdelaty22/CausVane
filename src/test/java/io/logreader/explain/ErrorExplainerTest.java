@@ -95,7 +95,7 @@ class ErrorExplainerTest {
         Explanation e = explain("go-polyglot-crashes.log", "CheckoutService.php:142");
         assertFalse(e.recognised());
         assertEquals("Unclassified", e.category());
-        assertEquals("The application raised CartException", e.title());
+        assertEquals("The application raised `CartException`", e.title());
         assertTrue(e.meaning().contains("not in LogReader's knowledge base"));
         assertNotNull(e.detail());
     }

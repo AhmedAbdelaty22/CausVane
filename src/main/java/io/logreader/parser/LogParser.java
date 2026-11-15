@@ -25,6 +25,9 @@ public final class LogParser {
     /** Characters kept per stored line. Bounds memory and regex work on pathological (e.g. base64) lines. */
     public static final int MAX_LINE_CHARS = 2000;
 
+    /** Characters kept per event in total, whatever its number of lines. */
+    public static final int MAX_EVENT_CHARS = 200_000;
+
     /** Lines that always begin a new event even without a timestamp (raw crash output). */
     private static final Pattern STRONG_START = Pattern.compile(
             "^(?:panic: |fatal error: |Unhandled exception|Unhandled Exception|Exception in thread |thread '[^']*' panicked"
@@ -155,10 +158,12 @@ public final class LogParser {
         String message = clip(record.message());
         List<String> lines = new ArrayList<>(record.stackLines().size() + 1);
         lines.add(message);
+        int storedChars = message.length();
         for (String stackLine : record.stackLines()) {
-            if (lines.size() >= MAX_EVENT_LINES) {
+            if (lines.size() >= MAX_EVENT_LINES || storedChars >= MAX_EVENT_CHARS) {
                 break;
             }
+            storedChars += Math.min(stackLine.length(), MAX_LINE_CHARS);
             lines.add(clip(stackLine));
         }
         Severity severity = record.severity();
@@ -191,6 +196,7 @@ public final class LogParser {
         final Severity severity;
         final List<String> lines = new ArrayList<>();
         int physicalLines;
+        int storedChars;
         boolean pythonSeen;
         boolean pythonOpen;
         boolean goTrace;
@@ -206,8 +212,9 @@ public final class LogParser {
         void append(String rawLine) {
             String line = clip(rawLine);
             physicalLines++;
-            if (lines.size() < MAX_EVENT_LINES) {
+            if (lines.size() < MAX_EVENT_LINES && storedChars < MAX_EVENT_CHARS) {
                 lines.add(line);
+                storedChars += line.length();
             }
             absorbNext = false;
             if (line.isEmpty()) {

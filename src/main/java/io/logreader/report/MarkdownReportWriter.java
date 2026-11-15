@@ -14,7 +14,7 @@ public final class MarkdownReportWriter implements ReportWriter {
     public void write(AnalysisResult result, List<ErrorGroup> groups, Appendable out) throws IOException {
         StringBuilder sb = new StringBuilder();
         sb.append("# LogReader Report\n\n");
-        sb.append("- **File:** `").append(result.file().toAbsolutePath()).append("`\n");
+        sb.append("- **File:** ").append(Formats.mdCode(result.file().toAbsolutePath().toString())).append('\n');
         sb.append("- **Size:** ").append(Formats.bytes(result.fileSize())).append('\n');
         sb.append("- **Generated:** ").append(Formats.timestamp(LocalDateTime.now())).append("\n\n");
 
@@ -25,6 +25,9 @@ public final class MarkdownReportWriter implements ReportWriter {
         sb.append("| Total errors | ").append(Formats.count(result.errorCount())).append(" |\n");
         sb.append("| Warnings | ").append(Formats.count(result.warningCount())).append(" |\n");
         sb.append("| Unique error types | ").append(result.uniqueErrorTypes()).append(" |\n");
+        if (result.unlistedOccurrences() > 0) {
+            sb.append("| Not listed (over the listing limit) | ").append(Formats.count(result.unlistedOccurrences())).append(" occurrences |\n");
+        }
         sb.append("| Time span | ").append(Formats.duration(result.timeSpan())).append(" (")
                 .append(Formats.timestamp(result.firstTimestamp())).append(" → ")
                 .append(Formats.timestamp(result.lastTimestamp())).append(") |\n\n");
@@ -38,7 +41,7 @@ public final class MarkdownReportWriter implements ReportWriter {
             int n = 0;
             for (ErrorGroup g : groups) {
                 sb.append("| ").append(++n).append(" | ").append(g.severity()).append(" | ")
-                        .append(cell(g.displayType())).append(" | `").append(cell(g.location())).append("` | ")
+                        .append(Formats.mdText(g.displayType())).append(" | ").append(Formats.mdCode(g.location())).append(" | ")
                         .append(Formats.count(g.count())).append(" | ").append(Formats.timestamp(g.firstSeen()))
                         .append(" | ").append(Formats.timestamp(g.lastSeen())).append(" |\n");
             }
@@ -46,15 +49,11 @@ public final class MarkdownReportWriter implements ReportWriter {
             n = 0;
             for (ErrorGroup g : groups) {
                 sb.append("### ").append(++n).append(". [").append(g.severity()).append("] ")
-                        .append(g.displayType()).append(" — ").append(g.location()).append("\n\n");
+                        .append(Formats.mdText(g.displayType())).append(" — ").append(Formats.mdText(g.location())).append("\n\n");
                 SummaryFormatter.appendDetails(sb, result, g);
                 sb.append('\n');
             }
         }
         out.append(sb);
-    }
-
-    private static String cell(String text) {
-        return text == null ? "" : text.replace("|", "\\|");
     }
 }

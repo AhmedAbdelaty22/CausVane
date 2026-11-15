@@ -102,7 +102,7 @@ public final class ErrorExplainer {
                 if (value == null || value.isBlank()) {
                     return null;
                 }
-                text = text.replace(token, Formats.truncate(value.strip(), 160));
+                text = text.replace(token, plain(Formats.truncate(value.strip(), 160)));
             }
         }
         return text;
@@ -113,8 +113,8 @@ public final class ErrorExplainer {
         List<String> lines = new ArrayList<>();
         StackFrame pin = group.pinpoint();
         if (pin != null) {
-            String where = "`" + pin.location() + "`"
-                    + (pin.qualifiedFunction() != null ? " inside `" + pin.qualifiedFunction() + "`" : "");
+            String where = code(pin.location())
+                    + (pin.qualifiedFunction() != null ? " inside " + code(pin.qualifiedFunction()) : "");
             if (pin.application()) {
                 lines.add("It starts at " + where + ". That is your application's own code, so it is the first place to look.");
             } else {
@@ -127,11 +127,11 @@ public final class ErrorExplainer {
         }
         if (group.rootCauseType() != null && group.errorType() != null
                 && !group.rootCauseType().equals(group.errorType())) {
-            lines.add("The log reports it as `" + ErrorGroup.simpleName(group.errorType())
-                    + "`, but that is only the outer wrapper. The underlying cause is `"
-                    + ErrorGroup.simpleName(group.rootCauseType()) + "`"
+            lines.add("The log reports it as " + code(ErrorGroup.simpleName(group.errorType()))
+                    + ", but that is only the outer wrapper. The underlying cause is "
+                    + code(ErrorGroup.simpleName(group.rootCauseType()))
                     + (group.rootCauseMessage() != null
-                    ? ": " + Formats.truncate(group.rootCauseMessage(), 200).replaceFirst("[.\\s]+$", "") : "") + ".");
+                    ? ": " + code(Formats.truncate(group.rootCauseMessage(), 200).replaceFirst("[.\\s]+$", "")) : "") + ".");
         }
         if (group.count() > 1) {
             lines.add("It happened " + Formats.count(group.count()) + " times"
@@ -145,10 +145,22 @@ public final class ErrorExplainer {
         return lines;
     }
 
+    /**
+     * Text taken from the log, made safe to sit inside a {@code `code span`}: explanations are rendered as
+     * Markdown and HTML, and a value must never be able to close its span and inject markup of its own.
+     */
+    private static String plain(String untrusted) {
+        return untrusted.replace('`', '\'').replace('\n', ' ').replace('\r', ' ');
+    }
+
+    private static String code(String untrusted) {
+        return "`" + plain(untrusted) + "`";
+    }
+
     private static Explanation generic(ErrorGroup group, List<String> context) {
         boolean hasType = group.errorType() != null;
         String title = hasType
-                ? "The application raised " + ErrorGroup.simpleName(group.errorType())
+                ? "The application raised " + code(ErrorGroup.simpleName(group.errorType()))
                 : "The application logged " + switch (group.severity()) {
                     case FATAL -> "a fatal error";
                     case ERROR -> "an error";
@@ -161,7 +173,7 @@ public final class ErrorExplainer {
                 : "This is a message the developers chose to log at this level; it has no exception attached. "
                 + "Its wording is the description of the problem.";
         String detail = group.message() == null || group.message().isBlank() ? null
-                : "Message: " + Formats.truncate(group.message(), 300);
+                : "Message: " + code(Formats.truncate(group.message(), 300));
         return new Explanation("Unclassified", title, meaning, detail, context,
                 List.of("A condition the code explicitly checks for and rejects",
                         "Unexpected input or state reaching this part of the application"),

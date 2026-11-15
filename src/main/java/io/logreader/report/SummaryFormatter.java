@@ -19,9 +19,9 @@ public final class SummaryFormatter {
     /** Summary of one deduplicated error, suitable for pasting into a support ticket. */
     public static String errorSummary(AnalysisResult result, ErrorGroup group) {
         StringBuilder sb = new StringBuilder();
-        sb.append("**[").append(group.severity()).append("] ").append(group.displayType());
+        sb.append("**[").append(group.severity()).append("] ").append(Formats.mdText(group.displayType()));
         if (group.pinpoint() != null) {
-            sb.append(" at ").append(group.location());
+            sb.append(" at ").append(Formats.mdText(group.location()));
         }
         sb.append("**\n\n");
         appendDetails(sb, result, group);
@@ -31,7 +31,7 @@ public final class SummaryFormatter {
     /** Overview of the top errors of an analysis. */
     public static String overview(AnalysisResult result, List<ErrorGroup> groups, int top) {
         StringBuilder sb = new StringBuilder();
-        sb.append("**Log analysis: ").append(result.file().getFileName()).append("**\n\n");
+        sb.append("**Log analysis: ").append(Formats.mdText(String.valueOf(result.file().getFileName()))).append("**\n\n");
         sb.append("- Lines scanned: ").append(Formats.count(result.totalLines())).append('\n');
         sb.append("- Errors: ").append(Formats.count(result.errorCount()))
                 .append(" (").append(result.uniqueErrorTypes()).append(" unique), warnings: ")
@@ -45,10 +45,10 @@ public final class SummaryFormatter {
                 sb.append("… and ").append(groups.size() - top).append(" more\n");
                 break;
             }
-            sb.append(n).append(". [").append(g.severity()).append("] ").append(g.displayType())
-                    .append(" at `").append(g.location()).append("` ×").append(g.count());
+            sb.append(n).append(". [").append(g.severity()).append("] ").append(Formats.mdText(g.displayType()))
+                    .append(" at ").append(Formats.mdCode(g.location())).append(" ×").append(g.count());
             if (g.rootCauseType() != null && !g.rootCauseType().equals(g.errorType())) {
-                sb.append(" (root cause: ").append(ErrorGroup.simpleName(g.rootCauseType())).append(')');
+                sb.append(" (root cause: ").append(Formats.mdText(ErrorGroup.simpleName(g.rootCauseType()))).append(')');
             }
             sb.append('\n');
         }
@@ -74,36 +74,37 @@ public final class SummaryFormatter {
     }
 
     static void appendDetails(StringBuilder sb, AnalysisResult result, ErrorGroup group) {
-        sb.append("- **Log file:** ").append(result.file().getFileName()).append('\n');
+        sb.append("- **Log file:** ").append(Formats.mdText(String.valueOf(result.file().getFileName()))).append('\n');
         StackFrame pin = group.pinpoint();
         if (pin != null) {
-            sb.append("- **Pinpoint:** `").append(pin.location()).append('`');
+            sb.append("- **Pinpoint:** ").append(Formats.mdCode(pin.location()));
             if (pin.qualifiedFunction() != null) {
-                sb.append(" in `").append(pin.qualifiedFunction()).append('`');
+                sb.append(" in ").append(Formats.mdCode(pin.qualifiedFunction()));
             }
             sb.append(pin.application() ? " (application code)" : " (framework / library code)").append('\n');
             if (pin.file() != null && !pin.file().equals(pin.fileName())) {
-                sb.append("- **File path:** `").append(pin.file()).append("`\n");
+                sb.append("- **File path:** ").append(Formats.mdCode(pin.file())).append('\n');
             }
         }
         if (group.errorType() != null) {
-            sb.append("- **Error:** `").append(group.errorType()).append('`');
+            sb.append("- **Error:** ").append(Formats.mdCode(group.errorType()));
             if (group.message() != null && !group.message().isBlank()) {
-                sb.append(" — ").append(Formats.truncate(group.message(), 300));
+                sb.append(" — ").append(Formats.mdText(Formats.truncate(group.message(), 300)));
             }
             sb.append('\n');
         } else if (group.message() != null) {
-            sb.append("- **Message:** ").append(Formats.truncate(group.message(), 300)).append('\n');
+            sb.append("- **Message:** ").append(Formats.mdText(Formats.truncate(group.message(), 300))).append('\n');
         }
         if (group.rootCauseType() != null) {
-            sb.append("- **Root cause:** `").append(group.rootCauseType()).append('`');
+            sb.append("- **Root cause:** ").append(Formats.mdCode(group.rootCauseType()));
             if (group.rootCauseMessage() != null) {
-                sb.append(": ").append(Formats.truncate(group.rootCauseMessage(), 300));
+                sb.append(": ").append(Formats.mdText(Formats.truncate(group.rootCauseMessage(), 300)));
             }
             sb.append('\n');
         }
         if (group.chain().size() > 1) {
-            sb.append("- **Exception chain:** ").append(String.join(" → ", group.chain())).append('\n');
+            sb.append("- **Exception chain:** ")
+                    .append(String.join(" → ", group.chain().stream().map(Formats::mdText).toList())).append('\n');
         }
         sb.append("- **Occurrences:** ").append(Formats.count(group.count()))
                 .append(" (first ").append(Formats.timestamp(group.firstSeen()))
@@ -111,7 +112,7 @@ public final class SummaryFormatter {
         sb.append("- **Log lines:** first at ").append(group.firstLine()).append(", last at ").append(group.lastLine()).append('\n');
         if (!group.traceIds().isEmpty()) {
             sb.append("- **Trace IDs:** ")
-                    .append(String.join(", ", group.traceIds().stream().limit(5).toList()));
+                    .append(String.join(", ", group.traceIds().stream().limit(5).map(Formats::mdCode).toList()));
             if (group.traceIds().size() > 5) {
                 sb.append(" (+").append(group.traceIds().size() - 5).append(" more)");
             }
@@ -121,15 +122,17 @@ public final class SummaryFormatter {
         if (!group.samples().isEmpty()) {
             LogEvent sample = group.samples().get(0);
             int pinIndex = pin == null ? -1 : pin.eventLineIndex();
-            sb.append("\n```text\n");
             int limit = Math.min(sample.lines().size(), Math.max(EXCERPT_LINES, pinIndex + 3));
+            // the fence is longer than any backtick run inside, so the log text cannot end the block early
+            String fence = Formats.mdFence(sample.lines().subList(0, limit));
+            sb.append('\n').append(fence).append("text\n");
             for (int i = 0; i < limit; i++) {
                 sb.append(i == pinIndex ? ">>> " : "    ").append(Formats.truncate(sample.lines().get(i), 400)).append('\n');
             }
             if (limit < sample.lines().size()) {
                 sb.append("    … ").append(sample.lines().size() - limit).append(" more lines\n");
             }
-            sb.append("```\n");
+            sb.append(fence).append('\n');
         }
     }
 }

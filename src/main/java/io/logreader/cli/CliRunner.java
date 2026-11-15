@@ -7,6 +7,7 @@ import io.logreader.explain.Explanation;
 import io.logreader.io.ContextBuilder;
 import io.logreader.io.ContextBuilder.ContextLine;
 import io.logreader.io.LogSession;
+import io.logreader.io.TextSanitizer;
 import io.logreader.model.AnalysisResult;
 import io.logreader.model.ErrorGroup;
 import io.logreader.model.Severity;
@@ -48,6 +49,7 @@ public final class CliRunner {
               -C, --context <N>                   log lines shown before/after each error (default 3)
                   --format <text|markdown|json>   output format (default text)
               -o, --output <file>                 write the report to a file instead of stdout
+                  --force                         allow --output to replace an existing file
               -f, --follow                        keep watching the file and print new errors (like tail -f)
                   --no-color                      disable ANSI colors
               -h, --help                          show this help
@@ -69,6 +71,7 @@ public final class CliRunner {
     private String format = "text";
     private Path output;
     private boolean follow;
+    private boolean force;
     private boolean color = System.console() != null && System.getenv("NO_COLOR") == null;
     private Path file;
 
@@ -102,6 +105,16 @@ public final class CliRunner {
             return EXIT_USAGE;
         }
         try {
+            if (output != null && Files.exists(output)) {
+                if (Files.isSameFile(output, file)) {
+                    err.println("LogReader: --output points at the log file being analyzed; refusing to overwrite it");
+                    return EXIT_USAGE;
+                }
+                if (!force) {
+                    err.println("LogReader: " + output + " already exists; add --force to replace it");
+                    return EXIT_USAGE;
+                }
+            }
             LogSession session = new LogSession(file);
             AnalysisResult result = session.load(null);
             List<ErrorGroup> groups = select(result, filter);
@@ -151,6 +164,7 @@ public final class CliRunner {
                 }
                 case "-o", "--output" -> output = Path.of(value(args, ++i, arg));
                 case "-f", "--follow" -> follow = true;
+                case "--force" -> force = true;
                 case "--no-color" -> color = false;
                 default -> {
                     if (arg.startsWith("-") && arg.length() > 1) {
@@ -209,7 +223,7 @@ public final class CliRunner {
 
     private void renderText(StringBuilder sb, LogSession session, AnalysisResult result, List<ErrorGroup> groups)
             throws IOException {
-        sb.append(paint(BOLD, "LogReader")).append("  ").append(result.file()).append('\n');
+        sb.append(paint(BOLD, "LogReader")).append("  ").append(TextSanitizer.clean(result.file().toString())).append('\n');
         sb.append("Lines scanned: ").append(paint(BOLD, Formats.count(result.totalLines())))
                 .append("   Errors: ").append(paint(RED, Formats.count(result.errorCount())))
                 .append("   Unique: ").append(paint(BOLD, String.valueOf(result.uniqueErrorTypes())))
@@ -217,6 +231,11 @@ public final class CliRunner {
                 .append("   Time span: ").append(Formats.duration(result.timeSpan()))
                 .append(" (").append(Formats.timestamp(result.firstTimestamp())).append(" → ")
                 .append(Formats.timestamp(result.lastTimestamp())).append(")\n\n");
+        if (result.unlistedOccurrences() > 0) {
+            sb.append(paint(YELLOW, "Note: " + Formats.count(result.unlistedOccurrences())
+                    + " further occurrences are counted above but not listed: the log has more distinct errors than the limit of "
+                    + Formats.count(io.logreader.analysis.LogAnalyzer.MAX_GROUPS) + ".")).append("\n\n");
+        }
         if (groups.isEmpty()) {
             sb.append("No matching errors found.\n");
             return;

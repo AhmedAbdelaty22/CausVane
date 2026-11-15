@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 650" width="1120" height="650" role="img">
+<title>How LogReader works</title>
+<desc>A log file is read line by line, grouped into events, analysed for the root cause, deduplicated, explained, and shown in the desktop window, the terminal or a report.</desc>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1L9 5L1 9z" fill="#4B5563"/></marker></defs>
+<rect x="0.5" y="0.5" width="1119" height="649" rx="14" fill="#FFFFFF" stroke="#E5E7EB"/>
+<text x="40" y="44" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#111827">How LogReader works</text>
+<text x="40" y="66" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" fill="#6B7280">From a raw log file to an explained, pinpointed error. Names in small type are the classes that do each step.</text>
+<rect x="40" y="90" width="230" height="92" rx="10" fill="#F3F4F6" stroke="#6B7280" stroke-width="1.2"/>
+<text x="56" y="116" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1F2937">Log file</text>
+<text x="56" y="135" font-family="'SF Mono', Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="11.5" fill="#6B7280">any application</text>
+<text x="56" y="155" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">any size, plain text or JSON,</text>
+<text x="56" y="171" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">UTF-8 or UTF-16</text>
+<rect x="310" y="90" width="230" height="92" rx="10" fill="#EEF2FF" stroke="#4F46E5" stroke-width="1.2"/>
+<text x="326" y="116" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#312E81">1  Read</text>
+<text x="326" y="135" font-family="'SF Mono', Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="11.5" fill="#4F46E5">OffsetLineReader</text>
+<text x="326" y="155" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">streams the file line by line;</text>
+<text x="326" y="171" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">never loads it all into memory</text>
+<rect x="580" y="90" width="230" height="92" rx="10" fill="#EEF2FF" stroke="#4F46E5" stroke-width="1.2"/>
+<text x="596" y="116" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#312E81">2  Group</text>
+<text x="596" y="135" font-family="'SF Mono', Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="11.5" fill="#4F46E5">LogParser</text>
+<text x="596" y="155" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">joins a header line with its</text>
+<text x="596" y="171" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">stack trace into one event</text>
+<rect x="850" y="90" width="230" height="92" rx="10" fill="#EEF2FF" stroke="#4F46E5" stroke-width="1.2"/>
+<text x="866" y="116" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#312E81">3  Understand</text>
+<text x="866" y="135" font-family="'SF Mono', Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="11.5" fill="#4F46E5">StackTraceParser</text>
+<text x="866" y="155" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">exception chain, root cause</text>
+<text x="866" y="171" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">and the exact failing frame</text>
+<rect x="850" y="260" width="230" height="92" rx="10" fill="#EEF2FF" stroke="#4F46E5" stroke-width="1.2"/>
+<text x="866" y="286" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#312E81">4  Deduplicate</text>
+<text x="866" y="305" font-family="'SF Mono', Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="11.5" fill="#4F46E5">LogAnalyzer</text>
+<text x="866" y="325" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">same error at the same place</text>
+<text x="866" y="341" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">becomes one row with a count</text>
+<rect x="580" y="260" width="230" height="92" rx="10" fill="#EEF2FF" stroke="#4F46E5" stroke-width="1.2"/>
+<text x="596" y="286" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#312E81">5  Result</text>
+<text x="596" y="305" font-family="'SF Mono', Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="11.5" fill="#4F46E5">AnalysisResult</text>
+<text x="596" y="325" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">a snapshot of everything found:</text>
+<text x="596" y="341" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">errors, metrics, timeline</text>
+<rect x="310" y="260" width="230" height="92" rx="10" fill="#EEF2FF" stroke="#4F46E5" stroke-width="1.2"/>
+<text x="326" y="286" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#312E81">6  Explain</text>
+<text x="326" y="305" font-family="'SF Mono', Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="11.5" fill="#4F46E5">ErrorExplainer</text>
+<text x="326" y="325" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">plain-language meaning, likely</text>
+<text x="326" y="341" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">causes, what to check next</text>
+<rect x="40" y="260" width="230" height="92" rx="10" fill="#FEF3C7" stroke="#B45309" stroke-width="1.2"/>
+<text x="56" y="286" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#78350F">Line index</text>
+<text x="56" y="305" font-family="'SF Mono', Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="11.5" fill="#B45309">LineIndex</text>
+<text x="56" y="325" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">one position per 256 lines, to</text>
+<text x="56" y="341" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">fetch any lines again later</text>
+<rect x="40" y="440" width="330" height="92" rx="10" fill="#E3F6EF" stroke="#0B7A5C" stroke-width="1.2"/>
+<text x="56" y="466" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#064E3B">Desktop window</text>
+<text x="56" y="485" font-family="'SF Mono', Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="11.5" fill="#0B7A5C">MainFrame</text>
+<text x="56" y="505" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">error table, root-cause spotlight,</text>
+<text x="56" y="521" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">log context, problems-over-time chart</text>
+<rect x="395" y="440" width="330" height="92" rx="10" fill="#E3F6EF" stroke="#0B7A5C" stroke-width="1.2"/>
+<text x="411" y="466" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#064E3B">Terminal</text>
+<text x="411" y="485" font-family="'SF Mono', Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="11.5" fill="#0B7A5C">CliRunner</text>
+<text x="411" y="505" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">the same analysis as text;</text>
+<text x="411" y="521" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">--follow prints new errors live</text>
+<rect x="750" y="440" width="330" height="92" rx="10" fill="#E3F6EF" stroke="#0B7A5C" stroke-width="1.2"/>
+<text x="766" y="466" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#064E3B">Reports and clipboard</text>
+<text x="766" y="485" font-family="'SF Mono', Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="11.5" fill="#0B7A5C">ReportWriter · SummaryFormatter</text>
+<text x="766" y="505" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">Markdown and JSON files,</text>
+<text x="766" y="521" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">ticket-ready summary of one error</text>
+<line x1="270" y1="136" x2="308" y2="136" stroke="#4B5563" stroke-width="1.4" fill="none" marker-end="url(#a)"/>
+<line x1="540" y1="136" x2="578" y2="136" stroke="#4B5563" stroke-width="1.4" fill="none" marker-end="url(#a)"/>
+<line x1="810" y1="136" x2="848" y2="136" stroke="#4B5563" stroke-width="1.4" fill="none" marker-end="url(#a)"/>
+<line x1="965" y1="182" x2="965" y2="258" stroke="#4B5563" stroke-width="1.4" fill="none" marker-end="url(#a)"/>
+<line x1="850" y1="306" x2="812" y2="306" stroke="#4B5563" stroke-width="1.4" fill="none" marker-end="url(#a)"/>
+<line x1="580" y1="306" x2="542" y2="306" stroke="#4B5563" stroke-width="1.4" fill="none" marker-end="url(#a)"/>
+<path d="M425 182 V221 H155 V258" stroke="#4B5563" stroke-width="1.4" fill="none" marker-end="url(#a)"/>
+<path d="M425 352 V396 H560 V438" stroke="#4B5563" stroke-width="1.4" fill="none" marker-end="url(#a)"/>
+<path d="M560 396 H205 V438" stroke="#4B5563" stroke-width="1.4" fill="none" marker-end="url(#a)"/>
+<path d="M560 396 H915 V438" stroke="#4B5563" stroke-width="1.4" fill="none" marker-end="url(#a)"/>
+<path d="M100 352 V438" stroke="#B45309" stroke-width="1.4" stroke-dasharray="5 4" fill="none" marker-end="url(#a)"/>
+<text x="112" y="386" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11.5" fill="#78350F">context</text><text x="112" y="401" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11.5" fill="#78350F">lines</text>
+<rect x="40" y="566" width="1040" height="52" rx="10" fill="#F9FAFB" stroke="#D1D5DB" stroke-dasharray="6 4"/>
+<text x="58" y="588" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#111827">Live tail</text>
+<text x="58" y="606" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12.5" fill="#374151">Every second, steps 1 to 4 run again on the newly appended lines only. The result is replaced and the window updates; nothing is re-read.</text>
+</svg>

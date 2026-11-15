@@ -32,6 +32,13 @@ public final class LogAnalyzer implements Consumer<LogEvent> {
     public static final int MAX_SAMPLES = 25;
     private static final int MAX_TRACE_IDS = 500;
 
+    /** Distinct errors listed at most. A log cannot make the result grow without bound. */
+    public static final int MAX_GROUPS = 10_000;
+    /** Stored sample text (characters) after which only the first occurrence of each error is kept. */
+    static final long SAMPLE_SOFT_BUDGET = 32_000_000L;
+    /** Stored sample text (characters) after which no further distinct errors are listed. */
+    static final long SAMPLE_HARD_BUDGET = 64_000_000L;
+
     private static final Pattern UUID = Pattern.compile(
             "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
     private static final Pattern HEX = Pattern.compile("\\b0x[0-9a-fA-F]+\\b|\\b[0-9a-fA-F]{12,}\\b");
@@ -41,11 +48,27 @@ public final class LogAnalyzer implements Consumer<LogEvent> {
 
     private final Map<String, Accumulator> groups = new LinkedHashMap<>();
     private final Timeline timeline = new Timeline();
+    private final int maxGroups;
+    private final long softBudget;
+    private final long hardBudget;
+    private long storedChars;
+    private long unlistedOccurrences;
     private long totalEvents;
     private long errorCount;
     private long warningCount;
     private LocalDateTime first;
     private LocalDateTime last;
+
+    public LogAnalyzer() {
+        this(MAX_GROUPS, SAMPLE_SOFT_BUDGET, SAMPLE_HARD_BUDGET);
+    }
+
+    /** For tests: the same analyzer with smaller limits. */
+    LogAnalyzer(int maxGroups, long softBudget, long hardBudget) {
+        this.maxGroups = maxGroups;
+        this.softBudget = softBudget;
+        this.hardBudget = hardBudget;
+    }
 
     @Override
     public void accept(LogEvent event) {
@@ -73,7 +96,18 @@ public final class LogAnalyzer implements Consumer<LogEvent> {
                 timeline.add(ts, false);
             }
         }
-        groups.computeIfAbsent(dedupKey(event), key -> new Accumulator(key, event)).add(event);
+        String key = dedupKey(event);
+        Accumulator group = groups.get(key);
+        if (group == null) {
+            if (groups.size() >= maxGroups || storedChars >= hardBudget) {
+                unlistedOccurrences++; // still counted in the totals and the timeline, just not listed
+                return;
+            }
+            group = new Accumulator(key, event);
+            groups.put(key, group);
+        }
+        boolean keepSample = group.count == 0 || storedChars < softBudget;
+        storedChars += group.add(event, keepSample);
     }
 
     public long totalEvents() {
@@ -90,7 +124,7 @@ public final class LogAnalyzer implements Consumer<LogEvent> {
                 .thenComparing(ErrorGroup::severity, Comparator.reverseOrder())
                 .thenComparingLong(ErrorGroup::firstLine));
         return new AnalysisResult(file, fileSize, totalLines, totalEvents, errorCount, warningCount, first, last, result,
-                timeline.snapshot());
+                timeline.snapshot(), unlistedOccurrences);
     }
 
     /**
@@ -137,7 +171,9 @@ public final class LogAnalyzer implements Consumer<LogEvent> {
             this.firstEvent = firstEvent;
         }
 
-        void add(LogEvent event) {
+        /** @return the number of characters of sample text this call stored */
+        long add(LogEvent event, boolean keepSample) {
+            long stored = 0;
             count++;
             lastLine = event.lineNumber();
             if (event.severity().isAtLeast(severity)) {
@@ -152,12 +188,16 @@ public final class LogAnalyzer implements Consumer<LogEvent> {
                     lastSeen = ts;
                 }
             }
-            if (samples.size() < MAX_SAMPLES) {
+            if (keepSample && samples.size() < MAX_SAMPLES) {
                 samples.add(event);
+                for (String line : event.lines()) {
+                    stored += line.length();
+                }
             }
             if (event.traceId() != null && traceIds.size() < MAX_TRACE_IDS) {
                 traceIds.add(event.traceId());
             }
+            return stored;
         }
 
         ErrorGroup toGroup() {

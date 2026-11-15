@@ -26,12 +26,15 @@ final class ErrorTableModel extends AbstractTableModel {
             {Severity.class, String.class, String.class, String.class, Long.class, LocalDateTime.class, LocalDateTime.class, String.class};
 
     private List<ErrorGroup> groups = List.of();
-    private List<String> meanings = List.of();
+    /** Explanation titles by group id, filled on demand: explaining thousands of rows up front would stall the window. */
+    private final java.util.Map<String, String> meanings = new java.util.HashMap<>();
     private long maxCount = 1;
 
     void setGroups(List<ErrorGroup> groups) {
         this.groups = List.copyOf(groups);
-        this.meanings = groups.stream().map(g -> ErrorExplainer.standard().explain(g).title()).toList();
+        if (meanings.size() > 4 * Math.max(1000, groups.size())) {
+            meanings.clear();
+        }
         this.maxCount = groups.stream().mapToLong(ErrorGroup::count).max().orElse(1);
         fireTableDataChanged();
     }
@@ -84,7 +87,8 @@ final class ErrorTableModel extends AbstractTableModel {
         return switch (column) {
             case SEVERITY -> g.severity();
             case TYPE -> g.displayType();
-            case MEANING -> meanings.get(row);
+            case MEANING -> meanings.computeIfAbsent(g.id() + "#" + g.count(),
+                    key -> ErrorExplainer.standard().explain(g).title().replace("`", ""));
             case LOCATION -> g.location();
             case COUNT -> g.count();
             case FIRST_SEEN -> g.firstSeen();

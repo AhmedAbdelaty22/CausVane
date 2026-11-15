@@ -582,7 +582,9 @@ public final class MainFrame extends JFrame {
         result = fresh;
         linesCard.set(Formats.count(fresh.totalLines()), Formats.count(fresh.totalEvents()) + " log events · " + Formats.bytes(fresh.fileSize()));
         errorsCard.set(Formats.count(fresh.errorCount()), Formats.count(fresh.warningCount()) + " warnings");
-        uniqueCard.set(Formats.count(fresh.uniqueErrorTypes()), fresh.groups().size() + " deduplicated rows incl. warnings");
+        uniqueCard.set(Formats.count(fresh.uniqueErrorTypes()), fresh.unlistedOccurrences() > 0
+                ? "listing limit reached: " + Formats.count(fresh.unlistedOccurrences()) + " occurrences not listed"
+                : fresh.groups().size() + " deduplicated rows incl. warnings");
         spanCard.set(Formats.duration(fresh.timeSpan()),
                 fresh.firstTimestamp() == null ? "no timestamps detected"
                         : Formats.timestamp(fresh.firstTimestamp()) + " → " + Formats.timestamp(fresh.lastTimestamp()));

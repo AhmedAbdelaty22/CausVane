@@ -65,6 +65,50 @@ public final class Formats {
         return String.format(Locale.US, "%.1f %s", value, units[unit]);
     }
 
+    /**
+     * Makes untrusted text literal in Markdown, so log content cannot add links, images, HTML or
+     * formatting to a report or to a summary pasted into a ticket.
+     */
+    public static String mdText(String s) {
+        if (s == null) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder(s.length() + 16);
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            switch (c) {
+                case '\\', '`', '*', '_', '[', ']', '|', '#', '!', '~' -> sb.append('\\').append(c);
+                case '<' -> sb.append("&lt;");
+                case '>' -> sb.append("&gt;");
+                case '&' -> sb.append("&amp;");
+                case '\n', '\r' -> sb.append(' ');
+                default -> sb.append(c);
+            }
+        }
+        return sb.toString();
+    }
+
+    /** Untrusted text as a Markdown code span that it cannot close. */
+    public static String mdCode(String s) {
+        if (s == null || s.isEmpty()) {
+            return "";
+        }
+        return "`" + s.replace('`', '\'').replace('\n', ' ').replace('\r', ' ').replace("|", "\\|") + "`";
+    }
+
+    /** A code fence longer than any run of backticks in the lines it will enclose. */
+    public static String mdFence(Iterable<String> lines) {
+        int longest = 0;
+        for (String line : lines) {
+            int run = 0;
+            for (int i = 0; i < line.length(); i++) {
+                run = line.charAt(i) == '`' ? run + 1 : 0;
+                longest = Math.max(longest, run);
+            }
+        }
+        return "`".repeat(Math.max(3, longest + 1));
+    }
+
     public static String truncate(String s, int max) {
         if (s == null) {
             return "";

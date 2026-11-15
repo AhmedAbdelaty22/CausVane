@@ -36,6 +36,7 @@ public final class JsonReportWriter implements ReportWriter {
         summary.put("totalErrors", result.errorCount());
         summary.put("totalWarnings", result.warningCount());
         summary.put("uniqueErrorTypes", result.uniqueErrorTypes());
+        summary.put("unlistedOccurrences", result.unlistedOccurrences());
         putTime(summary, "firstTimestamp", result.firstTimestamp());
         putTime(summary, "lastTimestamp", result.lastTimestamp());
         Duration span = result.timeSpan();

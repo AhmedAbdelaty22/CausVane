@@ -1,8 +1,11 @@
 package io.logreader.parser;
 
+import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.StreamReadConstraints;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.logreader.io.TextSanitizer;
 import io.logreader.model.Severity;
 
 import java.time.LocalDateTime;
@@ -42,7 +45,11 @@ public final class JsonLineParser {
             "trace_id", "traceid", "trace.id", "correlation_id", "correlationid", "request_id", "requestid",
             "x-request-id", "req_id", "reqid", "dd.trace_id", "span_id", "spanid");
 
-    private final ObjectMapper mapper = new ObjectMapper();
+    /** Limits on what a single JSON line may contain, so a crafted record cannot exhaust the stack or heap. */
+    private final ObjectMapper mapper = new ObjectMapper(JsonFactory.builder()
+            .streamReadConstraints(StreamReadConstraints.builder()
+                    .maxNestingDepth(200).maxStringLength(1_000_000).maxNumberLength(100).build())
+            .build());
     private final TimestampDetector timestamps;
 
     public JsonLineParser(TimestampDetector timestamps) {
@@ -78,7 +85,10 @@ public final class JsonLineParser {
 
         String message = messageNode == null ? "" : text(messageNode);
         List<String> stack = stackLines(fields, message);
-        return new JsonRecord(timestamp(timeNode), severity(levelNode), message, stack, traceId(fields));
+        // escapes such as \u001b only become control characters after decoding, so clean again here
+        stack.replaceAll(TextSanitizer::clean);
+        return new JsonRecord(timestamp(timeNode), severity(levelNode), TextSanitizer.clean(message), stack,
+                TextSanitizer.clean(traceId(fields)));
     }
 
     /** Lower-cased keys; nested objects are flattened one level as {@code parent.child}. */

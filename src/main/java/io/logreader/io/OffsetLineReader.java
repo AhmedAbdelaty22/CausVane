@@ -118,6 +118,7 @@ public final class OffsetLineReader implements Closeable {
             }
         }
         String text = new String(line, from, length - from, encoding.charset());
+        text = TextSanitizer.clean(text);
         return truncated ? text + TRUNCATION_MARK : text;
     }
 
@@ -166,6 +167,7 @@ public final class OffsetLineReader implements Closeable {
             from = 3; // UTF-8 byte order mark
         }
         String text = new String(line, from, length - from, StandardCharsets.UTF_8);
+        text = TextSanitizer.clean(text);
         return truncated ? text + TRUNCATION_MARK : text;
     }
 
