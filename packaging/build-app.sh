@@ -25,7 +25,7 @@ mkdir -p dist
 jpackage \
   --type "$TYPE" \
   --name LogReader \
-  --app-version 1.0.1 \
+  --app-version 1.1.0 \
   --description "Finds, explains and pinpoints errors in application logs" \
   --vendor "LogReader" \
   --icon "$ICON" \
