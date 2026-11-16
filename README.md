@@ -27,8 +27,8 @@ This runs the tests and produces one self-contained JAR: `target/LogReader.jar`.
 
 ```bash
 java -jar target/LogReader.jar                        # GUI
-java -jar target/LogReader.jar samples/node-express.log   # GUI, file opened
-java -jar target/LogReader.jar analyze samples/java-spring-app.log
+java -jar target/LogReader.jar samples/api-gateway-cert-expiry.log   # GUI, file opened
+java -jar target/LogReader.jar analyze samples/checkout-db-failover.log
 java -jar target/LogReader.jar --help
 ```
 
@@ -48,6 +48,12 @@ requirement, run `sh packaging/build-app.sh` (see `NOTES.md`, section 2).
 - **Problems over time** chart shows when errors and warnings clustered; hover a bar for counts.
 - **What this means** in the spotlight explains the selected error, with likely causes and next steps.
   The same text goes into exported reports, the copied summary and the CLI output.
+- **Command palette** (Ctrl/Cmd+K) searches every action and every error; type a few letters and press Enter.
+- **Light and dark themes**: follows the macOS appearance at start, and the sun / moon button switches at any time.
+  Start with `-Dlogreader.theme=light` or `dark` to force one.
+- **For newcomers:** a plain-language overview of the whole file, a label beside every log line saying what part
+  it plays (STARTS HERE, ROOT CAUSE, YOUR CODE, LIBRARY, BEFORE, AFTER), a sentence about any line you click,
+  and a `?` button that explains the terms.
 - The table sorts on any column. ◀ ▶ in the spotlight step through occurrences.
 
 ### CLI
@@ -96,6 +102,16 @@ To treat more packages as framework code, pass extra prefixes to
 
 ## Samples
 
-`samples/` contains realistic logs from several kinds of applications: web
-services, background jobs, JSON-structured loggers, and a service log with raw
-crash output mixed in. Use them to try the app.
+`samples/` contains five production-incident logs, each a few thousand lines of
+normal traffic with a cascading failure inside it:
+
+| File | Incident |
+|---|---|
+| `checkout-db-failover.log` | A database failover: killed connections, pool exhaustion, a circuit breaker opening, cache timeouts, plus an unrelated bug hidden in the noise |
+| `api-gateway-cert-expiry.log` | JSON log of a gateway whose upstream certificate expires mid-run, with rate limiting and a crash from too many open files |
+| `payments-worker-deadlocks.log` | Background workers deadlocking on the database during a month-end run, with bank timeouts and a missing currency |
+| `orders-api-threadpool-starvation.log` | A deployment that causes timeouts, deadlock victims and thread-pool starvation until it is rolled back |
+| `ingest-crash-loop.log` | A service crash-looping on one bad message while its queue backs up |
+
+The small logs used by the automated tests are in `src/test/resources/fixtures/`.
+

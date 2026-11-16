@@ -6,7 +6,7 @@
 
     <groupId>io.logreader</groupId>
     <artifactId>LogReader</artifactId>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
     <packaging>jar</packaging>
 
     <name>LogReader</name>
@@ -26,6 +26,17 @@
             <groupId>com.formdev</groupId>
             <artifactId>flatlaf</artifactId>
             <version>${flatlaf.version}</version>
+        </dependency>
+        <!-- Bundled fonts, so the window looks the same on every operating system -->
+        <dependency>
+            <groupId>com.formdev</groupId>
+            <artifactId>flatlaf-fonts-inter</artifactId>
+            <version>4.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.formdev</groupId>
+            <artifactId>flatlaf-fonts-jetbrains-mono</artifactId>
+            <version>2.304</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>

@@ -1,0 +1,894 @@
+time=2026-11-13T03:10:00.387Z level=info msg="batch flushed" records=1030 took=422ms sink=warehouse
+time=2026-11-13T03:10:01.414Z level=info msg="batch flushed" records=1184 took=664ms sink=warehouse
+time=2026-11-13T03:10:01.754Z level=info msg="batch flushed" records=811 took=102ms sink=warehouse
+time=2026-11-13T03:10:02.721Z level=error msg="decode failed" err="unexpected end of JSON input" topic=events.raw partition=1 caller=decoder/envelope.go:63
+time=2026-11-13T03:10:02.987Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=3 caller=sink/warehouse.go:142
+time=2026-11-13T03:10:04.014Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=121955
+time=2026-11-13T03:10:04.789Z level=info msg="batch flushed" records=234 took=306ms sink=warehouse
+time=2026-11-13T03:10:05.795Z level=info msg="batch flushed" records=787 took=841ms sink=warehouse
+time=2026-11-13T03:10:06.664Z level=info msg="batch flushed" records=1073 took=212ms sink=warehouse
+time=2026-11-13T03:10:07.390Z level=info msg="batch flushed" records=764 took=614ms sink=warehouse
+time=2026-11-13T03:10:07.829Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=92399
+time=2026-11-13T03:10:08.538Z level=info msg="batch flushed" records=1077 took=224ms sink=warehouse
+time=2026-11-13T03:10:09.474Z level=info msg="batch flushed" records=527 took=876ms sink=warehouse
+time=2026-11-13T03:10:10.193Z level=info msg="batch flushed" records=1009 took=756ms sink=warehouse
+time=2026-11-13T03:10:10.600Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=3 caller=sink/warehouse.go:142
+time=2026-11-13T03:10:11.669Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=92858
+time=2026-11-13T03:10:12.633Z level=info msg="batch flushed" records=408 took=592ms sink=warehouse
+time=2026-11-13T03:10:13.671Z level=info msg="batch flushed" records=496 took=727ms sink=warehouse
+time=2026-11-13T03:10:14.390Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=425013
+time=2026-11-13T03:10:15.027Z level=info msg="batch flushed" records=557 took=694ms sink=warehouse
+time=2026-11-13T03:10:16.075Z level=info msg="batch flushed" records=450 took=701ms sink=warehouse
+time=2026-11-13T03:10:17.067Z level=info msg="batch flushed" records=306 took=181ms sink=warehouse
+time=2026-11-13T03:10:17.986Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=3 caller=sink/warehouse.go:142
+time=2026-11-13T03:10:18.403Z level=info msg="batch flushed" records=783 took=481ms sink=warehouse
+time=2026-11-13T03:10:19.489Z level=info msg="batch flushed" records=346 took=647ms sink=warehouse
+time=2026-11-13T03:10:19.747Z level=info msg="batch flushed" records=599 took=269ms sink=warehouse
+time=2026-11-13T03:10:20.733Z level=info msg="batch flushed" records=382 took=223ms sink=warehouse
+time=2026-11-13T03:10:21.614Z level=info msg="batch flushed" records=856 took=453ms sink=warehouse
+time=2026-11-13T03:10:22.375Z level=info msg="batch flushed" records=620 took=143ms sink=warehouse
+time=2026-11-13T03:10:22.826Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=176122
+time=2026-11-13T03:10:23.278Z level=info msg="batch flushed" records=760 took=175ms sink=warehouse
+time=2026-11-13T03:10:23.689Z level=info msg="batch flushed" records=448 took=115ms sink=warehouse
+time=2026-11-13T03:10:24.444Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=1 caller=sink/warehouse.go:142
+time=2026-11-13T03:10:25.036Z level=info msg="batch flushed" records=912 took=658ms sink=warehouse
+time=2026-11-13T03:10:25.357Z level=info msg="batch flushed" records=200 took=720ms sink=warehouse
+time=2026-11-13T03:10:25.589Z level=info msg="batch flushed" records=709 took=141ms sink=warehouse
+time=2026-11-13T03:10:25.861Z level=info msg="batch flushed" records=834 took=322ms sink=warehouse
+time=2026-11-13T03:10:26.022Z level=info msg="batch flushed" records=685 took=844ms sink=warehouse
+time=2026-11-13T03:10:26.562Z level=info msg="batch flushed" records=1076 took=641ms sink=warehouse
+time=2026-11-13T03:10:26.741Z level=info msg="batch flushed" records=953 took=657ms sink=warehouse
+time=2026-11-13T03:10:27.048Z level=info msg="batch flushed" records=1155 took=66ms sink=warehouse
+time=2026-11-13T03:10:27.200Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=44398
+time=2026-11-13T03:10:27.623Z level=info msg="batch flushed" records=608 took=40ms sink=warehouse
+time=2026-11-13T03:10:28.487Z level=error msg="decode failed" err="unexpected end of JSON input" topic=events.raw partition=4 caller=decoder/envelope.go:63
+time=2026-11-13T03:10:28.979Z level=error msg="decode failed" err="unexpected end of JSON input" topic=events.raw partition=5 caller=decoder/envelope.go:63
+time=2026-11-13T03:10:29.649Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=3 caller=sink/warehouse.go:142
+time=2026-11-13T03:10:30.332Z level=info msg="batch flushed" records=626 took=309ms sink=warehouse
+time=2026-11-13T03:10:31.017Z level=info msg="batch flushed" records=1144 took=638ms sink=warehouse
+time=2026-11-13T03:10:31.708Z level=info msg="batch flushed" records=386 took=538ms sink=warehouse
+time=2026-11-13T03:10:32.212Z level=info msg="batch flushed" records=809 took=228ms sink=warehouse
+time=2026-11-13T03:10:32.713Z level=error msg="decode failed" err="unexpected end of JSON input" topic=events.raw partition=4 caller=decoder/envelope.go:63
+time=2026-11-13T03:10:33.456Z level=info msg="batch flushed" records=332 took=203ms sink=warehouse
+time=2026-11-13T03:10:34.038Z level=info msg="batch flushed" records=648 took=69ms sink=warehouse
+time=2026-11-13T03:10:34.411Z level=info msg="batch flushed" records=1151 took=597ms sink=warehouse
+time=2026-11-13T03:10:35.189Z level=info msg="batch flushed" records=322 took=447ms sink=warehouse
+time=2026-11-13T03:10:35.546Z level=info msg="batch flushed" records=461 took=304ms sink=warehouse
+time=2026-11-13T03:10:36.031Z level=error msg="decode failed" err="unexpected end of JSON input" topic=events.raw partition=4 caller=decoder/envelope.go:63
+time=2026-11-13T03:10:36.348Z level=info msg="batch flushed" records=836 took=715ms sink=warehouse
+time=2026-11-13T03:10:37.261Z level=info msg="batch flushed" records=466 took=79ms sink=warehouse
+time=2026-11-13T03:10:38.202Z level=info msg="batch flushed" records=571 took=336ms sink=warehouse
+time=2026-11-13T03:10:38.850Z level=info msg="batch flushed" records=870 took=196ms sink=warehouse
+time=2026-11-13T03:10:39.008Z level=info msg="batch flushed" records=265 took=190ms sink=warehouse
+time=2026-11-13T03:10:40.034Z level=info msg="batch flushed" records=460 took=698ms sink=warehouse
+time=2026-11-13T03:10:40.633Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=44929
+time=2026-11-13T03:10:41.097Z level=info msg="batch flushed" records=249 took=380ms sink=warehouse
+time=2026-11-13T03:10:42.183Z level=info msg="batch flushed" records=496 took=73ms sink=warehouse
+time=2026-11-13T03:10:42.740Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=3 caller=sink/warehouse.go:142
+time=2026-11-13T03:10:42.930Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=1 caller=sink/warehouse.go:142
+time=2026-11-13T03:10:43.591Z level=info msg="batch flushed" records=340 took=692ms sink=warehouse
+time=2026-11-13T03:10:44.148Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=412743
+time=2026-11-13T03:10:44.405Z level=error msg="decode failed" err="unexpected end of JSON input" topic=events.raw partition=5 caller=decoder/envelope.go:63
+time=2026-11-13T03:10:45.084Z level=info msg="batch flushed" records=444 took=352ms sink=warehouse
+time=2026-11-13T03:10:45.753Z level=error msg="decode failed" err="unexpected end of JSON input" topic=events.raw partition=5 caller=decoder/envelope.go:63
+time=2026-11-13T03:10:46.489Z level=info msg="batch flushed" records=314 took=267ms sink=warehouse
+time=2026-11-13T03:10:47.017Z level=info msg="batch flushed" records=237 took=86ms sink=warehouse
+time=2026-11-13T03:10:47.624Z level=info msg="batch flushed" records=1054 took=357ms sink=warehouse
+time=2026-11-13T03:10:48.190Z level=info msg="batch flushed" records=536 took=207ms sink=warehouse
+time=2026-11-13T03:10:49.032Z level=info msg="batch flushed" records=384 took=376ms sink=warehouse
+time=2026-11-13T03:10:49.511Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=3 caller=sink/warehouse.go:142
+time=2026-11-13T03:10:49.777Z level=info msg="batch flushed" records=905 took=150ms sink=warehouse
+time=2026-11-13T03:10:50.110Z level=info msg="batch flushed" records=406 took=553ms sink=warehouse
+time=2026-11-13T03:10:51.198Z level=info msg="batch flushed" records=208 took=425ms sink=warehouse
+time=2026-11-13T03:10:51.707Z level=info msg="batch flushed" records=636 took=741ms sink=warehouse
+time=2026-11-13T03:10:52.166Z level=info msg="batch flushed" records=903 took=840ms sink=warehouse
+time=2026-11-13T03:10:52.680Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=235550
+time=2026-11-13T03:10:53.368Z level=info msg="batch flushed" records=851 took=232ms sink=warehouse
+time=2026-11-13T03:10:53.547Z level=error msg="decode failed" err="unexpected end of JSON input" topic=events.raw partition=2 caller=decoder/envelope.go:63
+time=2026-11-13T03:10:54.269Z level=info msg="batch flushed" records=1072 took=811ms sink=warehouse
+time=2026-11-13T03:10:54.928Z level=info msg="batch flushed" records=1153 took=135ms sink=warehouse
+time=2026-11-13T03:10:55.225Z level=info msg="batch flushed" records=670 took=319ms sink=warehouse
+time=2026-11-13T03:10:55.671Z level=error msg="decode failed" err="unexpected end of JSON input" topic=events.raw partition=2 caller=decoder/envelope.go:63
+time=2026-11-13T03:10:56.317Z level=info msg="batch flushed" records=230 took=549ms sink=warehouse
+time=2026-11-13T03:10:57.319Z level=info msg="batch flushed" records=602 took=451ms sink=warehouse
+time=2026-11-13T03:10:58.210Z level=info msg="batch flushed" records=784 took=330ms sink=warehouse
+time=2026-11-13T03:10:58.720Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=283944
+time=2026-11-13T03:10:59.243Z level=info msg="batch flushed" records=969 took=121ms sink=warehouse
+time=2026-11-13T03:10:59.802Z level=error msg="decode failed" err="unexpected end of JSON input" topic=events.raw partition=0 caller=decoder/envelope.go:63
+time=2026-11-13T03:11:00.698Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=2 caller=sink/warehouse.go:142
+time=2026-11-13T03:11:01.577Z level=info msg="batch flushed" records=718 took=312ms sink=warehouse
+time=2026-11-13T03:11:01.788Z level=info msg="batch flushed" records=516 took=729ms sink=warehouse
+time=2026-11-13T03:11:02.141Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=294213
+time=2026-11-13T03:11:02.643Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=256642
+time=2026-11-13T03:11:03.516Z level=info msg="batch flushed" records=356 took=137ms sink=warehouse
+time=2026-11-13T03:11:04.242Z level=info msg="batch flushed" records=535 took=387ms sink=warehouse
+time=2026-11-13T03:11:05.022Z level=info msg="batch flushed" records=451 took=879ms sink=warehouse
+time=2026-11-13T03:11:06.091Z level=info msg="batch flushed" records=1137 took=314ms sink=warehouse
+time=2026-11-13T03:11:06.578Z level=info msg="batch flushed" records=973 took=449ms sink=warehouse
+time=2026-11-13T03:11:07.468Z level=info msg="batch flushed" records=1188 took=380ms sink=warehouse
+time=2026-11-13T03:11:08.137Z level=info msg="batch flushed" records=915 took=264ms sink=warehouse
+time=2026-11-13T03:11:08.763Z level=info msg="batch flushed" records=962 took=699ms sink=warehouse
+time=2026-11-13T03:11:09.534Z level=info msg="batch flushed" records=551 took=897ms sink=warehouse
+time=2026-11-13T03:11:10.378Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=2 caller=sink/warehouse.go:142
+time=2026-11-13T03:11:11.314Z level=info msg="batch flushed" records=1037 took=779ms sink=warehouse
+time=2026-11-13T03:11:12.297Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=1 caller=sink/warehouse.go:142
+time=2026-11-13T03:11:13.003Z level=info msg="batch flushed" records=1100 took=754ms sink=warehouse
+time=2026-11-13T03:11:13.752Z level=info msg="batch flushed" records=844 took=157ms sink=warehouse
+time=2026-11-13T03:11:14.006Z level=info msg="batch flushed" records=876 took=223ms sink=warehouse
+time=2026-11-13T03:11:14.313Z level=info msg="batch flushed" records=525 took=377ms sink=warehouse
+time=2026-11-13T03:11:15.133Z level=info msg="batch flushed" records=730 took=781ms sink=warehouse
+time=2026-11-13T03:11:15.721Z level=info msg="batch flushed" records=906 took=313ms sink=warehouse
+time=2026-11-13T03:11:16.267Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=119434
+time=2026-11-13T03:11:17.182Z level=info msg="batch flushed" records=531 took=41ms sink=warehouse
+time=2026-11-13T03:11:17.614Z level=info msg="batch flushed" records=990 took=582ms sink=warehouse
+time=2026-11-13T03:11:18.318Z level=info msg="batch flushed" records=291 took=807ms sink=warehouse
+time=2026-11-13T03:11:19.307Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=1 caller=sink/warehouse.go:142
+time=2026-11-13T03:11:19.544Z level=info msg="batch flushed" records=869 took=622ms sink=warehouse
+time=2026-11-13T03:11:19.964Z level=info msg="batch flushed" records=447 took=598ms sink=warehouse
+time=2026-11-13T03:11:20.444Z level=info msg="batch flushed" records=524 took=444ms sink=warehouse
+time=2026-11-13T03:11:21.260Z level=info msg="batch flushed" records=829 took=757ms sink=warehouse
+time=2026-11-13T03:11:21.918Z level=info msg="batch flushed" records=512 took=788ms sink=warehouse
+time=2026-11-13T03:11:22.922Z level=info msg="batch flushed" records=778 took=889ms sink=warehouse
+time=2026-11-13T03:11:23.657Z level=info msg="batch flushed" records=998 took=537ms sink=warehouse
+time=2026-11-13T03:11:23.961Z level=error msg="decode failed" err="unexpected end of JSON input" topic=events.raw partition=4 caller=decoder/envelope.go:63
+time=2026-11-13T03:11:24.343Z level=info msg="batch flushed" records=915 took=677ms sink=warehouse
+time=2026-11-13T03:11:24.602Z level=info msg="batch flushed" records=553 took=509ms sink=warehouse
+time=2026-11-13T03:11:25.282Z level=info msg="batch flushed" records=1010 took=527ms sink=warehouse
+time=2026-11-13T03:11:25.481Z level=info msg="batch flushed" records=531 took=770ms sink=warehouse
+time=2026-11-13T03:11:26.465Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=2 caller=sink/warehouse.go:142
+time=2026-11-13T03:11:26.757Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=3 caller=sink/warehouse.go:142
+time=2026-11-13T03:11:27.596Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=1 caller=sink/warehouse.go:142
+time=2026-11-13T03:11:28.473Z level=info msg="batch flushed" records=1082 took=860ms sink=warehouse
+time=2026-11-13T03:11:29.052Z level=info msg="batch flushed" records=1126 took=783ms sink=warehouse
+time=2026-11-13T03:11:29.425Z level=info msg="batch flushed" records=1060 took=566ms sink=warehouse
+time=2026-11-13T03:11:30.380Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=341705
+time=2026-11-13T03:11:30.590Z level=info msg="batch flushed" records=893 took=876ms sink=warehouse
+time=2026-11-13T03:11:30.888Z level=info msg="batch flushed" records=1056 took=165ms sink=warehouse
+time=2026-11-13T03:11:31.918Z level=info msg="batch flushed" records=284 took=761ms sink=warehouse
+time=2026-11-13T03:11:32.638Z level=info msg="batch flushed" records=786 took=788ms sink=warehouse
+time=2026-11-13T03:11:32.855Z level=info msg="batch flushed" records=559 took=877ms sink=warehouse
+time=2026-11-13T03:11:33.049Z level=info msg="batch flushed" records=327 took=87ms sink=warehouse
+time=2026-11-13T03:11:33.249Z level=info msg="batch flushed" records=439 took=517ms sink=warehouse
+time=2026-11-13T03:11:33.664Z level=info msg="batch flushed" records=569 took=764ms sink=warehouse
+time=2026-11-13T03:11:34.703Z level=info msg="batch flushed" records=1190 took=687ms sink=warehouse
+time=2026-11-13T03:11:35.782Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=48783
+time=2026-11-13T03:11:35.960Z level=info msg="batch flushed" records=360 took=779ms sink=warehouse
+time=2026-11-13T03:11:36.711Z level=error msg="decode failed" err="unexpected end of JSON input" topic=events.raw partition=3 caller=decoder/envelope.go:63
+time=2026-11-13T03:11:37.668Z level=info msg="batch flushed" records=649 took=67ms sink=warehouse
+time=2026-11-13T03:11:38.641Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=331979
+time=2026-11-13T03:11:39.188Z level=info msg="batch flushed" records=852 took=839ms sink=warehouse
+time=2026-11-13T03:11:39.725Z level=info msg="batch flushed" records=226 took=102ms sink=warehouse
+time=2026-11-13T03:11:39.921Z level=info msg="batch flushed" records=1131 took=477ms sink=warehouse
+time=2026-11-13T03:11:40.393Z level=info msg="batch flushed" records=334 took=115ms sink=warehouse
+time=2026-11-13T03:11:40.920Z level=info msg="batch flushed" records=324 took=718ms sink=warehouse
+time=2026-11-13T03:11:41.436Z level=info msg="batch flushed" records=319 took=640ms sink=warehouse
+time=2026-11-13T03:11:41.689Z level=info msg="batch flushed" records=727 took=542ms sink=warehouse
+time=2026-11-13T03:11:42.454Z level=info msg="batch flushed" records=650 took=349ms sink=warehouse
+time=2026-11-13T03:11:43.274Z level=info msg="batch flushed" records=766 took=680ms sink=warehouse
+time=2026-11-13T03:11:43.708Z level=info msg="batch flushed" records=205 took=853ms sink=warehouse
+time=2026-11-13T03:11:43.957Z level=info msg="batch flushed" records=215 took=224ms sink=warehouse
+time=2026-11-13T03:11:44.564Z level=info msg="batch flushed" records=1130 took=737ms sink=warehouse
+time=2026-11-13T03:11:44.771Z level=info msg="batch flushed" records=1162 took=803ms sink=warehouse
+time=2026-11-13T03:11:45.234Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=74989
+time=2026-11-13T03:11:46.087Z level=info msg="batch flushed" records=1097 took=210ms sink=warehouse
+time=2026-11-13T03:11:47.043Z level=info msg="batch flushed" records=798 took=599ms sink=warehouse
+time=2026-11-13T03:11:48.124Z level=info msg="batch flushed" records=345 took=631ms sink=warehouse
+time=2026-11-13T03:11:48.446Z level=info msg="batch flushed" records=831 took=593ms sink=warehouse
+time=2026-11-13T03:11:49.397Z level=info msg="batch flushed" records=809 took=663ms sink=warehouse
+time=2026-11-13T03:11:49.862Z level=info msg="batch flushed" records=765 took=48ms sink=warehouse
+time=2026-11-13T03:11:50.579Z level=info msg="batch flushed" records=858 took=479ms sink=warehouse
+time=2026-11-13T03:11:51.333Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=1 caller=sink/warehouse.go:142
+time=2026-11-13T03:11:52.146Z level=info msg="batch flushed" records=646 took=83ms sink=warehouse
+time=2026-11-13T03:11:52.311Z level=info msg="batch flushed" records=369 took=853ms sink=warehouse
+time=2026-11-13T03:11:52.587Z level=info msg="batch flushed" records=1160 took=353ms sink=warehouse
+time=2026-11-13T03:11:53.587Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=426708
+time=2026-11-13T03:11:54.423Z level=info msg="batch flushed" records=823 took=88ms sink=warehouse
+time=2026-11-13T03:11:54.745Z level=info msg="batch flushed" records=253 took=692ms sink=warehouse
+time=2026-11-13T03:11:55.463Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=107063
+time=2026-11-13T03:11:55.757Z level=info msg="batch flushed" records=490 took=800ms sink=warehouse
+time=2026-11-13T03:11:56.640Z level=info msg="batch flushed" records=214 took=289ms sink=warehouse
+time=2026-11-13T03:11:57.257Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=1 caller=sink/warehouse.go:142
+time=2026-11-13T03:11:57.641Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=378714
+time=2026-11-13T03:11:58.358Z level=info msg="batch flushed" records=621 took=718ms sink=warehouse
+time=2026-11-13T03:11:59.402Z level=info msg="batch flushed" records=621 took=297ms sink=warehouse
+time=2026-11-13T03:12:00.228Z level=info msg="batch flushed" records=207 took=192ms sink=warehouse
+time=2026-11-13T03:12:00.550Z level=info msg="batch flushed" records=397 took=350ms sink=warehouse
+time=2026-11-13T03:12:01.393Z level=info msg="batch flushed" records=686 took=552ms sink=warehouse
+time=2026-11-13T03:12:01.798Z level=info msg="batch flushed" records=915 took=304ms sink=warehouse
+time=2026-11-13T03:12:02.283Z level=info msg="batch flushed" records=204 took=484ms sink=warehouse
+time=2026-11-13T03:12:02.891Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=3 caller=sink/warehouse.go:142
+time=2026-11-13T03:12:03.119Z level=info msg="batch flushed" records=625 took=344ms sink=warehouse
+time=2026-11-13T03:12:03.721Z level=info msg="batch flushed" records=883 took=657ms sink=warehouse
+time=2026-11-13T03:12:04.142Z level=info msg="batch flushed" records=350 took=786ms sink=warehouse
+time=2026-11-13T03:12:04.647Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=236744
+time=2026-11-13T03:12:05.330Z level=info msg="batch flushed" records=1027 took=391ms sink=warehouse
+time=2026-11-13T03:12:05.544Z level=info msg="batch flushed" records=1120 took=844ms sink=warehouse
+time=2026-11-13T03:12:05.727Z level=info msg="batch flushed" records=981 took=128ms sink=warehouse
+time=2026-11-13T03:12:05.980Z level=info msg="batch flushed" records=571 took=773ms sink=warehouse
+time=2026-11-13T03:12:06.801Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=461909
+time=2026-11-13T03:12:07.745Z level=info msg="batch flushed" records=702 took=494ms sink=warehouse
+time=2026-11-13T03:12:08.681Z level=info msg="batch flushed" records=422 took=512ms sink=warehouse
+time=2026-11-13T03:12:09.393Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=13072
+time=2026-11-13T03:12:10.365Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=3 caller=sink/warehouse.go:142
+time=2026-11-13T03:12:10.907Z level=info msg="batch flushed" records=808 took=885ms sink=warehouse
+time=2026-11-13T03:12:11.997Z level=info msg="batch flushed" records=304 took=610ms sink=warehouse
+time=2026-11-13T03:12:12.962Z level=info msg="batch flushed" records=634 took=480ms sink=warehouse
+time=2026-11-13T03:12:13.249Z level=info msg="batch flushed" records=841 took=374ms sink=warehouse
+time=2026-11-13T03:12:14.098Z level=info msg="batch flushed" records=320 took=890ms sink=warehouse
+time=2026-11-13T03:12:14.336Z level=info msg="batch flushed" records=436 took=654ms sink=warehouse
+time=2026-11-13T03:12:14.816Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=3 caller=sink/warehouse.go:142
+time=2026-11-13T03:12:15.708Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=2 caller=sink/warehouse.go:142
+time=2026-11-13T03:12:16.129Z level=info msg="batch flushed" records=605 took=40ms sink=warehouse
+time=2026-11-13T03:12:16.593Z level=info msg="batch flushed" records=832 took=300ms sink=warehouse
+time=2026-11-13T03:12:16.867Z level=info msg="batch flushed" records=680 took=888ms sink=warehouse
+time=2026-11-13T03:12:17.528Z level=info msg="batch flushed" records=738 took=127ms sink=warehouse
+time=2026-11-13T03:12:17.822Z level=info msg="batch flushed" records=583 took=145ms sink=warehouse
+time=2026-11-13T03:12:18.148Z level=error msg="decode failed" err="unexpected end of JSON input" topic=events.raw partition=1 caller=decoder/envelope.go:63
+time=2026-11-13T03:12:19.020Z level=info msg="batch flushed" records=517 took=150ms sink=warehouse
+time=2026-11-13T03:12:19.291Z level=error msg="decode failed" err="unexpected end of JSON input" topic=events.raw partition=5 caller=decoder/envelope.go:63
+time=2026-11-13T03:12:19.784Z level=info msg="batch flushed" records=824 took=116ms sink=warehouse
+time=2026-11-13T03:12:20.728Z level=info msg="batch flushed" records=1096 took=896ms sink=warehouse
+time=2026-11-13T03:12:21.602Z level=info msg="batch flushed" records=652 took=420ms sink=warehouse
+time=2026-11-13T03:12:22.658Z level=info msg="batch flushed" records=247 took=446ms sink=warehouse
+time=2026-11-13T03:12:23.306Z level=info msg="batch flushed" records=988 took=541ms sink=warehouse
+time=2026-11-13T03:12:24.186Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=1 caller=sink/warehouse.go:142
+time=2026-11-13T03:12:25.020Z level=info msg="batch flushed" records=1103 took=775ms sink=warehouse
+time=2026-11-13T03:12:26.109Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=255478
+time=2026-11-13T03:12:26.728Z level=info msg="batch flushed" records=724 took=490ms sink=warehouse
+time=2026-11-13T03:12:27.734Z level=info msg="batch flushed" records=772 took=190ms sink=warehouse
+time=2026-11-13T03:12:28.658Z level=info msg="batch flushed" records=897 took=179ms sink=warehouse
+time=2026-11-13T03:12:29.718Z level=info msg="batch flushed" records=1186 took=475ms sink=warehouse
+time=2026-11-13T03:12:30.338Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=1 caller=sink/warehouse.go:142
+time=2026-11-13T03:12:31.311Z level=error msg="decode failed" err="unexpected end of JSON input" topic=events.raw partition=5 caller=decoder/envelope.go:63
+time=2026-11-13T03:12:31.875Z level=info msg="batch flushed" records=1104 took=213ms sink=warehouse
+time=2026-11-13T03:12:32.863Z level=info msg="batch flushed" records=290 took=824ms sink=warehouse
+time=2026-11-13T03:12:33.036Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=208066
+time=2026-11-13T03:12:33.319Z level=info msg="batch flushed" records=523 took=395ms sink=warehouse
+time=2026-11-13T03:12:34.149Z level=info msg="batch flushed" records=717 took=443ms sink=warehouse
+time=2026-11-13T03:12:34.949Z level=info msg="batch flushed" records=976 took=121ms sink=warehouse
+time=2026-11-13T03:12:35.326Z level=info msg="batch flushed" records=935 took=487ms sink=warehouse
+time=2026-11-13T03:12:36.308Z level=info msg="batch flushed" records=925 took=434ms sink=warehouse
+time=2026-11-13T03:12:37.399Z level=info msg="batch flushed" records=335 took=68ms sink=warehouse
+time=2026-11-13T03:12:37.570Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=271836
+time=2026-11-13T03:12:37.899Z level=info msg="batch flushed" records=288 took=180ms sink=warehouse
+time=2026-11-13T03:12:38.173Z level=info msg="batch flushed" records=505 took=705ms sink=warehouse
+time=2026-11-13T03:12:38.868Z level=info msg="batch flushed" records=252 took=406ms sink=warehouse
+time=2026-11-13T03:12:39.132Z level=info msg="batch flushed" records=610 took=788ms sink=warehouse
+time=2026-11-13T03:12:39.568Z level=info msg="batch flushed" records=507 took=478ms sink=warehouse
+time=2026-11-13T03:12:39.837Z level=info msg="batch flushed" records=392 took=722ms sink=warehouse
+time=2026-11-13T03:12:40.751Z level=info msg="batch flushed" records=1035 took=793ms sink=warehouse
+time=2026-11-13T03:12:41.161Z level=info msg="batch flushed" records=754 took=532ms sink=warehouse
+time=2026-11-13T03:12:42.258Z level=info msg="batch flushed" records=1052 took=126ms sink=warehouse
+time=2026-11-13T03:12:43.017Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=3 caller=sink/warehouse.go:142
+time=2026-11-13T03:12:43.181Z level=info msg="batch flushed" records=285 took=768ms sink=warehouse
+time=2026-11-13T03:12:44.136Z level=info msg="batch flushed" records=579 took=314ms sink=warehouse
+time=2026-11-13T03:12:45.146Z level=info msg="batch flushed" records=280 took=108ms sink=warehouse
+time=2026-11-13T03:12:45.805Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=272622
+time=2026-11-13T03:12:46.348Z level=info msg="batch flushed" records=256 took=265ms sink=warehouse
+time=2026-11-13T03:12:47.313Z level=info msg="batch flushed" records=895 took=422ms sink=warehouse
+time=2026-11-13T03:12:47.892Z level=info msg="batch flushed" records=458 took=887ms sink=warehouse
+time=2026-11-13T03:12:48.865Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=2 caller=sink/warehouse.go:142
+time=2026-11-13T03:12:49.498Z level=info msg="batch flushed" records=1003 took=804ms sink=warehouse
+time=2026-11-13T03:12:50.031Z level=info msg="batch flushed" records=1022 took=52ms sink=warehouse
+time=2026-11-13T03:12:50.272Z level=info msg="batch flushed" records=1188 took=148ms sink=warehouse
+time=2026-11-13T03:12:50.468Z level=info msg="batch flushed" records=1003 took=405ms sink=warehouse
+time=2026-11-13T03:12:50.906Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=393346
+time=2026-11-13T03:12:51.386Z level=info msg="batch flushed" records=975 took=764ms sink=warehouse
+time=2026-11-13T03:12:51.940Z level=info msg="batch flushed" records=1070 took=641ms sink=warehouse
+time=2026-11-13T03:12:53.018Z level=info msg="batch flushed" records=703 took=677ms sink=warehouse
+time=2026-11-13T03:12:54.099Z level=info msg="batch flushed" records=620 took=847ms sink=warehouse
+time=2026-11-13T03:12:54.596Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=197137
+time=2026-11-13T03:12:55.404Z level=info msg="batch flushed" records=566 took=704ms sink=warehouse
+time=2026-11-13T03:12:55.828Z level=info msg="batch flushed" records=738 took=728ms sink=warehouse
+time=2026-11-13T03:12:56.664Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=1 caller=sink/warehouse.go:142
+time=2026-11-13T03:12:57.429Z level=info msg="batch flushed" records=479 took=172ms sink=warehouse
+time=2026-11-13T03:12:57.787Z level=info msg="batch flushed" records=866 took=542ms sink=warehouse
+time=2026-11-13T03:12:58.608Z level=error msg="decode failed" err="unexpected end of JSON input" topic=events.raw partition=3 caller=decoder/envelope.go:63
+time=2026-11-13T03:12:59.530Z level=info msg="batch flushed" records=323 took=96ms sink=warehouse
+time=2026-11-13T03:13:00.015Z level=info msg="batch flushed" records=468 took=845ms sink=warehouse
+time=2026-11-13T03:13:00.988Z level=info msg="batch flushed" records=258 took=370ms sink=warehouse
+time=2026-11-13T03:13:01.482Z level=info msg="batch flushed" records=1022 took=304ms sink=warehouse
+time=2026-11-13T03:13:02.446Z level=info msg="batch flushed" records=661 took=875ms sink=warehouse
+time=2026-11-13T03:13:03.254Z level=info msg="batch flushed" records=387 took=284ms sink=warehouse
+time=2026-11-13T03:13:04.004Z level=info msg="batch flushed" records=263 took=487ms sink=warehouse
+time=2026-11-13T03:13:05.054Z level=info msg="batch flushed" records=911 took=523ms sink=warehouse
+time=2026-11-13T03:13:06.033Z level=error msg="decode failed" err="unexpected end of JSON input" topic=events.raw partition=3 caller=decoder/envelope.go:63
+time=2026-11-13T03:13:07.059Z level=info msg="batch flushed" records=896 took=182ms sink=warehouse
+time=2026-11-13T03:13:07.352Z level=info msg="batch flushed" records=1041 took=79ms sink=warehouse
+time=2026-11-13T03:13:07.669Z level=info msg="batch flushed" records=284 took=375ms sink=warehouse
+time=2026-11-13T03:13:08.152Z level=info msg="batch flushed" records=358 took=449ms sink=warehouse
+time=2026-11-13T03:13:08.393Z level=info msg="batch flushed" records=944 took=168ms sink=warehouse
+time=2026-11-13T03:13:09.141Z level=info msg="batch flushed" records=859 took=49ms sink=warehouse
+time=2026-11-13T03:13:10.005Z level=info msg="batch flushed" records=553 took=776ms sink=warehouse
+time=2026-11-13T03:13:10.222Z level=info msg="batch flushed" records=1053 took=377ms sink=warehouse
+time=2026-11-13T03:13:10.904Z level=info msg="batch flushed" records=907 took=783ms sink=warehouse
+time=2026-11-13T03:13:11.945Z level=info msg="batch flushed" records=369 took=375ms sink=warehouse
+time=2026-11-13T03:13:12.686Z level=info msg="batch flushed" records=578 took=54ms sink=warehouse
+time=2026-11-13T03:13:13.193Z level=info msg="batch flushed" records=652 took=249ms sink=warehouse
+time=2026-11-13T03:13:13.470Z level=info msg="batch flushed" records=841 took=888ms sink=warehouse
+time=2026-11-13T03:13:13.941Z level=info msg="batch flushed" records=641 took=320ms sink=warehouse
+time=2026-11-13T03:13:14.112Z level=info msg="batch flushed" records=859 took=57ms sink=warehouse
+time=2026-11-13T03:13:14.512Z level=info msg="batch flushed" records=720 took=849ms sink=warehouse
+time=2026-11-13T03:13:15.587Z level=info msg="batch flushed" records=1198 took=438ms sink=warehouse
+time=2026-11-13T03:13:15.937Z level=info msg="batch flushed" records=333 took=72ms sink=warehouse
+time=2026-11-13T03:13:16.638Z level=info msg="batch flushed" records=212 took=364ms sink=warehouse
+time=2026-11-13T03:13:16.967Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=3 caller=sink/warehouse.go:142
+time=2026-11-13T03:13:17.767Z level=info msg="batch flushed" records=1054 took=314ms sink=warehouse
+time=2026-11-13T03:13:18.780Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=2 caller=sink/warehouse.go:142
+time=2026-11-13T03:13:19.390Z level=info msg="batch flushed" records=330 took=257ms sink=warehouse
+time=2026-11-13T03:13:20.072Z level=info msg="batch flushed" records=296 took=456ms sink=warehouse
+time=2026-11-13T03:13:20.962Z level=info msg="batch flushed" records=952 took=89ms sink=warehouse
+time=2026-11-13T03:13:21.301Z level=info msg="batch flushed" records=548 took=134ms sink=warehouse
+time=2026-11-13T03:13:22.217Z level=info msg="batch flushed" records=463 took=746ms sink=warehouse
+time=2026-11-13T03:13:23.004Z level=info msg="batch flushed" records=690 took=244ms sink=warehouse
+time=2026-11-13T03:13:23.484Z level=info msg="batch flushed" records=291 took=498ms sink=warehouse
+time=2026-11-13T03:13:24.161Z level=info msg="batch flushed" records=335 took=459ms sink=warehouse
+time=2026-11-13T03:13:24.844Z level=info msg="batch flushed" records=625 took=344ms sink=warehouse
+time=2026-11-13T03:13:25.378Z level=info msg="batch flushed" records=489 took=230ms sink=warehouse
+time=2026-11-13T03:13:26.310Z level=info msg="batch flushed" records=260 took=404ms sink=warehouse
+time=2026-11-13T03:13:26.872Z level=info msg="batch flushed" records=631 took=251ms sink=warehouse
+time=2026-11-13T03:13:27.837Z level=info msg="batch flushed" records=315 took=877ms sink=warehouse
+time=2026-11-13T03:13:28.536Z level=info msg="batch flushed" records=1189 took=590ms sink=warehouse
+time=2026-11-13T03:13:28.894Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=54457
+time=2026-11-13T03:13:29.767Z level=info msg="batch flushed" records=1124 took=451ms sink=warehouse
+time=2026-11-13T03:13:30.587Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=2 caller=sink/warehouse.go:142
+time=2026-11-13T03:13:31.012Z level=info msg="batch flushed" records=356 took=479ms sink=warehouse
+time=2026-11-13T03:13:31.511Z level=info msg="batch flushed" records=829 took=496ms sink=warehouse
+time=2026-11-13T03:13:32.097Z level=info msg="batch flushed" records=605 took=351ms sink=warehouse
+time=2026-11-13T03:13:32.684Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=352162
+time=2026-11-13T03:13:33.681Z level=info msg="batch flushed" records=295 took=137ms sink=warehouse
+time=2026-11-13T03:13:34.666Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=151031
+time=2026-11-13T03:13:35.732Z level=info msg="batch flushed" records=1128 took=852ms sink=warehouse
+time=2026-11-13T03:13:35.996Z level=info msg="batch flushed" records=1054 took=110ms sink=warehouse
+time=2026-11-13T03:13:36.155Z level=info msg="batch flushed" records=640 took=174ms sink=warehouse
+time=2026-11-13T03:13:36.517Z level=error msg="decode failed" err="unexpected end of JSON input" topic=events.raw partition=0 caller=decoder/envelope.go:63
+time=2026-11-13T03:13:37.456Z level=info msg="batch flushed" records=661 took=57ms sink=warehouse
+time=2026-11-13T03:13:38.449Z level=info msg="batch flushed" records=410 took=668ms sink=warehouse
+time=2026-11-13T03:13:39.535Z level=info msg="batch flushed" records=243 took=733ms sink=warehouse
+time=2026-11-13T03:13:40.079Z level=info msg="batch flushed" records=822 took=549ms sink=warehouse
+time=2026-11-13T03:13:41.175Z level=info msg="batch flushed" records=1119 took=687ms sink=warehouse
+time=2026-11-13T03:13:41.540Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=409158
+time=2026-11-13T03:13:41.968Z level=info msg="batch flushed" records=876 took=69ms sink=warehouse
+time=2026-11-13T03:13:42.457Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=386796
+time=2026-11-13T03:13:42.842Z level=info msg="batch flushed" records=902 took=690ms sink=warehouse
+time=2026-11-13T03:13:43.485Z level=info msg="batch flushed" records=524 took=724ms sink=warehouse
+time=2026-11-13T03:13:43.891Z level=info msg="batch flushed" records=1135 took=91ms sink=warehouse
+time=2026-11-13T03:13:44.411Z level=info msg="batch flushed" records=697 took=572ms sink=warehouse
+time=2026-11-13T03:13:44.605Z level=info msg="batch flushed" records=1018 took=778ms sink=warehouse
+time=2026-11-13T03:13:44.952Z level=info msg="batch flushed" records=417 took=634ms sink=warehouse
+time=2026-11-13T03:13:45.569Z level=info msg="batch flushed" records=478 took=669ms sink=warehouse
+time=2026-11-13T03:13:46.530Z level=info msg="batch flushed" records=834 took=67ms sink=warehouse
+time=2026-11-13T03:13:46.825Z level=info msg="batch flushed" records=635 took=671ms sink=warehouse
+time=2026-11-13T03:13:47.380Z level=info msg="batch flushed" records=663 took=599ms sink=warehouse
+time=2026-11-13T03:13:47.652Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=2 caller=sink/warehouse.go:142
+time=2026-11-13T03:13:47.860Z level=info msg="batch flushed" records=1188 took=274ms sink=warehouse
+time=2026-11-13T03:13:48.514Z level=info msg="batch flushed" records=959 took=671ms sink=warehouse
+time=2026-11-13T03:13:48.768Z level=info msg="batch flushed" records=700 took=594ms sink=warehouse
+time=2026-11-13T03:13:49.538Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=85772
+time=2026-11-13T03:13:49.844Z level=info msg="batch flushed" records=259 took=711ms sink=warehouse
+time=2026-11-13T03:13:50.084Z level=info msg="batch flushed" records=830 took=157ms sink=warehouse
+time=2026-11-13T03:13:50.477Z level=info msg="batch flushed" records=788 took=216ms sink=warehouse
+time=2026-11-13T03:13:51.499Z level=info msg="batch flushed" records=345 took=882ms sink=warehouse
+time=2026-11-13T03:13:52.189Z level=info msg="batch flushed" records=1021 took=649ms sink=warehouse
+time=2026-11-13T03:13:52.808Z level=info msg="batch flushed" records=782 took=758ms sink=warehouse
+time=2026-11-13T03:13:53.088Z level=info msg="batch flushed" records=468 took=560ms sink=warehouse
+time=2026-11-13T03:13:53.967Z level=info msg="batch flushed" records=295 took=734ms sink=warehouse
+time=2026-11-13T03:13:54.620Z level=info msg="batch flushed" records=391 took=208ms sink=warehouse
+time=2026-11-13T03:13:55.551Z level=info msg="batch flushed" records=1082 took=84ms sink=warehouse
+time=2026-11-13T03:13:56.090Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=73083
+time=2026-11-13T03:13:57.164Z level=info msg="batch flushed" records=1124 took=80ms sink=warehouse
+time=2026-11-13T03:13:58.044Z level=info msg="batch flushed" records=214 took=790ms sink=warehouse
+time=2026-11-13T03:13:58.774Z level=info msg="batch flushed" records=371 took=344ms sink=warehouse
+time=2026-11-13T03:13:59.709Z level=info msg="batch flushed" records=1025 took=466ms sink=warehouse
+time=2026-11-13T03:14:00.010Z level=info msg="batch flushed" records=203 took=619ms sink=warehouse
+time=2026-11-13T03:14:00.490Z level=info msg="batch flushed" records=1047 took=378ms sink=warehouse
+time=2026-11-13T03:14:00.744Z level=info msg="batch flushed" records=1077 took=300ms sink=warehouse
+time=2026-11-13T03:14:01.369Z level=info msg="batch flushed" records=249 took=268ms sink=warehouse
+time=2026-11-13T03:14:02.395Z level=info msg="batch flushed" records=441 took=238ms sink=warehouse
+time=2026-11-13T03:14:03.180Z level=info msg="batch flushed" records=634 took=627ms sink=warehouse
+time=2026-11-13T03:14:04.005Z level=info msg="batch flushed" records=781 took=714ms sink=warehouse
+time=2026-11-13T03:14:04.171Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=135720
+time=2026-11-13T03:14:04.471Z level=info msg="batch flushed" records=255 took=555ms sink=warehouse
+time=2026-11-13T03:14:05.533Z level=info msg="batch flushed" records=504 took=111ms sink=warehouse
+time=2026-11-13T03:14:06.421Z level=info msg="batch flushed" records=853 took=250ms sink=warehouse
+time=2026-11-13T03:14:07.310Z level=info msg="batch flushed" records=1021 took=682ms sink=warehouse
+time=2026-11-13T03:14:08.129Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=3 caller=sink/warehouse.go:142
+time=2026-11-13T03:14:09.161Z level=info msg="batch flushed" records=514 took=77ms sink=warehouse
+time=2026-11-13T03:14:09.519Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=376378
+time=2026-11-13T03:14:10.387Z level=info msg="batch flushed" records=317 took=613ms sink=warehouse
+time=2026-11-13T03:14:11.125Z level=info msg="batch flushed" records=1053 took=80ms sink=warehouse
+time=2026-11-13T03:14:11.750Z level=info msg="batch flushed" records=1155 took=538ms sink=warehouse
+time=2026-11-13T03:14:12.659Z level=info msg="batch flushed" records=1123 took=526ms sink=warehouse
+time=2026-11-13T03:14:13.719Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=51200
+time=2026-11-13T03:14:14.635Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=195140
+time=2026-11-13T03:14:14.896Z level=info msg="batch flushed" records=950 took=576ms sink=warehouse
+time=2026-11-13T03:14:15.562Z level=info msg="batch flushed" records=1047 took=120ms sink=warehouse
+time=2026-11-13T03:14:15.767Z level=info msg="batch flushed" records=373 took=606ms sink=warehouse
+time=2026-11-13T03:14:16.204Z level=info msg="batch flushed" records=927 took=535ms sink=warehouse
+time=2026-11-13T03:14:17.278Z level=info msg="batch flushed" records=711 took=174ms sink=warehouse
+time=2026-11-13T03:14:18.278Z level=info msg="batch flushed" records=327 took=88ms sink=warehouse
+time=2026-11-13T03:14:18.611Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=389041
+time=2026-11-13T03:14:18.782Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=350846
+time=2026-11-13T03:14:19.275Z level=info msg="batch flushed" records=903 took=386ms sink=warehouse
+time=2026-11-13T03:14:19.589Z level=error msg="decode failed" err="unexpected end of JSON input" topic=events.raw partition=0 caller=decoder/envelope.go:63
+time=2026-11-13T03:14:20.025Z level=info msg="batch flushed" records=597 took=589ms sink=warehouse
+time=2026-11-13T03:14:21.081Z level=info msg="batch flushed" records=1039 took=811ms sink=warehouse
+time=2026-11-13T03:14:21.522Z level=info msg="batch flushed" records=366 took=445ms sink=warehouse
+time=2026-11-13T03:14:22.239Z level=info msg="batch flushed" records=830 took=511ms sink=warehouse
+time=2026-11-13T03:14:22.585Z level=info msg="batch flushed" records=878 took=49ms sink=warehouse
+time=2026-11-13T03:14:23.564Z level=info msg="batch flushed" records=693 took=466ms sink=warehouse
+time=2026-11-13T03:14:24.240Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=2 caller=sink/warehouse.go:142
+time=2026-11-13T03:14:24.931Z level=info msg="batch flushed" records=1197 took=200ms sink=warehouse
+time=2026-11-13T03:14:25.951Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=54367
+time=2026-11-13T03:14:26.452Z level=info msg="batch flushed" records=477 took=340ms sink=warehouse
+time=2026-11-13T03:14:27.244Z level=info msg="batch flushed" records=389 took=656ms sink=warehouse
+time=2026-11-13T03:14:28.309Z level=info msg="batch flushed" records=653 took=806ms sink=warehouse
+time=2026-11-13T03:14:28.707Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=52838
+time=2026-11-13T03:14:29.589Z level=info msg="batch flushed" records=981 took=363ms sink=warehouse
+time=2026-11-13T03:14:30.003Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=303732
+time=2026-11-13T03:14:30.927Z level=info msg="batch flushed" records=513 took=382ms sink=warehouse
+time=2026-11-13T03:14:31.684Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=1 caller=sink/warehouse.go:142
+time=2026-11-13T03:14:32.256Z level=info msg="batch flushed" records=1052 took=266ms sink=warehouse
+time=2026-11-13T03:14:33.322Z level=info msg="batch flushed" records=619 took=540ms sink=warehouse
+time=2026-11-13T03:14:33.946Z level=info msg="batch flushed" records=721 took=427ms sink=warehouse
+time=2026-11-13T03:14:34.708Z level=info msg="batch flushed" records=792 took=140ms sink=warehouse
+time=2026-11-13T03:14:35.550Z level=info msg="batch flushed" records=959 took=805ms sink=warehouse
+time=2026-11-13T03:14:36.038Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=284751
+time=2026-11-13T03:14:36.804Z level=info msg="batch flushed" records=299 took=676ms sink=warehouse
+time=2026-11-13T03:14:37.087Z level=info msg="batch flushed" records=946 took=234ms sink=warehouse
+time=2026-11-13T03:14:37.241Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=191245
+time=2026-11-13T03:14:38.180Z level=info msg="batch flushed" records=1111 took=108ms sink=warehouse
+time=2026-11-13T03:14:38.417Z level=info msg="batch flushed" records=239 took=176ms sink=warehouse
+time=2026-11-13T03:14:39.465Z level=info msg="batch flushed" records=568 took=189ms sink=warehouse
+time=2026-11-13T03:14:39.921Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=3 caller=sink/warehouse.go:142
+time=2026-11-13T03:14:41.011Z level=info msg="batch flushed" records=752 took=874ms sink=warehouse
+time=2026-11-13T03:14:41.679Z level=info msg="batch flushed" records=280 took=686ms sink=warehouse
+time=2026-11-13T03:14:42.168Z level=info msg="batch flushed" records=767 took=154ms sink=warehouse
+time=2026-11-13T03:14:42.480Z level=error msg="decode failed" err="unexpected end of JSON input" topic=events.raw partition=5 caller=decoder/envelope.go:63
+time=2026-11-13T03:14:43.159Z level=info msg="batch flushed" records=478 took=206ms sink=warehouse
+time=2026-11-13T03:14:44.147Z level=info msg="batch flushed" records=1021 took=547ms sink=warehouse
+time=2026-11-13T03:14:45.190Z level=info msg="batch flushed" records=274 took=529ms sink=warehouse
+time=2026-11-13T03:14:45.650Z level=info msg="batch flushed" records=330 took=793ms sink=warehouse
+time=2026-11-13T03:14:46.402Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=186247
+time=2026-11-13T03:14:46.924Z level=info msg="batch flushed" records=683 took=99ms sink=warehouse
+time=2026-11-13T03:14:47.413Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=208457
+time=2026-11-13T03:14:48.000Z level=info msg="config reloaded" source=configmap/ingest-tags tagRules=0
+time=2026-11-13T03:14:48.320Z level=info msg="batch flushed" records=812 took=280ms sink=warehouse
+time=2026-11-13T03:14:48.828Z level=info msg="batch flushed" records=289 took=845ms sink=warehouse
+time=2026-11-13T03:14:49.668Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=288984
+time=2026-11-13T03:14:50.048Z level=error msg="decode failed" err="unexpected end of JSON input" topic=events.raw partition=5 caller=decoder/envelope.go:63
+time=2026-11-13T03:14:50.893Z level=info msg="batch flushed" records=1062 took=215ms sink=warehouse
+time=2026-11-13T03:14:51.768Z level=info msg="batch flushed" records=306 took=682ms sink=warehouse
+time=2026-11-13T03:14:52.526Z level=info msg="batch flushed" records=597 took=356ms sink=warehouse
+time=2026-11-13T03:14:53.455Z level=info msg="batch flushed" records=879 took=319ms sink=warehouse
+time=2026-11-13T03:14:53.962Z level=info msg="batch flushed" records=474 took=822ms sink=warehouse
+time=2026-11-13T03:14:54.552Z level=info msg="batch flushed" records=213 took=828ms sink=warehouse
+time=2026-11-13T03:14:55.489Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=431548
+time=2026-11-13T03:14:56.441Z level=error msg="decode failed" err="unexpected end of JSON input" topic=events.raw partition=2 caller=decoder/envelope.go:63
+time=2026-11-13T03:14:56.777Z level=info msg="batch flushed" records=742 took=387ms sink=warehouse
+time=2026-11-13T03:14:57.526Z level=info msg="batch flushed" records=829 took=343ms sink=warehouse
+time=2026-11-13T03:14:58.537Z level=info msg="batch flushed" records=1158 took=124ms sink=warehouse
+time=2026-11-13T03:14:58.938Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=362690
+time=2026-11-13T03:14:59.855Z level=info msg="batch flushed" records=914 took=635ms sink=warehouse
+time=2026-11-13T03:15:00.760Z level=info msg="batch flushed" records=1095 took=864ms sink=warehouse
+time=2026-11-13T03:15:01.020Z level=info msg="batch flushed" records=682 took=365ms sink=warehouse
+time=2026-11-13T03:15:01.624Z level=info msg="batch flushed" records=528 took=509ms sink=warehouse
+time=2026-11-13T03:15:02.168Z level=info msg="batch flushed" records=277 took=145ms sink=warehouse
+time=2026-11-13T03:15:02.412Z level=info msg="batch flushed" records=528 took=668ms sink=warehouse
+time=2026-11-13T03:15:03.259Z level=info msg="batch flushed" records=399 took=733ms sink=warehouse
+time=2026-11-13T03:15:04.040Z level=info msg="batch flushed" records=283 took=331ms sink=warehouse
+time=2026-11-13T03:15:04.615Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=342223
+time=2026-11-13T03:15:05.452Z level=info msg="batch flushed" records=905 took=198ms sink=warehouse
+time=2026-11-13T03:15:06.534Z level=info msg="batch flushed" records=1164 took=207ms sink=warehouse
+time=2026-11-13T03:15:07.393Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=1 caller=sink/warehouse.go:142
+time=2026-11-13T03:15:08.237Z level=info msg="batch flushed" records=1102 took=664ms sink=warehouse
+time=2026-11-13T03:15:08.412Z level=info msg="batch flushed" records=585 took=619ms sink=warehouse
+time=2026-11-13T03:15:08.631Z level=info msg="batch flushed" records=506 took=444ms sink=warehouse
+time=2026-11-13T03:15:09.584Z level=info msg="batch flushed" records=1186 took=861ms sink=warehouse
+time=2026-11-13T03:15:10.115Z level=info msg="batch flushed" records=614 took=587ms sink=warehouse
+time=2026-11-13T03:15:10.538Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=2 caller=sink/warehouse.go:142
+time=2026-11-13T03:15:11.026Z level=info msg="batch flushed" records=217 took=299ms sink=warehouse
+time=2026-11-13T03:15:11.346Z level=info msg="batch flushed" records=263 took=535ms sink=warehouse
+time=2026-11-13T03:15:12.264Z level=info msg="batch flushed" records=767 took=837ms sink=warehouse
+time=2026-11-13T03:15:13.185Z level=info msg="batch flushed" records=510 took=238ms sink=warehouse
+time=2026-11-13T03:15:13.779Z level=info msg="batch flushed" records=990 took=370ms sink=warehouse
+time=2026-11-13T03:15:14.126Z level=info msg="batch flushed" records=736 took=602ms sink=warehouse
+time=2026-11-13T03:15:15.010Z level=info msg="batch flushed" records=1163 took=755ms sink=warehouse
+time=2026-11-13T03:15:15.987Z level=info msg="batch flushed" records=583 took=222ms sink=warehouse
+time=2026-11-13T03:15:16.855Z level=info msg="batch flushed" records=580 took=899ms sink=warehouse
+time=2026-11-13T03:15:17.594Z level=info msg="batch flushed" records=1047 took=698ms sink=warehouse
+time=2026-11-13T03:15:18.132Z level=info msg="batch flushed" records=1011 took=514ms sink=warehouse
+time=2026-11-13T03:15:18.384Z level=error msg="decode failed" err="unexpected end of JSON input" topic=events.raw partition=0 caller=decoder/envelope.go:63
+time=2026-11-13T03:15:18.867Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=3 caller=sink/warehouse.go:142
+time=2026-11-13T03:15:19.751Z level=info msg="batch flushed" records=901 took=102ms sink=warehouse
+time=2026-11-13T03:15:19.965Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=2 caller=sink/warehouse.go:142
+time=2026-11-13T03:15:20.636Z level=info msg="batch flushed" records=818 took=753ms sink=warehouse
+time=2026-11-13T03:15:21.604Z level=info msg="batch flushed" records=328 took=309ms sink=warehouse
+time=2026-11-13T03:15:22.085Z level=info msg="batch flushed" records=208 took=389ms sink=warehouse
+time=2026-11-13T03:15:23.171Z level=info msg="batch flushed" records=438 took=413ms sink=warehouse
+time=2026-11-13T03:15:23.405Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=50279
+time=2026-11-13T03:15:24.218Z level=info msg="batch flushed" records=578 took=593ms sink=warehouse
+time=2026-11-13T03:15:24.799Z level=info msg="batch flushed" records=870 took=606ms sink=warehouse
+time=2026-11-13T03:15:25.874Z level=info msg="batch flushed" records=991 took=421ms sink=warehouse
+time=2026-11-13T03:15:26.361Z level=error msg="decode failed" err="unexpected end of JSON input" topic=events.raw partition=5 caller=decoder/envelope.go:63
+time=2026-11-13T03:15:27.106Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=2 caller=sink/warehouse.go:142
+time=2026-11-13T03:15:27.682Z level=info msg="batch flushed" records=645 took=177ms sink=warehouse
+time=2026-11-13T03:15:28.679Z level=info msg="batch flushed" records=1045 took=805ms sink=warehouse
+time=2026-11-13T03:15:28.884Z level=info msg="batch flushed" records=1140 took=748ms sink=warehouse
+time=2026-11-13T03:15:29.643Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=2 caller=sink/warehouse.go:142
+time=2026-11-13T03:15:30.509Z level=info msg="batch flushed" records=599 took=531ms sink=warehouse
+time=2026-11-13T03:15:31.394Z level=info msg="batch flushed" records=229 took=609ms sink=warehouse
+time=2026-11-13T03:15:32.360Z level=info msg="batch flushed" records=646 took=200ms sink=warehouse
+time=2026-11-13T03:15:32.866Z level=info msg="batch flushed" records=790 took=785ms sink=warehouse
+time=2026-11-13T03:15:33.933Z level=info msg="batch flushed" records=929 took=182ms sink=warehouse
+time=2026-11-13T03:15:34.500Z level=info msg="batch flushed" records=945 took=782ms sink=warehouse
+time=2026-11-13T03:15:35.169Z level=info msg="batch flushed" records=641 took=859ms sink=warehouse
+time=2026-11-13T03:15:36.016Z level=info msg="batch flushed" records=623 took=757ms sink=warehouse
+time=2026-11-13T03:15:36.542Z level=info msg="batch flushed" records=760 took=517ms sink=warehouse
+time=2026-11-13T03:15:37.193Z level=info msg="batch flushed" records=584 took=652ms sink=warehouse
+time=2026-11-13T03:15:38.191Z level=info msg="batch flushed" records=439 took=769ms sink=warehouse
+time=2026-11-13T03:15:38.532Z level=info msg="batch flushed" records=316 took=366ms sink=warehouse
+time=2026-11-13T03:15:38.922Z level=info msg="batch flushed" records=542 took=187ms sink=warehouse
+time=2026-11-13T03:15:40.001Z level=info msg="batch flushed" records=914 took=166ms sink=warehouse
+time=2026-11-13T03:15:40.435Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=380375
+time=2026-11-13T03:15:40.681Z level=error msg="decode failed" err="unexpected end of JSON input" topic=events.raw partition=3 caller=decoder/envelope.go:63
+time=2026-11-13T03:15:41.363Z level=info msg="batch flushed" records=1092 took=630ms sink=warehouse
+time=2026-11-13T03:15:41.627Z level=info msg="batch flushed" records=741 took=632ms sink=warehouse
+time=2026-11-13T03:15:42.006Z level=info msg="batch flushed" records=475 took=883ms sink=warehouse
+time=2026-11-13T03:15:42.178Z level=info msg="batch flushed" records=822 took=874ms sink=warehouse
+time=2026-11-13T03:15:43.118Z level=info msg="batch flushed" records=357 took=184ms sink=warehouse
+time=2026-11-13T03:15:43.618Z level=error msg="decode failed" err="unexpected end of JSON input" topic=events.raw partition=4 caller=decoder/envelope.go:63
+time=2026-11-13T03:15:44.589Z level=info msg="batch flushed" records=976 took=278ms sink=warehouse
+time=2026-11-13T03:15:45.683Z level=error msg="decode failed" err="unexpected end of JSON input" topic=events.raw partition=2 caller=decoder/envelope.go:63
+time=2026-11-13T03:15:46.749Z level=info msg="batch flushed" records=326 took=647ms sink=warehouse
+time=2026-11-13T03:15:47.146Z level=info msg="batch flushed" records=344 took=367ms sink=warehouse
+time=2026-11-13T03:15:48.096Z level=info msg="batch flushed" records=993 took=552ms sink=warehouse
+time=2026-11-13T03:15:48.300Z level=info msg="batch flushed" records=247 took=883ms sink=warehouse
+time=2026-11-13T03:15:48.675Z level=info msg="batch flushed" records=960 took=830ms sink=warehouse
+time=2026-11-13T03:15:49.490Z level=info msg="batch flushed" records=1084 took=270ms sink=warehouse
+time=2026-11-13T03:15:50.030Z level=info msg="batch flushed" records=390 took=408ms sink=warehouse
+time=2026-11-13T03:15:50.595Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=23578
+time=2026-11-13T03:15:51.490Z level=info msg="batch flushed" records=840 took=539ms sink=warehouse
+time=2026-11-13T03:15:52.142Z level=info msg="batch flushed" records=1065 took=42ms sink=warehouse
+time=2026-11-13T03:15:52.960Z level=info msg="batch flushed" records=964 took=725ms sink=warehouse
+time=2026-11-13T03:15:53.980Z level=info msg="batch flushed" records=395 took=886ms sink=warehouse
+time=2026-11-13T03:15:54.733Z level=info msg="batch flushed" records=242 took=426ms sink=warehouse
+time=2026-11-13T03:15:55.377Z level=info msg="batch flushed" records=648 took=867ms sink=warehouse
+time=2026-11-13T03:15:55.740Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=368164
+time=2026-11-13T03:15:56.116Z level=info msg="batch flushed" records=466 took=62ms sink=warehouse
+time=2026-11-13T03:15:56.575Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=183232
+time=2026-11-13T03:15:57.144Z level=info msg="batch flushed" records=483 took=693ms sink=warehouse
+time=2026-11-13T03:15:57.300Z level=info msg="batch flushed" records=758 took=600ms sink=warehouse
+time=2026-11-13T03:15:57.760Z level=info msg="batch flushed" records=769 took=810ms sink=warehouse
+time=2026-11-13T03:15:58.469Z level=info msg="batch flushed" records=405 took=188ms sink=warehouse
+time=2026-11-13T03:15:58.863Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=214804
+time=2026-11-13T03:15:59.196Z level=info msg="batch flushed" records=220 took=892ms sink=warehouse
+time=2026-11-13T03:15:59.636Z level=info msg="batch flushed" records=940 took=747ms sink=warehouse
+time=2026-11-13T03:16:00.119Z level=info msg="consumed message" topic=events.raw partition=3 offset=77120418 schema=v7
+panic: assignment to entry in nil map
+
+goroutine 87 [running]:
+github.com/shopline/ingest/internal/enrich.(*Tagger).Apply(0xc0002a4000, 0xc00096fe30)
+	/build/internal/enrich/tagger.go:73 +0x1a5
+github.com/shopline/ingest/internal/pipeline.(*Stage).process(0xc00011c2d0, {0x9b3f40, 0xc0001ba000}, 0xc00096fe30)
+	/build/internal/pipeline/stage.go:118 +0x2e8
+github.com/shopline/ingest/internal/pipeline.(*Stage).Run.func1()
+	/build/internal/pipeline/stage.go:91 +0x65
+created by github.com/shopline/ingest/internal/pipeline.(*Stage).Run in goroutine 1
+	/build/internal/pipeline/stage.go:88 +0x9f
+exit status 2
+time=2026-11-13T03:16:10.119Z level=info msg="starting ingest-worker" version=2.31.0 restart=1 backoff=10s
+time=2026-11-13T03:16:10.419Z level=info msg="connected" broker=kafka-2.internal:9092 group=ingest
+time=2026-11-13T03:16:10.921Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=53020
+time=2026-11-13T03:16:11.869Z level=info msg="consumed message" topic=events.raw partition=3 offset=77120418 schema=v7
+panic: assignment to entry in nil map
+
+goroutine 63 [running]:
+github.com/shopline/ingest/internal/enrich.(*Tagger).Apply(0xc0002a4000, 0xc000275940)
+	/build/internal/enrich/tagger.go:73 +0x1a5
+github.com/shopline/ingest/internal/pipeline.(*Stage).process(0xc00011c2d0, {0x9b3f40, 0xc0001ba000}, 0xc000275940)
+	/build/internal/pipeline/stage.go:118 +0x2e8
+github.com/shopline/ingest/internal/pipeline.(*Stage).Run.func1()
+	/build/internal/pipeline/stage.go:91 +0x65
+created by github.com/shopline/ingest/internal/pipeline.(*Stage).Run in goroutine 1
+	/build/internal/pipeline/stage.go:88 +0x9f
+exit status 2
+time=2026-11-13T03:16:31.869Z level=info msg="starting ingest-worker" version=2.31.0 restart=2 backoff=20s
+time=2026-11-13T03:16:32.169Z level=info msg="connected" broker=kafka-2.internal:9092 group=ingest
+time=2026-11-13T03:16:32.408Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=2 caller=sink/warehouse.go:142
+time=2026-11-13T03:16:33.116Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=91704
+time=2026-11-13T03:16:33.619Z level=info msg="batch flushed" records=832 took=326ms sink=warehouse
+time=2026-11-13T03:16:34.266Z level=info msg="consumed message" topic=events.raw partition=3 offset=77120418 schema=v7
+panic: assignment to entry in nil map
+
+goroutine 57 [running]:
+github.com/shopline/ingest/internal/enrich.(*Tagger).Apply(0xc0002a4000, 0xc000062a40)
+	/build/internal/enrich/tagger.go:73 +0x1a5
+github.com/shopline/ingest/internal/pipeline.(*Stage).process(0xc00011c2d0, {0x9b3f40, 0xc0001ba000}, 0xc000062a40)
+	/build/internal/pipeline/stage.go:118 +0x2e8
+github.com/shopline/ingest/internal/pipeline.(*Stage).Run.func1()
+	/build/internal/pipeline/stage.go:91 +0x65
+created by github.com/shopline/ingest/internal/pipeline.(*Stage).Run in goroutine 1
+	/build/internal/pipeline/stage.go:88 +0x9f
+exit status 2
+time=2026-11-13T03:17:14.266Z level=info msg="starting ingest-worker" version=2.31.0 restart=3 backoff=40s
+time=2026-11-13T03:17:14.566Z level=info msg="connected" broker=kafka-2.internal:9092 group=ingest
+time=2026-11-13T03:17:15.026Z level=info msg="batch flushed" records=896 took=534ms sink=warehouse
+time=2026-11-13T03:17:15.961Z level=info msg="batch flushed" records=853 took=638ms sink=warehouse
+time=2026-11-13T03:17:16.603Z level=info msg="consumed message" topic=events.raw partition=3 offset=77120418 schema=v7
+panic: assignment to entry in nil map
+
+goroutine 88 [running]:
+github.com/shopline/ingest/internal/enrich.(*Tagger).Apply(0xc0002a4000, 0xc000291950)
+	/build/internal/enrich/tagger.go:73 +0x1a5
+github.com/shopline/ingest/internal/pipeline.(*Stage).process(0xc00011c2d0, {0x9b3f40, 0xc0001ba000}, 0xc000291950)
+	/build/internal/pipeline/stage.go:118 +0x2e8
+github.com/shopline/ingest/internal/pipeline.(*Stage).Run.func1()
+	/build/internal/pipeline/stage.go:91 +0x65
+created by github.com/shopline/ingest/internal/pipeline.(*Stage).Run in goroutine 1
+	/build/internal/pipeline/stage.go:88 +0x9f
+exit status 2
+time=2026-11-13T03:18:36.603Z level=info msg="starting ingest-worker" version=2.31.0 restart=4 backoff=80s
+time=2026-11-13T03:18:36.903Z level=info msg="connected" broker=kafka-2.internal:9092 group=ingest
+time=2026-11-13T03:18:37.446Z level=info msg="batch flushed" records=508 took=112ms sink=warehouse
+time=2026-11-13T03:18:37.598Z level=info msg="batch flushed" records=336 took=610ms sink=warehouse
+time=2026-11-13T03:18:37.823Z level=info msg="batch flushed" records=798 took=876ms sink=warehouse
+time=2026-11-13T03:18:38.133Z level=info msg="batch flushed" records=990 took=169ms sink=warehouse
+time=2026-11-13T03:18:38.783Z level=info msg="batch flushed" records=619 took=757ms sink=warehouse
+time=2026-11-13T03:18:39.725Z level=info msg="consumed message" topic=events.raw partition=3 offset=77120418 schema=v7
+panic: assignment to entry in nil map
+
+goroutine 52 [running]:
+github.com/shopline/ingest/internal/enrich.(*Tagger).Apply(0xc0002a4000, 0xc00069b890)
+	/build/internal/enrich/tagger.go:73 +0x1a5
+github.com/shopline/ingest/internal/pipeline.(*Stage).process(0xc00011c2d0, {0x9b3f40, 0xc0001ba000}, 0xc00069b890)
+	/build/internal/pipeline/stage.go:118 +0x2e8
+github.com/shopline/ingest/internal/pipeline.(*Stage).Run.func1()
+	/build/internal/pipeline/stage.go:91 +0x65
+created by github.com/shopline/ingest/internal/pipeline.(*Stage).Run in goroutine 1
+	/build/internal/pipeline/stage.go:88 +0x9f
+exit status 2
+time=2026-11-13T03:21:19.725Z level=info msg="starting ingest-worker" version=2.31.0 restart=5 backoff=160s
+time=2026-11-13T03:21:20.025Z level=info msg="connected" broker=kafka-2.internal:9092 group=ingest
+time=2026-11-13T03:21:20.371Z level=info msg="batch flushed" records=672 took=849ms sink=warehouse
+time=2026-11-13T03:21:21.314Z level=info msg="batch flushed" records=916 took=209ms sink=warehouse
+time=2026-11-13T03:21:21.476Z level=info msg="batch flushed" records=781 took=419ms sink=warehouse
+time=2026-11-13T03:21:21.964Z level=info msg="batch flushed" records=507 took=126ms sink=warehouse
+time=2026-11-13T03:21:22.205Z level=error msg="decode failed" err="unexpected end of JSON input" topic=events.raw partition=2 caller=decoder/envelope.go:63
+time=2026-11-13T03:21:23.146Z level=info msg="consumed message" topic=events.raw partition=3 offset=77120418 schema=v7
+panic: assignment to entry in nil map
+
+goroutine 75 [running]:
+github.com/shopline/ingest/internal/enrich.(*Tagger).Apply(0xc0002a4000, 0xc000f27b80)
+	/build/internal/enrich/tagger.go:73 +0x1a5
+github.com/shopline/ingest/internal/pipeline.(*Stage).process(0xc00011c2d0, {0x9b3f40, 0xc0001ba000}, 0xc000f27b80)
+	/build/internal/pipeline/stage.go:118 +0x2e8
+github.com/shopline/ingest/internal/pipeline.(*Stage).Run.func1()
+	/build/internal/pipeline/stage.go:91 +0x65
+created by github.com/shopline/ingest/internal/pipeline.(*Stage).Run in goroutine 1
+	/build/internal/pipeline/stage.go:88 +0x9f
+exit status 2
+time=2026-11-13T03:24:03.146Z level=info msg="starting ingest-worker" version=2.31.0 restart=6 backoff=160s
+time=2026-11-13T03:24:03.379Z level=info msg="batch flushed" records=284 took=737ms sink=warehouse
+time=2026-11-13T03:24:03.446Z level=info msg="connected" broker=kafka-2.internal:9092 group=ingest
+time=2026-11-13T03:24:03.544Z level=info msg="batch flushed" records=769 took=492ms sink=warehouse
+time=2026-11-13T03:24:04.149Z level=info msg="batch flushed" records=411 took=680ms sink=warehouse
+time=2026-11-13T03:24:05.087Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=137547
+time=2026-11-13T03:24:05.537Z level=info msg="batch flushed" records=834 took=385ms sink=warehouse
+time=2026-11-13T03:24:06.485Z level=info msg="consumed message" topic=events.raw partition=3 offset=77120418 schema=v7
+panic: assignment to entry in nil map
+
+goroutine 81 [running]:
+github.com/shopline/ingest/internal/enrich.(*Tagger).Apply(0xc0002a4000, 0xc000efe970)
+	/build/internal/enrich/tagger.go:73 +0x1a5
+github.com/shopline/ingest/internal/pipeline.(*Stage).process(0xc00011c2d0, {0x9b3f40, 0xc0001ba000}, 0xc000efe970)
+	/build/internal/pipeline/stage.go:118 +0x2e8
+github.com/shopline/ingest/internal/pipeline.(*Stage).Run.func1()
+	/build/internal/pipeline/stage.go:91 +0x65
+created by github.com/shopline/ingest/internal/pipeline.(*Stage).Run in goroutine 1
+	/build/internal/pipeline/stage.go:88 +0x9f
+exit status 2
+time=2026-11-13T03:26:46.485Z level=info msg="starting ingest-worker" version=2.31.0 restart=7 backoff=160s
+time=2026-11-13T03:26:46.785Z level=info msg="connected" broker=kafka-2.internal:9092 group=ingest
+time=2026-11-13T03:26:47.174Z level=info msg="batch flushed" records=1157 took=385ms sink=warehouse
+time=2026-11-13T03:26:47.764Z level=info msg="batch flushed" records=443 took=101ms sink=warehouse
+time=2026-11-13T03:26:47.957Z level=info msg="batch flushed" records=1131 took=65ms sink=warehouse
+time=2026-11-13T03:26:48.356Z level=info msg="batch flushed" records=777 took=763ms sink=warehouse
+time=2026-11-13T03:26:49.138Z level=info msg="consumed message" topic=events.raw partition=3 offset=77120418 schema=v7
+panic: assignment to entry in nil map
+
+goroutine 59 [running]:
+github.com/shopline/ingest/internal/enrich.(*Tagger).Apply(0xc0002a4000, 0xc00060b900)
+	/build/internal/enrich/tagger.go:73 +0x1a5
+github.com/shopline/ingest/internal/pipeline.(*Stage).process(0xc00011c2d0, {0x9b3f40, 0xc0001ba000}, 0xc00060b900)
+	/build/internal/pipeline/stage.go:118 +0x2e8
+github.com/shopline/ingest/internal/pipeline.(*Stage).Run.func1()
+	/build/internal/pipeline/stage.go:91 +0x65
+created by github.com/shopline/ingest/internal/pipeline.(*Stage).Run in goroutine 1
+	/build/internal/pipeline/stage.go:88 +0x9f
+exit status 2
+time=2026-11-13T03:29:29.138Z level=info msg="starting ingest-worker" version=2.31.0 restart=8 backoff=160s
+time=2026-11-13T03:29:29.438Z level=info msg="connected" broker=kafka-2.internal:9092 group=ingest
+time=2026-11-13T03:29:30.171Z level=error msg="decode failed" err="unexpected end of JSON input" topic=events.raw partition=3 caller=decoder/envelope.go:63
+time=2026-11-13T03:29:30.782Z level=info msg="consumed message" topic=events.raw partition=3 offset=77120418 schema=v7
+panic: assignment to entry in nil map
+
+goroutine 45 [running]:
+github.com/shopline/ingest/internal/enrich.(*Tagger).Apply(0xc0002a4000, 0xc000430960)
+	/build/internal/enrich/tagger.go:73 +0x1a5
+github.com/shopline/ingest/internal/pipeline.(*Stage).process(0xc00011c2d0, {0x9b3f40, 0xc0001ba000}, 0xc000430960)
+	/build/internal/pipeline/stage.go:118 +0x2e8
+github.com/shopline/ingest/internal/pipeline.(*Stage).Run.func1()
+	/build/internal/pipeline/stage.go:91 +0x65
+created by github.com/shopline/ingest/internal/pipeline.(*Stage).Run in goroutine 1
+	/build/internal/pipeline/stage.go:88 +0x9f
+exit status 2
+time=2026-11-13T03:32:10.782Z level=info msg="starting ingest-worker" version=2.31.0 restart=9 backoff=160s
+time=2026-11-13T03:32:11.082Z level=info msg="connected" broker=kafka-2.internal:9092 group=ingest
+time=2026-11-13T03:32:11.709Z level=info msg="batch flushed" records=580 took=110ms sink=warehouse
+time=2026-11-13T03:32:12.386Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=200625
+time=2026-11-13T03:32:13.479Z level=info msg="batch flushed" records=1191 took=724ms sink=warehouse
+time=2026-11-13T03:32:13.734Z level=info msg="batch flushed" records=263 took=380ms sink=warehouse
+time=2026-11-13T03:32:14.457Z level=info msg="batch flushed" records=742 took=814ms sink=warehouse
+time=2026-11-13T03:32:15.264Z level=info msg="batch flushed" records=790 took=355ms sink=warehouse
+time=2026-11-13T03:32:15.663Z level=info msg="batch flushed" records=369 took=677ms sink=warehouse
+time=2026-11-13T03:32:16.000Z level=info msg="batch flushed" records=928 took=870ms sink=warehouse
+time=2026-11-13T03:32:16.432Z level=info msg="batch flushed" records=255 took=474ms sink=warehouse
+time=2026-11-13T03:32:16.755Z level=info msg="batch flushed" records=557 took=604ms sink=warehouse
+time=2026-11-13T03:32:17.565Z level=info msg="batch flushed" records=751 took=672ms sink=warehouse
+time=2026-11-13T03:32:18.389Z level=info msg="batch flushed" records=625 took=827ms sink=warehouse
+time=2026-11-13T03:32:19.245Z level=info msg="batch flushed" records=968 took=559ms sink=warehouse
+time=2026-11-13T03:32:20.203Z level=info msg="batch flushed" records=660 took=790ms sink=warehouse
+time=2026-11-13T03:32:21.222Z level=info msg="batch flushed" records=224 took=593ms sink=warehouse
+time=2026-11-13T03:32:21.584Z level=info msg="batch flushed" records=527 took=349ms sink=warehouse
+time=2026-11-13T03:32:22.405Z level=info msg="batch flushed" records=892 took=529ms sink=warehouse
+time=2026-11-13T03:32:23.201Z level=info msg="batch flushed" records=589 took=766ms sink=warehouse
+time=2026-11-13T03:32:24.297Z level=error msg="decode failed" err="unexpected end of JSON input" topic=events.raw partition=1 caller=decoder/envelope.go:63
+time=2026-11-13T03:32:25.135Z level=info msg="batch flushed" records=647 took=132ms sink=warehouse
+time=2026-11-13T03:32:25.984Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=3 caller=sink/warehouse.go:142
+time=2026-11-13T03:32:26.142Z level=info msg="batch flushed" records=903 took=245ms sink=warehouse
+time=2026-11-13T03:32:27.162Z level=info msg="batch flushed" records=377 took=351ms sink=warehouse
+time=2026-11-13T03:32:27.418Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=1 caller=sink/warehouse.go:142
+time=2026-11-13T03:32:28.393Z level=info msg="batch flushed" records=823 took=216ms sink=warehouse
+time=2026-11-13T03:32:28.813Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=268058
+time=2026-11-13T03:32:29.193Z level=info msg="batch flushed" records=341 took=203ms sink=warehouse
+time=2026-11-13T03:32:29.877Z level=info msg="batch flushed" records=1127 took=787ms sink=warehouse
+time=2026-11-13T03:32:30.547Z level=info msg="batch flushed" records=374 took=269ms sink=warehouse
+time=2026-11-13T03:32:30.947Z level=info msg="batch flushed" records=789 took=677ms sink=warehouse
+time=2026-11-13T03:32:31.761Z level=info msg="batch flushed" records=337 took=322ms sink=warehouse
+time=2026-11-13T03:32:32.098Z level=info msg="batch flushed" records=1152 took=263ms sink=warehouse
+time=2026-11-13T03:32:33.182Z level=info msg="batch flushed" records=1111 took=604ms sink=warehouse
+time=2026-11-13T03:32:33.903Z level=info msg="batch flushed" records=437 took=401ms sink=warehouse
+time=2026-11-13T03:32:34.592Z level=info msg="batch flushed" records=760 took=826ms sink=warehouse
+time=2026-11-13T03:32:34.975Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=1 caller=sink/warehouse.go:142
+time=2026-11-13T03:32:35.475Z level=info msg="batch flushed" records=1050 took=893ms sink=warehouse
+time=2026-11-13T03:32:36.435Z level=info msg="batch flushed" records=321 took=762ms sink=warehouse
+time=2026-11-13T03:32:37.506Z level=info msg="batch flushed" records=978 took=279ms sink=warehouse
+time=2026-11-13T03:32:38.245Z level=info msg="batch flushed" records=394 took=737ms sink=warehouse
+time=2026-11-13T03:32:39.141Z level=info msg="batch flushed" records=672 took=726ms sink=warehouse
+time=2026-11-13T03:32:39.301Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=436656
+time=2026-11-13T03:32:40.176Z level=info msg="batch flushed" records=819 took=789ms sink=warehouse
+time=2026-11-13T03:32:40.660Z level=info msg="batch flushed" records=831 took=186ms sink=warehouse
+time=2026-11-13T03:32:41.612Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=143888
+time=2026-11-13T03:32:41.992Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=333623
+time=2026-11-13T03:32:42.485Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=160099
+time=2026-11-13T03:32:43.475Z level=info msg="batch flushed" records=681 took=498ms sink=warehouse
+time=2026-11-13T03:32:44.396Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=2 caller=sink/warehouse.go:142
+time=2026-11-13T03:32:45.241Z level=info msg="batch flushed" records=848 took=624ms sink=warehouse
+time=2026-11-13T03:32:46.016Z level=info msg="batch flushed" records=274 took=237ms sink=warehouse
+time=2026-11-13T03:32:46.420Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=2 caller=sink/warehouse.go:142
+time=2026-11-13T03:32:47.370Z level=info msg="batch flushed" records=950 took=46ms sink=warehouse
+time=2026-11-13T03:32:48.056Z level=info msg="batch flushed" records=918 took=239ms sink=warehouse
+time=2026-11-13T03:32:48.253Z level=info msg="batch flushed" records=630 took=380ms sink=warehouse
+time=2026-11-13T03:32:48.980Z level=info msg="batch flushed" records=908 took=209ms sink=warehouse
+time=2026-11-13T03:32:49.333Z level=info msg="batch flushed" records=974 took=294ms sink=warehouse
+time=2026-11-13T03:32:49.511Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=104869
+time=2026-11-13T03:32:50.256Z level=info msg="batch flushed" records=324 took=595ms sink=warehouse
+time=2026-11-13T03:32:50.949Z level=info msg="batch flushed" records=903 took=117ms sink=warehouse
+time=2026-11-13T03:32:51.335Z level=info msg="batch flushed" records=891 took=700ms sink=warehouse
+time=2026-11-13T03:32:52.248Z level=info msg="batch flushed" records=303 took=779ms sink=warehouse
+time=2026-11-13T03:32:52.841Z level=info msg="batch flushed" records=659 took=863ms sink=warehouse
+time=2026-11-13T03:32:53.663Z level=info msg="batch flushed" records=904 took=413ms sink=warehouse
+time=2026-11-13T03:32:54.731Z level=info msg="batch flushed" records=675 took=547ms sink=warehouse
+time=2026-11-13T03:32:54.943Z level=info msg="batch flushed" records=1161 took=70ms sink=warehouse
+time=2026-11-13T03:32:55.203Z level=info msg="batch flushed" records=287 took=63ms sink=warehouse
+time=2026-11-13T03:32:55.522Z level=info msg="batch flushed" records=439 took=297ms sink=warehouse
+time=2026-11-13T03:32:56.317Z level=info msg="batch flushed" records=623 took=423ms sink=warehouse
+time=2026-11-13T03:32:57.391Z level=info msg="batch flushed" records=801 took=65ms sink=warehouse
+time=2026-11-13T03:32:57.789Z level=info msg="batch flushed" records=914 took=278ms sink=warehouse
+time=2026-11-13T03:32:58.109Z level=info msg="batch flushed" records=372 took=534ms sink=warehouse
+time=2026-11-13T03:32:58.449Z level=info msg="batch flushed" records=595 took=386ms sink=warehouse
+time=2026-11-13T03:32:59.170Z level=error msg="decode failed" err="unexpected end of JSON input" topic=events.raw partition=5 caller=decoder/envelope.go:63
+time=2026-11-13T03:32:59.829Z level=info msg="batch flushed" records=621 took=597ms sink=warehouse
+time=2026-11-13T03:33:00.402Z level=info msg="batch flushed" records=250 took=144ms sink=warehouse
+time=2026-11-13T03:33:01.227Z level=info msg="batch flushed" records=910 took=346ms sink=warehouse
+time=2026-11-13T03:33:02.218Z level=info msg="batch flushed" records=507 took=385ms sink=warehouse
+time=2026-11-13T03:33:02.681Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=3 caller=sink/warehouse.go:142
+time=2026-11-13T03:33:03.209Z level=info msg="batch flushed" records=942 took=278ms sink=warehouse
+time=2026-11-13T03:33:03.769Z level=info msg="batch flushed" records=483 took=359ms sink=warehouse
+time=2026-11-13T03:33:04.108Z level=info msg="batch flushed" records=1174 took=667ms sink=warehouse
+time=2026-11-13T03:33:04.869Z level=info msg="batch flushed" records=443 took=510ms sink=warehouse
+time=2026-11-13T03:33:05.870Z level=info msg="batch flushed" records=684 took=252ms sink=warehouse
+time=2026-11-13T03:33:06.566Z level=info msg="batch flushed" records=548 took=899ms sink=warehouse
+time=2026-11-13T03:33:07.296Z level=info msg="batch flushed" records=377 took=663ms sink=warehouse
+time=2026-11-13T03:33:07.690Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=2 caller=sink/warehouse.go:142
+time=2026-11-13T03:33:08.759Z level=info msg="batch flushed" records=440 took=555ms sink=warehouse
+time=2026-11-13T03:33:09.770Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=59560
+time=2026-11-13T03:33:10.000Z level=info msg="skipping poison message after 9 restarts" topic=events.raw partition=3 offset=77120418
+time=2026-11-13T03:33:10.402Z level=info msg="batch flushed" records=497 took=474ms sink=warehouse
+time=2026-11-13T03:33:11.369Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=1 caller=sink/warehouse.go:142
+time=2026-11-13T03:33:11.748Z level=info msg="batch flushed" records=240 took=466ms sink=warehouse
+time=2026-11-13T03:33:12.147Z level=info msg="batch flushed" records=628 took=402ms sink=warehouse
+time=2026-11-13T03:33:13.147Z level=info msg="batch flushed" records=250 took=85ms sink=warehouse
+time=2026-11-13T03:33:13.590Z level=info msg="batch flushed" records=234 took=541ms sink=warehouse
+time=2026-11-13T03:33:13.815Z level=info msg="batch flushed" records=915 took=486ms sink=warehouse
+time=2026-11-13T03:33:14.465Z level=info msg="batch flushed" records=942 took=594ms sink=warehouse
+time=2026-11-13T03:33:14.768Z level=info msg="batch flushed" records=1043 took=643ms sink=warehouse
+time=2026-11-13T03:33:15.213Z level=info msg="batch flushed" records=816 took=629ms sink=warehouse
+time=2026-11-13T03:33:15.947Z level=info msg="batch flushed" records=683 took=250ms sink=warehouse
+time=2026-11-13T03:33:16.915Z level=info msg="batch flushed" records=906 took=461ms sink=warehouse
+time=2026-11-13T03:33:17.769Z level=info msg="batch flushed" records=825 took=146ms sink=warehouse
+time=2026-11-13T03:33:18.601Z level=info msg="batch flushed" records=840 took=877ms sink=warehouse
+time=2026-11-13T03:33:19.542Z level=info msg="batch flushed" records=632 took=348ms sink=warehouse
+time=2026-11-13T03:33:19.873Z level=info msg="batch flushed" records=951 took=572ms sink=warehouse
+time=2026-11-13T03:33:20.445Z level=info msg="batch flushed" records=682 took=493ms sink=warehouse
+time=2026-11-13T03:33:21.298Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=270806
+time=2026-11-13T03:33:22.099Z level=info msg="batch flushed" records=420 took=175ms sink=warehouse
+time=2026-11-13T03:33:22.900Z level=info msg="batch flushed" records=257 took=364ms sink=warehouse
+time=2026-11-13T03:33:23.413Z level=info msg="batch flushed" records=723 took=126ms sink=warehouse
+time=2026-11-13T03:33:24.352Z level=info msg="batch flushed" records=733 took=410ms sink=warehouse
+time=2026-11-13T03:33:24.514Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=238939
+time=2026-11-13T03:33:24.670Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=52812
+time=2026-11-13T03:33:25.092Z level=info msg="batch flushed" records=827 took=309ms sink=warehouse
+time=2026-11-13T03:33:25.420Z level=info msg="batch flushed" records=785 took=714ms sink=warehouse
+time=2026-11-13T03:33:25.809Z level=info msg="batch flushed" records=1195 took=280ms sink=warehouse
+time=2026-11-13T03:33:25.971Z level=info msg="batch flushed" records=1041 took=67ms sink=warehouse
+time=2026-11-13T03:33:26.789Z level=info msg="batch flushed" records=972 took=280ms sink=warehouse
+time=2026-11-13T03:33:27.421Z level=info msg="batch flushed" records=1175 took=595ms sink=warehouse
+time=2026-11-13T03:33:28.328Z level=info msg="batch flushed" records=749 took=704ms sink=warehouse
+time=2026-11-13T03:33:29.242Z level=info msg="batch flushed" records=432 took=170ms sink=warehouse
+time=2026-11-13T03:33:29.753Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=299986
+time=2026-11-13T03:33:30.196Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=101871
+time=2026-11-13T03:33:30.635Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=1 caller=sink/warehouse.go:142
+time=2026-11-13T03:33:31.625Z level=info msg="batch flushed" records=496 took=652ms sink=warehouse
+time=2026-11-13T03:33:32.317Z level=info msg="batch flushed" records=1037 took=89ms sink=warehouse
+time=2026-11-13T03:33:33.403Z level=info msg="batch flushed" records=456 took=586ms sink=warehouse
+time=2026-11-13T03:33:34.375Z level=info msg="batch flushed" records=996 took=121ms sink=warehouse
+time=2026-11-13T03:33:35.200Z level=info msg="batch flushed" records=303 took=354ms sink=warehouse
+time=2026-11-13T03:33:35.625Z level=info msg="batch flushed" records=564 took=773ms sink=warehouse
+time=2026-11-13T03:33:36.279Z level=error msg="decode failed" err="unexpected end of JSON input" topic=events.raw partition=5 caller=decoder/envelope.go:63
+time=2026-11-13T03:33:36.857Z level=info msg="batch flushed" records=279 took=861ms sink=warehouse
+time=2026-11-13T03:33:37.775Z level=info msg="batch flushed" records=406 took=460ms sink=warehouse
+time=2026-11-13T03:33:38.266Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=349079
+time=2026-11-13T03:33:38.982Z level=info msg="batch flushed" records=280 took=165ms sink=warehouse
+time=2026-11-13T03:33:39.753Z level=info msg="batch flushed" records=1121 took=50ms sink=warehouse
+time=2026-11-13T03:33:39.945Z level=info msg="batch flushed" records=692 took=651ms sink=warehouse
+time=2026-11-13T03:33:40.268Z level=info msg="batch flushed" records=899 took=207ms sink=warehouse
+time=2026-11-13T03:33:41.133Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=113208
+time=2026-11-13T03:33:41.526Z level=info msg="batch flushed" records=1147 took=137ms sink=warehouse
+time=2026-11-13T03:33:42.574Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=313830
+time=2026-11-13T03:33:43.334Z level=info msg="batch flushed" records=206 took=374ms sink=warehouse
+time=2026-11-13T03:33:43.529Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=2 caller=sink/warehouse.go:142
+time=2026-11-13T03:33:44.104Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=1 caller=sink/warehouse.go:142
+time=2026-11-13T03:33:45.014Z level=info msg="batch flushed" records=1186 took=127ms sink=warehouse
+time=2026-11-13T03:33:45.274Z level=info msg="batch flushed" records=645 took=463ms sink=warehouse
+time=2026-11-13T03:33:46.062Z level=info msg="batch flushed" records=579 took=736ms sink=warehouse
+time=2026-11-13T03:33:46.624Z level=info msg="batch flushed" records=1033 took=685ms sink=warehouse
+time=2026-11-13T03:33:46.841Z level=info msg="batch flushed" records=220 took=150ms sink=warehouse
+time=2026-11-13T03:33:47.592Z level=info msg="batch flushed" records=696 took=739ms sink=warehouse
+time=2026-11-13T03:33:48.680Z level=info msg="batch flushed" records=821 took=204ms sink=warehouse
+time=2026-11-13T03:33:49.045Z level=info msg="batch flushed" records=566 took=157ms sink=warehouse
+time=2026-11-13T03:33:49.665Z level=info msg="batch flushed" records=831 took=88ms sink=warehouse
+time=2026-11-13T03:33:50.759Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=165729
+time=2026-11-13T03:33:51.756Z level=info msg="batch flushed" records=854 took=819ms sink=warehouse
+time=2026-11-13T03:33:52.596Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=440400
+time=2026-11-13T03:33:52.996Z level=info msg="batch flushed" records=294 took=659ms sink=warehouse
+time=2026-11-13T03:33:53.753Z level=info msg="batch flushed" records=1030 took=535ms sink=warehouse
+time=2026-11-13T03:33:54.844Z level=info msg="batch flushed" records=880 took=81ms sink=warehouse
+time=2026-11-13T03:33:55.576Z level=info msg="batch flushed" records=951 took=227ms sink=warehouse
+time=2026-11-13T03:33:56.032Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=355602
+time=2026-11-13T03:33:57.123Z level=info msg="batch flushed" records=691 took=574ms sink=warehouse
+time=2026-11-13T03:33:57.312Z level=info msg="batch flushed" records=246 took=269ms sink=warehouse
+time=2026-11-13T03:33:58.165Z level=error msg="flush failed" err="context deadline exceeded" sink=warehouse attempt=1 caller=sink/warehouse.go:142
+time=2026-11-13T03:33:59.186Z level=info msg="batch flushed" records=620 took=885ms sink=warehouse
+time=2026-11-13T03:34:00.152Z level=warn msg="consumer lag growing" topic=events.raw partition=3 lag=70139

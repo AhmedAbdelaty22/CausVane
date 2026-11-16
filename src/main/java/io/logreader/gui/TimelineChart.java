@@ -142,8 +142,8 @@ final class TimelineChart extends JComponent {
         // legend: colored swatch carries identity, the label stays in text ink
         g2.setFont(small);
         int legendX = w - pad;
-        legendX = legend(g2, fm, "Warnings", Theme.YELLOW, legendX, 10);
-        legend(g2, fm, "Errors", Theme.RED, legendX - 12, 10);
+        legendX = legend(g2, fm, "Warnings", Theme.CHART_WARNING, legendX, 10);
+        legend(g2, fm, "Errors", Theme.CHART_ERROR, legendX - 12, 10);
 
         plotX = pad;
         int plotTop = 10 + fm.getHeight() + 8;
@@ -181,11 +181,11 @@ final class TimelineChart extends JComponent {
             int warningHeight = bin.warnings() == 0 ? 0 : Math.max(3, fullHeight - errorHeight);
             boolean hovered = i == hover;
             if (errorHeight > 0) {
-                bar(g2, x, axisY - errorHeight, barWidth, errorHeight, shade(Theme.RED, hovered), warningHeight == 0);
+                bar(g2, x, axisY - errorHeight, barWidth, errorHeight, shade(Theme.CHART_ERROR, hovered), warningHeight == 0);
             }
             if (warningHeight > 0) {
                 int gap = errorHeight > 0 ? GAP : 0; // surface gap between stacked segments
-                bar(g2, x, axisY - errorHeight - gap - warningHeight, barWidth, warningHeight, shade(Theme.YELLOW, hovered), true);
+                bar(g2, x, axisY - errorHeight - gap - warningHeight, barWidth, warningHeight, shade(Theme.CHART_WARNING, hovered), true);
             }
         }
 

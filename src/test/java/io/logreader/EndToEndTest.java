@@ -36,7 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DisplayName("End to end: sample logs, tailing, context, reports and CLI")
 class EndToEndTest {
 
-    private static final Path SAMPLES = Path.of("samples");
+    private static final Path SAMPLES = Path.of("src", "test", "resources", "fixtures");
 
     private static AnalysisResult analyze(String sample) throws IOException {
         return new LogSession(SAMPLES.resolve(sample)).load(null);

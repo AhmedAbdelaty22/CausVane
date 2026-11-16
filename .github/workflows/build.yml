@@ -42,11 +42,11 @@ jobs:
 
       - name: GUI self-test (Linux, virtual display)
         if: runner.os == 'Linux'
-        run: xvfb-run -a java -jar target/LogReader.jar self-test samples/java-spring-app.log
+        run: xvfb-run -a java -jar target/LogReader.jar self-test samples/checkout-db-failover.log
 
       - name: GUI self-test
         if: runner.os != 'Linux'
-        run: java -jar target/LogReader.jar self-test samples/java-spring-app.log
+        run: java -jar target/LogReader.jar self-test samples/checkout-db-failover.log
 
       - name: Native app (macOS, Linux)
         if: runner.os != 'Windows'
@@ -59,15 +59,15 @@ jobs:
 
       - name: Native app runs (macOS)
         if: runner.os == 'macOS'
-        run: dist/LogReader.app/Contents/MacOS/LogReader analyze samples/node-express.log --no-color --top 1
+        run: dist/LogReader.app/Contents/MacOS/LogReader analyze samples/api-gateway-cert-expiry.log --no-color --top 1
 
       - name: Native app runs (Linux)
         if: runner.os == 'Linux'
-        run: dist/LogReader/bin/LogReader analyze samples/node-express.log --no-color --top 1
+        run: dist/LogReader/bin/LogReader analyze samples/api-gateway-cert-expiry.log --no-color --top 1
 
       - name: Native app runs (Windows)
         if: runner.os == 'Windows'
-        run: dist/LogReader/LogReaderCLI.exe analyze samples/node-express.log --no-color --top 1
+        run: dist/LogReader/LogReaderCLI.exe analyze samples/api-gateway-cert-expiry.log --no-color --top 1
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:

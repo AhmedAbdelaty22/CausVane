@@ -53,6 +53,44 @@ final class Glyphs {
         }
     }
 
+    /** Sun (shown in the dark theme: "switch to light") or crescent moon ("switch to dark"). */
+    record ThemeSwitch(boolean sun) implements Icon {
+        private static final int SIZE = 16;
+
+        @Override
+        public void paintIcon(Component c, Graphics g, int x, int y) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
+            g2.setColor(c.getForeground());
+            g2.translate(x, y);
+            if (sun) {
+                g2.fill(new java.awt.geom.Ellipse2D.Double(5, 5, 6, 6));
+                g2.setStroke(new BasicStroke(1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                for (int i = 0; i < 8; i++) {
+                    double angle = Math.PI * i / 4;
+                    g2.draw(new java.awt.geom.Line2D.Double(8 + Math.cos(angle) * 5.2, 8 + Math.sin(angle) * 5.2,
+                            8 + Math.cos(angle) * 7, 8 + Math.sin(angle) * 7));
+                }
+            } else {
+                java.awt.geom.Area moon = new java.awt.geom.Area(new java.awt.geom.Ellipse2D.Double(2, 2, 12, 12));
+                moon.subtract(new java.awt.geom.Area(new java.awt.geom.Ellipse2D.Double(6, 0.5, 11, 11)));
+                g2.fill(moon);
+            }
+            g2.dispose();
+        }
+
+        @Override
+        public int getIconWidth() {
+            return SIZE;
+        }
+
+        @Override
+        public int getIconHeight() {
+            return SIZE;
+        }
+    }
+
     /** Arrow pointing down onto a line: "drop a file here". */
     record DropArrow(int size, Color color) implements Icon {
         @Override

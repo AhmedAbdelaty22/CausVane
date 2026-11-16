@@ -126,7 +126,7 @@ class PortabilityTest {
                 ByteArrayOutputStream out = new ByteArrayOutputStream();
                 PrintStream stream = new PrintStream(out, true, StandardCharsets.UTF_8);
                 int exit = new CliRunner(stream, stream).run(
-                        new String[] {Path.of("samples", "java-spring-app.log").toString(), "--no-color", "-n", "1"});
+                        new String[] {Path.of("src", "test", "resources", "fixtures", "java-spring-app.log").toString(), "--no-color", "-n", "1"});
                 String text = out.toString(StandardCharsets.UTF_8);
                 assertEquals(0, exit);
                 assertTrue(text.contains("  1  ERROR       3  OrderProcessingException"), locale + ":\n" + text);

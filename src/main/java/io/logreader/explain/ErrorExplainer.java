@@ -42,8 +42,10 @@ public final class ErrorExplainer {
 
     /** Builds the explanation for a deduplicated error. Never returns null. */
     public Explanation explain(ErrorGroup group) {
-        String rootText = join(group.rootCauseMessage(), null);
         String topText = join(group.message(), sampleText(group));
+        // a root cause logged without a message of its own is described by the surrounding log text
+        String rootText = group.rootCauseMessage() == null || group.rootCauseMessage().isBlank()
+                ? topText : group.rootCauseMessage();
 
         Rule rule = null;
         Matcher matched = null;
@@ -218,6 +220,114 @@ public final class ErrorExplainer {
 
     /** Ordered from most specific to most general; the first match wins. */
     private void registerRules() {
+        // ---- protective mechanisms and capacity: usually symptoms of an earlier failure -------------
+        add("Protection", "CallNotPermitted|CircuitBreakerOpen|BrokenCircuit|BulkheadFull", "circuit ?breaker '?([\\w.-]+)'? (?:is|changed state from \\w+ to) OPEN|.*",
+                "A safety switch (circuit breaker) is blocking calls",
+                "After many failures talking to another system, the application stops trying for a while so that it does "
+                        + "not make things worse. Calls are rejected immediately until the other system recovers. "
+                        + "This error is a symptom: the real problem is whatever failed just before it.",
+                "The circuit breaker involved is `{1}`.",
+                List.of("The system behind the breaker is down or very slow (database, cache, another service)",
+                        "A burst of timeouts pushed the failure rate over the breaker's limit"),
+                List.of("Look at the errors logged just before the first of these; they show what tripped the breaker",
+                        "Check the health of the system named in the breaker",
+                        "These stop on their own once the breaker closes again"));
+        add("Protection", null, "circuit ?breaker '?([\\w.-]+)'? changed state from \\w+ to OPEN|circuit ?breaker .* (?:is|now) open",
+                "A safety switch (circuit breaker) opened",
+                "The application saw too many failures talking to another system and has stopped calling it for a while. "
+                        + "From this moment, requests that need that system fail immediately.",
+                "The circuit breaker involved is `{1}`.",
+                List.of("The system behind the breaker is down or very slow"),
+                List.of("Treat this line as the start of the outage for that dependency",
+                        "Look at the errors in the minute before it for the cause"));
+        add("Resources", null, "thread ?pool starvation|(\\d+) work items queued, 0 worker threads|no worker threads available|ThreadPool.*exhaust",
+                "The application ran out of worker threads",
+                "Every thread that handles requests was busy waiting, so new work piled up and the application "
+                        + "stopped responding even though it was still running. This usually follows slow calls to another system.",
+                "{1} pieces of work were waiting.",
+                List.of("Slow or hanging calls to a database or another service are holding all the threads",
+                        "Code that blocks while waiting for a result instead of waiting asynchronously",
+                        "A recent change that added many more outgoing calls per request"),
+                List.of("Find which calls were slow at that time (timeouts logged just before are the clue)",
+                        "Check whether a deployment happened shortly before",
+                        "Restarting restores service briefly; the slow dependency or the new code is the real fix"));
+        add("Database", null, "Pool stats \\(total=(\\d+), active=\\1, idle=0, waiting=(\\d+)\\)|connection pool (?:is )?(?:full|at capacity)",
+                "The database connection pool is completely in use",
+                "All database connections the application is allowed to hold are busy, and requests are queuing for one. "
+                        + "If the queue does not clear, those requests fail with a timeout.",
+                "All {1} connections were in use and {2} requests were waiting.",
+                List.of("The database is slow or unreachable, so connections are not being returned",
+                        "More simultaneous requests than the pool was sized for"),
+                List.of("Check the database at this time", "Watch whether the waiting number grows or shrinks in later lines"));
+        add("Security", null, "certificate .{0,120}expires (?:at|in|on) ([^;,]+)",
+                "A security certificate is about to expire",
+                "Certificates that secure connections between systems have an end date. Once it passes, every connection "
+                        + "that relies on the certificate is refused. This warning is the chance to renew it in time.",
+                "It expires {1}.",
+                List.of("Automatic renewal stopped working", "Nobody was assigned to renew it manually"),
+                List.of("Renew the certificate now and check why automatic renewal did not run",
+                        "Look for connection failures that begin at the expiry time"));
+        add("Capacity", "RateLimit|TooManyRequests|Throttl", "rate limit|too many requests|\\b429\\b|throttl|.*",
+                "Requests were refused because of a rate limit",
+                "A limit on how many requests one client may send in a period was reached, so further requests were "
+                        + "turned away. The limit is working as designed; the question is why the client sent so many.",
+                null,
+                List.of("A client retrying failed requests in a tight loop", "A genuine traffic spike", "A limit set too low for normal use"),
+                List.of("Identify the client in the message and check whether it was retrying after earlier errors",
+                        "Compare the timing with other failures; rate limiting often follows an outage"));
+        add("Capacity", null, "rate limit exceeded|too many requests|\\b429 Too Many\\b|request (?:was )?throttled",
+                "Requests were refused because of a rate limit",
+                "A limit on how many requests one client may send in a period was reached, so further requests were turned away.",
+                null,
+                List.of("A client retrying failed requests in a tight loop", "A genuine traffic spike"),
+                List.of("Identify the client and check whether it was retrying after earlier errors"));
+        add("Capacity", null, "shedding load|retry budget|load shedding|backpressure|server (?:is )?overloaded|queue (?:is )?full",
+                "The application is deliberately rejecting work because it is overloaded",
+                "To protect itself, the application has stopped retrying or accepting some work. Requests fail fast instead "
+                        + "of piling up. Like a circuit breaker, this is a symptom of an earlier failure or of too much traffic.",
+                null,
+                List.of("A dependency is failing, and retries multiplied the load", "Traffic beyond what the service can handle"),
+                List.of("Find the failures that started just before this message", "Check the dependency named in the message"));
+        add("Capacity", null, "lag (?:is )?(?:growing|increasing)|consumer lag|queue depth (\\d+)|backlog (?:is )?growing|falling behind",
+                "Work is arriving faster than it is being processed",
+                "The application reads work from a queue, and the queue is getting longer. Nothing has failed yet, but "
+                        + "results are increasingly delayed, and it often means the workers are stuck or crashing.",
+                null,
+                List.of("The workers are slowed down by errors or retries", "A worker is crashing and restarting",
+                        "More incoming work than usual"),
+                List.of("Look for errors or restarts in the same period", "Check whether the number keeps growing or recovers"));
+        add("Messaging", "CommitFailed|RebalanceInProgress|IllegalGeneration|UnknownMemberId", null,
+                "A message-queue consumer lost its place in its group",
+                "Several copies of the application share the work of reading a message queue. This copy took too long "
+                        + "between check-ins, was removed from the group, and could not record which messages it had finished. "
+                        + "Those messages will be processed again by another copy.",
+                null,
+                List.of("Processing a batch took longer than the allowed time, often because a database or service was slow",
+                        "The application was paused (long garbage collection, starved of CPU)"),
+                List.of("Check what slowed processing down at that moment", "Expect some messages to be processed twice"));
+        add("Messaging", null, "offset commit failed|not aware of this member|kicked out of the group|rebalanc",
+                "A message-queue consumer lost its place in its group",
+                "This copy of the application took too long between check-ins with the message queue and was removed "
+                        + "from its group. Some messages will be processed again.",
+                null,
+                List.of("Slow processing, often caused by a slow database or service", "The application was paused"),
+                List.of("Check what slowed processing down at that moment"));
+        add("Lifecycle", null, "SIGTERM|SIGKILL|warm shutdown|graceful shutdown|application is shutting down|OOMKilled|exit status \\d+",
+                "The application was stopped",
+                "Something outside the application told it to stop: a deployment, an operator, or the platform after a "
+                        + "failed health check. On its own this is not a fault, but an unexpected stop is worth explaining.",
+                null,
+                List.of("A deployment or restart", "The platform restarting an unhealthy instance", "Running out of memory"),
+                List.of("Check whether a deployment or scaling event happened at this time",
+                        "If it was not planned, look at the errors and warnings in the minutes before"));
+        add("Performance", null, "thread starvation or clock leap|clock leap detected|long gc pause|stop-the-world",
+                "The application froze for a moment",
+                "A background timer inside the application noticed it had not run for much longer than expected. The whole "
+                        + "application was paused or had no CPU time. Requests during the pause were delayed.",
+                null,
+                List.of("A long garbage-collection pause", "The machine or container was starved of CPU", "The virtual machine was paused"),
+                List.of("Check CPU and memory graphs for this moment", "Look for timeouts shortly afterwards; they are a consequence"));
+
         // ---- database -------------------------------------------------------------------------------
         add("Database", null, "Connection is not available, request timed out after (\\d+) ?ms|connection pool (?:is )?exhausted"
                         + "|Timeout waiting for (?:idle object|connection from pool)|pool timed out|max pool size was reached",
@@ -273,7 +383,7 @@ public final class ErrorExplainer {
                 List.of("Check whether the database was reachable at that time",
                         "Look for a burst of the same error across many requests, which confirms an outage",
                         "Verify the connection settings if this happens from the first request after start-up"));
-        add("Database", null, "server closed the connection unexpectedly|Lost connection to MySQL|connection is closed|database connection lost|broken pipe.*(?:sql|database)",
+        add("Database", null, "server closed the connection unexpectedly|Lost connection to MySQL|connection (?:is|has been) closed|terminating connection|database connection lost|broken pipe.*(?:sql|database)",
                 "The database connection was cut while in use",
                 "The connection to the database dropped in the middle of an operation.",
                 null,
@@ -383,7 +493,7 @@ public final class ErrorExplainer {
                 null,
                 List.of("An expired or self-signed certificate", "A missing root or intermediate certificate"),
                 List.of("Check the certificate's expiry date and issuer", "Ask whether a certificate was recently changed"));
-        add("Network", "Timeout|TimedOut|TaskCanceled|DeadlineExceeded", "(?:after|within|timed out after)\\s*(\\d+ ?(?:ms|milliseconds|s|seconds))|.*",
+        add("Network", "Timeout|TimedOut|TaskCanceled|DeadlineExceeded", "(?:after|within|timed out after|Timeout of)\\s*(\\d+ ?(?:ms|milliseconds|seconds?|second\\(s\\)|s\\b))|.*",
                 "An operation took too long and was abandoned",
                 "The application waited for a response from another system (a service, database or network call) and "
                         + "stopped waiting when its time limit was reached. The other side may still have completed the work.",
@@ -479,7 +589,7 @@ public final class ErrorExplainer {
                 null,
                 List.of("A malformed request body", "Another service returned an error page or empty response"),
                 List.of("Find where the data came from and check that source"));
-        add("Data", "NumberFormat|FormatException|InvalidCast|ClassCast|ValueError|InputMismatch|DateTimeParse|ParseException", null,
+        add("Data", "NumberFormat|FormatException|InvalidCast|ClassCast|ValueError|InputMismatch|DateTimeParse|ParseException|MismatchedInput|InvalidFormat", null,
                 "A value had the wrong type or format",
                 "The code tried to convert or interpret a value (for example text into a number or date) and the "
                         + "value was not in a form it can accept.",
@@ -575,7 +685,7 @@ public final class ErrorExplainer {
                 "An operation was blocked by permissions: either the operating system refused access to a file or "
                         + "resource, or the user or service account lacks the required rights.",
                 null, permissionCauses(), permissionSteps());
-        add("Security", null, "permission denied|EACCES|EPERM|Access is denied|access denied|not authorized|403 Forbidden",
+        add("Security", null, "permission denied|\\bEACCES\\b|\\bEPERM\\b|Access is denied|access denied|not authorized|403 Forbidden",
                 "The application was not allowed to do something",
                 "An operation was blocked by permissions.",
                 null, permissionCauses(), permissionSteps());

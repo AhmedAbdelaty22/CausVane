@@ -46,7 +46,7 @@ public final class TimestampDetector {
 
     /** What may precede a timestamp for the line to still count as "starting with" it. */
     private static final Pattern LEAD_PREFIX = Pattern.compile(
-            "^(?:<\\d{1,3}>\\d?\\s*|[\\[(<]?[A-Z]{3,9}[\\])>]?:?\\s+|\\d{1,7}[:\\s]\\s*)?[\\[(<\"]?$");
+            "^(?:<\\d{1,3}>\\d?\\s*|[\\[(<]?[A-Z]{3,9}[\\])>]?:?\\s+|\\d{1,7}[:\\s]\\s*|(?:time|ts|timestamp|t)=)?[\\[(<\"]?$");
 
     private static final int HEAD = 96;
 

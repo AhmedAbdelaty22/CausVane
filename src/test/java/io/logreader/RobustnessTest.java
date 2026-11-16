@@ -68,7 +68,7 @@ class RobustnessTest {
 
     @Test
     void runawayFilterRegexIsCutOffInsteadOfFreezing() throws IOException {
-        AnalysisResult result = new LogSession(Path.of("samples", "java-spring-app.log")).load(null);
+        AnalysisResult result = new LogSession(Path.of("src", "test", "resources", "fixtures", "java-spring-app.log")).load(null);
         ErrorFilter runaway = new ErrorFilter(TextMatcher.of("(\\w+\\s?)+\\u0000", true), null);
         long matches = assertTimeoutPreemptively(Duration.ofSeconds(10),
                 () -> result.groups().stream().filter(runaway).count());

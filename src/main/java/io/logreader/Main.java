@@ -12,14 +12,14 @@ import java.util.Arrays;
 public final class Main {
 
     public static final String APP_NAME = "LogReader";
-    public static final String VERSION = "1.1.0";
+    public static final String VERSION = "1.2.0";
 
     private Main() {}
 
     public static void main(String[] args) {
         // must be set before any AWT class loads: the application name shown in the macOS menu bar
         System.setProperty("apple.awt.application.name", APP_NAME);
-        System.setProperty("apple.awt.application.appearance", "NSAppearanceNameDarkAqua");
+        System.setProperty("apple.awt.application.appearance", "system");
         if (args.length == 0) {
             launchGui(null);
             return;

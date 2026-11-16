@@ -34,7 +34,7 @@ final class WelcomePanel extends JPanel {
         JLabel title = new JLabel("Drop a log file here");
         title.setFont(title.getFont().deriveFont(Font.BOLD, 24f));
         title.setForeground(Theme.TEXT);
-        JLabel subtitle = new JLabel("LogReader finds every error, explains what it means and pinpoints where it started.");
+        JLabel subtitle = new JLabel("New to logs? LogReader finds every problem, explains it in plain words and walks you through the lines behind it.");
         subtitle.setForeground(Theme.DIM);
         subtitle.setFont(subtitle.getFont().deriveFont(13.5f));
 
@@ -44,8 +44,14 @@ final class WelcomePanel extends JPanel {
         open.setMargin(new java.awt.Insets(8, 22, 8, 22));
         open.addActionListener(e -> onOpen.run());
 
+        boolean mac = System.getProperty("os.name", "").toLowerCase(java.util.Locale.ROOT).contains("mac");
+        String key = mac ? "\u2318" : "Ctrl+";
+        JLabel hints = new JLabel(key + "O  open a file      " + key + "K  command palette      " + key + "F  filter");
+        hints.setForeground(Theme.DIM);
+        hints.setFont(hints.getFont().deriveFont(12f));
+
         for (Component c : new Component[] {arrow, Box.createVerticalStrut(6), title, Box.createVerticalStrut(8), subtitle,
-                Box.createVerticalStrut(24), open}) {
+                Box.createVerticalStrut(24), open, Box.createVerticalStrut(22), hints}) {
             if (c instanceof javax.swing.JComponent jc) {
                 jc.setAlignmentX(Component.CENTER_ALIGNMENT);
             }

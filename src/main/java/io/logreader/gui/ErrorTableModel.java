@@ -13,17 +13,16 @@ final class ErrorTableModel extends AbstractTableModel {
 
     static final int SEVERITY = 0;
     static final int TYPE = 1;
-    static final int MEANING = 2;
-    static final int LOCATION = 3;
-    static final int COUNT = 4;
+    static final int LOCATION = 2;
+    static final int COUNT = 3;
+    static final int LAST_SEEN = 4;
     static final int FIRST_SEEN = 5;
-    static final int LAST_SEEN = 6;
-    static final int MESSAGE = 7;
+    static final int MESSAGE = 6;
 
     private static final String[] COLUMNS =
-            {"Severity", "Error Type", "What It Means", "Location (File:Line)", "Count", "First Seen", "Last Seen", "Message"};
+            {"How bad", "Problem and what it means", "Where it started", "Times", "Last seen", "First seen", "Original message"};
     private static final Class<?>[] TYPES =
-            {Severity.class, String.class, String.class, String.class, Long.class, LocalDateTime.class, LocalDateTime.class, String.class};
+            {Severity.class, TableRenderers.Issue.class, String.class, Long.class, LocalDateTime.class, LocalDateTime.class, String.class};
 
     private List<ErrorGroup> groups = List.of();
     /** Explanation titles by group id, filled on demand: explaining thousands of rows up front would stall the window. */
@@ -86,9 +85,8 @@ final class ErrorTableModel extends AbstractTableModel {
         ErrorGroup g = groups.get(row);
         return switch (column) {
             case SEVERITY -> g.severity();
-            case TYPE -> g.displayType();
-            case MEANING -> meanings.computeIfAbsent(g.id() + "#" + g.count(),
-                    key -> ErrorExplainer.standard().explain(g).title().replace("`", ""));
+            case TYPE -> new TableRenderers.Issue(g.displayType(), meanings.computeIfAbsent(g.id() + "#" + g.count(),
+                    key -> ErrorExplainer.standard().explain(g).title().replace("`", "")));
             case LOCATION -> g.location();
             case COUNT -> g.count();
             case FIRST_SEEN -> g.firstSeen();

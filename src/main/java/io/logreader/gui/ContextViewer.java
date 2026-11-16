@@ -28,7 +28,7 @@ final class ContextViewer extends JScrollPane {
 
     private record Rule(Pattern pattern, SimpleAttributeSet style) {}
 
-    private static final List<Rule> RULES = List.of(
+    private final List<Rule> rules = List.of(
             new Rule(Pattern.compile("\\d{4}[-/]\\d{2}[-/]\\d{2}[T ]\\d{2}:\\d{2}:\\d{2}(?:[.,]\\d+)?(?:Z|[+-]\\d{2}:?\\d{2})?"
                     + "|\\b\\d{2}:\\d{2}:\\d{2}(?:[.,]\\d+)?\\b"), fg(Theme.DIM, false)),
             new Rule(Pattern.compile("\"(?:[^\"\\\\]|\\\\.){0,300}\"|'(?:[^'\\\\]|\\\\.){0,300}'"), fg(Theme.GREEN, false)),
@@ -42,14 +42,14 @@ final class ContextViewer extends JScrollPane {
             new Rule(Pattern.compile("[\\w$@~+./\\\\-]+\\.[A-Za-z]{1,6}(?::line \\d+|:\\d+(?::\\d+)?|\", line \\d+|\\(\\d+\\))"),
                     fg(Theme.ORANGE, false)));
 
-    private static final SimpleAttributeSet GUTTER = fg(new Color(0x5F646C), false);
-    private static final SimpleAttributeSet PLAIN = fg(Theme.TEXT, false);
-    private static final SimpleAttributeSet CONTEXT = fg(new Color(0xA9ADB5), false);
-    private static final SimpleAttributeSet NOTE = fg(Theme.DIM, false);
-    private static final SimpleAttributeSet PIN = new SimpleAttributeSet();
-    private static final SimpleAttributeSet EVENT_BG = new SimpleAttributeSet();
+    private final SimpleAttributeSet GUTTER = fg(Theme.GUTTER, false);
+    private final SimpleAttributeSet PLAIN = fg(Theme.TEXT, false);
+    private final SimpleAttributeSet CONTEXT = fg(Theme.CONTEXT_TEXT, false);
+    private final SimpleAttributeSet NOTE = fg(Theme.DIM, false);
+    private final SimpleAttributeSet PIN = new SimpleAttributeSet();
+    private final SimpleAttributeSet EVENT_BG = new SimpleAttributeSet();
 
-    static {
+    {
         StyleConstants.setItalic(NOTE, true);
         StyleConstants.setForeground(PIN, Color.WHITE);
         StyleConstants.setBackground(PIN, Theme.PIN_BACKGROUND);
@@ -70,10 +70,23 @@ final class ContextViewer extends JScrollPane {
         }
     };
 
+    private java.util.function.Consumer<ContextLine> listener;
+    private List<ContextLine> shown = List.of();
+    private int[] lineStarts = new int[0];
+
     ContextViewer() {
+        pane.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                lineClicked(pane.viewToModel2D(e.getPoint()));
+            }
+        });
+        pane.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+        pane.setToolTipText("Click a line to see what it means");
         pane.setEditable(false);
         pane.setBackground(Theme.EDITOR);
         pane.setFont(Theme.mono(12.5f));
+        pane.setForeground(Theme.TEXT);
         pane.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
         setViewportView(pane);
         setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, Theme.CARD_BORDER));
@@ -86,6 +99,7 @@ final class ContextViewer extends JScrollPane {
     }
 
     void showMessage(String message) {
+        shown = List.of();
         pane.setText("");
         try {
             pane.getStyledDocument().insertString(0, message, NOTE);
@@ -94,7 +108,13 @@ final class ContextViewer extends JScrollPane {
         }
     }
 
+    /** Called with the line the user clicked (or the failing line when a new error is shown). */
+    void onLineSelected(java.util.function.Consumer<ContextLine> listener) {
+        this.listener = listener;
+    }
+
     void showLines(List<ContextLine> lines) {
+        shown = List.of();
         pane.setText("");
         StyledDocument doc = pane.getStyledDocument();
         int width = 0;
@@ -102,33 +122,43 @@ final class ContextViewer extends JScrollPane {
             width = Math.max(width, Math.min(line.text().length(), 160));
         }
         int pinOffset = -1;
+        ContextLine focus = null;
+        int[] starts = new int[lines.size()];
         try {
-            for (ContextLine line : lines) {
+            for (int i = 0; i < lines.size(); i++) {
+                ContextLine line = lines.get(i);
                 String text = line.text().length() > MAX_LINE_CHARS
                         ? line.text().substring(0, MAX_LINE_CHARS) + " …" : line.text();
                 text = text.replace("\t", "    ");
                 String number = line.lineNumber() > 0 ? String.valueOf(line.lineNumber()) : "+";
                 boolean pin = line.kind() == ContextLine.Kind.PINPOINT;
-                String gutter = String.format(java.util.Locale.ROOT, "%s %8s │ ", pin ? ">>>" : "   ", number);
+                String gutter = String.format(java.util.Locale.ROOT, "%s %7s │ ", pin ? ">>>" : "   ", number);
+                String tag = String.format(java.util.Locale.ROOT, "%-11s │ ", line.role().tag());
                 int start = doc.getLength();
+                starts[i] = start;
                 switch (line.kind()) {
                     case PINPOINT -> {
                         pinOffset = start;
+                        focus = line;
                         String padded = text.length() < width ? text + " ".repeat(width - text.length()) : text;
-                        doc.insertString(start, gutter + padded + " \n", PIN);
+                        doc.insertString(start, gutter + tag + padded + " \n", PIN);
                     }
                     case NOTE -> {
-                        doc.insertString(start, gutter, GUTTER);
+                        doc.insertString(start, gutter + tag, GUTTER);
                         doc.insertString(doc.getLength(), text + "\n", NOTE);
                     }
                     default -> {
                         boolean event = line.kind() == ContextLine.Kind.EVENT;
                         doc.insertString(start, gutter, GUTTER);
+                        doc.insertString(doc.getLength(), tag, tagStyle(line.role()));
                         int textStart = doc.getLength();
                         doc.insertString(textStart, text + "\n", event ? PLAIN : CONTEXT);
                         highlight(doc, textStart, text);
                         if (event) {
                             doc.setCharacterAttributes(start, doc.getLength() - start, EVENT_BG, false);
+                            if (focus == null) {
+                                focus = line;
+                            }
                         }
                     }
                 }
@@ -136,11 +166,41 @@ final class ContextViewer extends JScrollPane {
         } catch (BadLocationException e) {
             throw new IllegalStateException(e);
         }
+        shown = List.copyOf(lines);
+        lineStarts = starts;
         scrollTo(pinOffset);
+        if (listener != null && focus != null) {
+            listener.accept(focus);
+        }
     }
 
-    private static void highlight(StyledDocument doc, int offset, String text) {
-        for (Rule rule : RULES) {
+    /** Colour of the role label beside each line. */
+    private SimpleAttributeSet tagStyle(io.logreader.explain.LineExplainer.Role role) {
+        return switch (role) {
+            case LOGGED -> fg(Theme.BLUE, true);
+            case ERROR_TEXT, ROOT_CAUSE -> fg(Theme.RED, true);
+            case CAUSE -> fg(Theme.ORANGE, true);
+            case YOUR_CODE -> fg(Theme.GREEN, true);
+            case STARTS_HERE -> fg(Theme.RED, true);
+            default -> fg(Theme.GUTTER, false);
+        };
+    }
+
+    private void lineClicked(int offset) {
+        if (listener == null || shown.isEmpty()) {
+            return;
+        }
+        int index = java.util.Arrays.binarySearch(lineStarts, offset);
+        if (index < 0) {
+            index = -index - 2;
+        }
+        if (index >= 0 && index < shown.size()) {
+            listener.accept(shown.get(index));
+        }
+    }
+
+    private void highlight(StyledDocument doc, int offset, String text) {
+        for (Rule rule : rules) {
             Matcher m = rule.pattern().matcher(text);
             while (m.find()) {
                 doc.setCharacterAttributes(offset + m.start(), m.end() - m.start(), rule.style(), false);

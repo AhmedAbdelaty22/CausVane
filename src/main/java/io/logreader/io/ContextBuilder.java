@@ -1,5 +1,6 @@
 package io.logreader.io;
 
+import io.logreader.explain.LineExplainer;
 import io.logreader.model.LogEvent;
 import io.logreader.model.StackFrame;
 import io.logreader.parser.LogParser;
@@ -12,10 +13,12 @@ import java.util.List;
 public final class ContextBuilder {
 
     /**
-     * @param lineNumber physical line number, or 0 for lines that do not exist in the file
-     *                   (decoded JSON stack traces, notes)
+     * @param lineNumber  physical line number, or 0 for lines that do not exist in the file
+     *                    (decoded JSON stack traces, notes)
+     * @param role        the part this line plays in the error
+     * @param explanation what the line means, in plain words
      */
-    public record ContextLine(long lineNumber, String text, Kind kind) {
+    public record ContextLine(long lineNumber, String text, Kind kind, LineExplainer.Role role, String explanation) {
         public enum Kind {
             /** Surrounding log line. */
             CONTEXT,
@@ -46,27 +49,45 @@ public final class ContextBuilder {
         List<String> head = session.readLines(from, shownEnd);
         for (int i = 0; i < head.size(); i++) {
             long number = from + i;
-            ContextLine.Kind kind = number < start ? ContextLine.Kind.CONTEXT
-                    : number == pinLine && !decodedPin ? ContextLine.Kind.PINPOINT : ContextLine.Kind.EVENT;
-            out.add(new ContextLine(number, head.get(i), kind));
+            if (number < start) {
+                out.add(context(number, head.get(i), true));
+                continue;
+            }
+            int index = (int) (number - start);
+            ContextLine.Kind kind = number == pinLine && !decodedPin ? ContextLine.Kind.PINPOINT : ContextLine.Kind.EVENT;
+            LineExplainer.Note note = event.structured()
+                    ? LineExplainer.explainEventLine(event, 0)
+                    : index < event.lines().size()
+                    ? LineExplainer.explainEventLine(event, index)
+                    : new LineExplainer.Note(LineExplainer.Role.DETAIL, "More detail that belongs to this log entry.");
+            out.add(new ContextLine(number, head.get(i), kind, note.role(), note.text()));
         }
         if (event.structured() && event.lines().size() > 1) {
-            out.add(new ContextLine(0, "decoded from the JSON record above:", ContextLine.Kind.NOTE));
+            out.add(note("decoded from the JSON record above:"));
             for (int i = 1; i < event.lines().size(); i++) {
+                LineExplainer.Note note = LineExplainer.explainEventLine(event, i);
                 out.add(new ContextLine(0, event.lines().get(i),
-                        i == pinIndex ? ContextLine.Kind.PINPOINT : ContextLine.Kind.EVENT));
+                        i == pinIndex ? ContextLine.Kind.PINPOINT : ContextLine.Kind.EVENT, note.role(), note.text()));
             }
         }
         if (shownEnd < end) {
-            out.add(new ContextLine(0, "… " + (end - shownEnd) + " more lines of this event not shown",
-                    ContextLine.Kind.NOTE));
+            out.add(note("… " + (end - shownEnd) + " more lines of this event not shown"));
         }
         if (after > 0) {
             List<String> tail = session.readLines(end + 1, end + after);
             for (int i = 0; i < tail.size(); i++) {
-                out.add(new ContextLine(end + 1 + i, tail.get(i), ContextLine.Kind.CONTEXT));
+                out.add(context(end + 1 + i, tail.get(i), false));
             }
         }
         return out;
+    }
+
+    private static ContextLine context(long number, String text, boolean before) {
+        LineExplainer.Note note = LineExplainer.explainContextLine(text, before);
+        return new ContextLine(number, text, ContextLine.Kind.CONTEXT, note.role(), note.text());
+    }
+
+    private static ContextLine note(String text) {
+        return new ContextLine(0, text, ContextLine.Kind.NOTE, LineExplainer.Role.NOTE, text);
     }
 }

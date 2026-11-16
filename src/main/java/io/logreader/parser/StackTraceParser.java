@@ -105,8 +105,9 @@ public final class StackTraceParser {
                 Optional<RawFrame> frame = extractFrame(line, previous);
                 if (frame.isPresent()) {
                     if (current == null || current.closed) {
-                        Header own = parseHeader(line);
-                        Header header = own != null ? own : candidate;
+                        // a line can be both header and first frame ("file.rb:3:in 'x': msg (Error)"), but an
+                        // ordinary frame must not be read as a header just because a method name ends in "Exception"
+                        Header header = candidate != null || isPlainFrame(line) ? candidate : parseHeader(line);
                         current = open(sections, sections.isEmpty() ? Kind.PRIMARY : Kind.WRAPPER, header);
                         awaitingRustMessage = header != null && "panic".equals(header.type()) && header.message() == null;
                         candidate = null;
@@ -207,6 +208,11 @@ public final class StackTraceParser {
             }
         }
         return first;
+    }
+
+    private static boolean isPlainFrame(String line) {
+        String trimmed = line.stripLeading();
+        return trimmed.startsWith("at ") || trimmed.startsWith("File \"") ||trimmed.startsWith("from ");
     }
 
     /** Header following an explicit marker such as {@code Caused by:}, where any type name is accepted. */

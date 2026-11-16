@@ -21,7 +21,7 @@ class ErrorExplainerTest {
     private final ErrorExplainer explainer = ErrorExplainer.standard();
 
     private Explanation explain(String sample, String location) throws IOException {
-        AnalysisResult result = new LogSession(Path.of("samples", sample)).load(null);
+        AnalysisResult result = new LogSession(Path.of("src", "test", "resources", "fixtures", sample)).load(null);
         ErrorGroup group = result.groups().stream().filter(g -> g.location().equals(location)).findFirst()
                 .orElseThrow(() -> new AssertionError("no error at " + location));
         return explainer.explain(group);
@@ -102,7 +102,7 @@ class ErrorExplainerTest {
 
     @Test
     void messagesWithoutExceptionsAreExplainedFromTheirText() throws IOException {
-        AnalysisResult result = new LogSession(Path.of("samples", "java-spring-app.log")).load(null);
+        AnalysisResult result = new LogSession(Path.of("src", "test", "resources", "fixtures", "java-spring-app.log")).load(null);
         ErrorGroup slow = result.groups().stream().filter(g -> g.displayType().equals("Warning")).findFirst().orElseThrow();
         Explanation e = explainer.explain(slow);
         assertEquals("Performance", e.category());

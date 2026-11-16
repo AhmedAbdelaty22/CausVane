@@ -18,6 +18,9 @@ public final class FrameClassifier {
             "com.google.common.", "com.google.gson.", "org.slf4j.", "ch.qos.logback.", "okhttp3.", "io.grpc.",
             "org.aspectj.", "net.sf.cglib.", "io.vertx.", "io.quarkus.", "io.micronaut.", "org.thymeleaf.",
             "com.mongodb.", "redis.clients.", "io.lettuce.", "org.mockito.", "feign.", "retrofit2.",
+            "io.github.resilience4j.", "io.opentelemetry.", "io.sentry.", "com.amazonaws.", "software.amazon.", "com.azure.",
+            "com.google.cloud.", "com.google.protobuf.", "org.yaml.", "org.jetbrains.", "org.reactivestreams.", "com.netflix.",
+            "io.kubernetes.", "io.fabric8.", "org.flywaydb.", "liquibase.", "org.quartz.", "org.elasticsearch.", "co.elastic.",
             // .NET
             "System.", "Microsoft.", "Newtonsoft.", "NLog.", "Serilog.", "AutoMapper.", "MediatR.", "Npgsql.",
             "Dapper.", "Swashbuckle.", "Grpc.", "Polly.", "MySql.", "StackExchange.", "FluentValidation.",
