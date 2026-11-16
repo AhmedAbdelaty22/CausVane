@@ -1,5 +1,7 @@
 ## Downloads
 
+> The **Source code** links at the bottom are added by GitHub to every release automatically. To run LogReader, download one of the files in the table below.
+
 | File | For | How to start it |
 |---|---|---|
 | `LogReader-macOS.zip` | macOS | Unzip it and move **LogReader** to Applications. The first time, right-click the app and choose **Open**, because it isn't signed by Apple. |
