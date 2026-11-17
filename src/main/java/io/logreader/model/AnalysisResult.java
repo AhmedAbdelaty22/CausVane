@@ -14,6 +14,7 @@ import java.util.List;
  * @param timeline     errors and warnings per slice of time, in chronological order
  * @param unlistedOccurrences problems counted in the totals but not listed, because the log held more
  *                     distinct errors than the listing limit
+ * @param contents     what the whole file contained, problems or not
  */
 public record AnalysisResult(
         Path file,
@@ -26,9 +27,11 @@ public record AnalysisResult(
         LocalDateTime lastTimestamp,
         List<ErrorGroup> groups,
         List<TimeBucket> timeline,
-        long unlistedOccurrences) {
+        long unlistedOccurrences,
+        LogContents contents) {
 
     public AnalysisResult {
+        contents = contents == null ? LogContents.empty() : contents;
         groups = List.copyOf(groups);
         timeline = List.copyOf(timeline);
     }

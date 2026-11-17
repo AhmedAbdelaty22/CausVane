@@ -5,7 +5,6 @@ import com.formdev.flatlaf.icons.FlatSearchIcon;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
-import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -16,6 +15,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
@@ -24,34 +24,49 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 /**
- * Command palette: one search box that finds every action of the window and every error in the list.
- * Type a few letters, press Enter. Opened with Ctrl/Cmd+K.
+ * Quick actions: one search box that finds every action of the window and every problem in the list,
+ * arranged in sections. Type a few letters, press Enter. Opened with Ctrl/Cmd+K.
  */
 final class CommandPalette extends JDialog {
 
     /**
-     * One entry of the palette.
+     * One entry.
      *
-     * @param title what is shown and searched; may contain text from the log
-     * @param hint  small right-aligned note such as a shortcut or a category
+     * @param section  heading it is listed under, such as "Actions" or "Problems"
+     * @param title    what is shown; may contain text from the log
+     * @param hint     short note on the right, such as a shortcut or a count
+     * @param keywords extra words it can be found by, not shown
      */
-    record Command(String title, String hint, Runnable action) {}
+    record Command(String section, String title, String hint, String keywords, Runnable action) {}
 
-    private static final int MAX_SHOWN = 60;
+    /** A row of the list: either a section heading or a command. */
+    private record Row(String heading, Command command) {}
+
+    /** Entries listed per section before "type to see more". */
+    private static final int MAX_PER_SECTION = 8;
+    private static final int ROW_HEIGHT = 34;
+    private static final int HEADING_HEIGHT = 26;
 
     private final List<Command> commands;
-    private final DefaultListModel<Command> model = new DefaultListModel<>();
-    private final JList<Command> list = new JList<>(model);
+    private final DefaultListModel<Row> model = new DefaultListModel<>();
+    private final JList<Row> list = new JList<>(model);
     private final JTextField field = new JTextField();
 
     private CommandPalette(JFrame owner, List<Command> commands) {
@@ -59,7 +74,7 @@ final class CommandPalette extends JDialog {
         this.commands = commands;
         setUndecorated(true);
 
-        field.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Type a command or the name of an error…");
+        field.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Search actions and problems…");
         field.putClientProperty(FlatClientProperties.TEXT_FIELD_LEADING_ICON, new FlatSearchIcon());
         field.setFont(field.getFont().deriveFont(15f));
         field.setBorder(BorderFactory.createCompoundBorder(
@@ -69,18 +84,23 @@ final class CommandPalette extends JDialog {
 
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         list.setBackground(Theme.CARD);
-        list.setFixedCellHeight(36);
-        list.setCellRenderer(new Row());
+        list.setCellRenderer(new RowRenderer());
         list.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                run();
+                int index = list.locationToIndex(e.getPoint());
+                if (index >= 0 && model.get(index).command() != null) {
+                    list.setSelectedIndex(index);
+                    run();
+                }
             }
         });
-        JScrollPane scroll = new JScrollPane(list);
+        // entries are cut to the width of the box, so it never needs to scroll sideways
+        JScrollPane scroll = new JScrollPane(list, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scroll.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
         scroll.getViewport().setBackground(Theme.CARD);
         scroll.setBackground(Theme.CARD);
+        scroll.getVerticalScrollBar().setUnitIncrement(ROW_HEIGHT);
 
         JLabel footer = new JLabel("↑ ↓ to move   ·   Enter to run   ·   Esc to close");
         footer.setForeground(Theme.DIM);
@@ -115,12 +135,12 @@ final class CommandPalette extends JDialog {
         filter();
     }
 
-    /** Opens the palette over the upper part of the window. */
+    /** Opens Quick actions over the upper part of the window. */
     static void open(JFrame owner, List<Command> commands) {
         CommandPalette palette = new CommandPalette(owner, commands);
-        int width = Math.min(640, owner.getWidth() - 80);
-        palette.setSize(new Dimension(width, 420));
-        palette.setLocation(owner.getX() + (owner.getWidth() - width) / 2, owner.getY() + Math.max(70, owner.getHeight() / 7));
+        int width = Math.min(620, owner.getWidth() - 80);
+        palette.setSize(new Dimension(width, 460));
+        palette.setLocation(owner.getX() + (owner.getWidth() - width) / 2, owner.getY() + Math.max(70, owner.getHeight() / 8));
         palette.setVisible(true);
         SwingUtilities.invokeLater(palette.field::requestFocusInWindow);
     }
@@ -137,73 +157,126 @@ final class CommandPalette extends JDialog {
         });
     }
 
-    /** Keeps the commands that contain every typed word, in their original order. */
+    /** Keeps the commands that contain every typed word, grouped under their section headings. */
     private void filter() {
-        String[] words = field.getText().strip().toLowerCase(Locale.ROOT).split("\\s+");
-        model.clear();
+        String query = field.getText().strip().toLowerCase(Locale.ROOT);
+        String[] words = query.isEmpty() ? new String[0] : query.split("\\s+");
+        Map<String, List<Command>> bySection = new LinkedHashMap<>();
+        Map<String, Integer> hidden = new LinkedHashMap<>();
         for (Command command : commands) {
-            String haystack = (command.title() + " " + command.hint()).toLowerCase(Locale.ROOT);
+            String haystack = (command.title() + " " + command.hint() + " " + command.keywords()).toLowerCase(Locale.ROOT);
             boolean matches = true;
             for (String word : words) {
-                if (!word.isEmpty() && !haystack.contains(word)) {
+                if (!haystack.contains(word)) {
                     matches = false;
                     break;
                 }
             }
-            if (matches) {
-                model.addElement(command);
-                if (model.size() >= MAX_SHOWN) {
-                    break;
-                }
+            if (!matches) {
+                continue;
+            }
+            List<Command> section = bySection.computeIfAbsent(command.section(), s -> new ArrayList<>());
+            // only the problem list can be long; actions are always shown in full
+            int limit = "Problems".equals(command.section()) ? MAX_PER_SECTION : 100;
+            if (section.size() < limit) {
+                section.add(command);
+            } else {
+                hidden.merge(command.section(), 1, Integer::sum);
             }
         }
-        if (!model.isEmpty()) {
-            list.setSelectedIndex(0);
+        model.clear();
+        for (Map.Entry<String, List<Command>> section : bySection.entrySet()) {
+            int more = hidden.getOrDefault(section.getKey(), 0);
+            model.addElement(new Row(section.getKey().toUpperCase(Locale.ROOT)
+                    + (more > 0 ? "   ·   " + more + " more, type to narrow" : ""), null));
+            section.getValue().forEach(c -> model.addElement(new Row(null, c)));
         }
+        list.clearSelection();
+        move(1);
+        SwingUtilities.invokeLater(() -> list.ensureIndexIsVisible(0)); // keep the first heading in view
     }
 
+    /** Moves the selection to the next command in the given direction, skipping headings. */
     private void move(int delta) {
-        if (model.isEmpty()) {
+        int size = model.size();
+        if (size == 0) {
             return;
         }
-        int next = Math.floorMod(list.getSelectedIndex() + delta, model.size());
-        list.setSelectedIndex(next);
-        list.ensureIndexIsVisible(next);
+        int index = list.getSelectedIndex();
+        for (int step = 0; step < size; step++) {
+            index = index < 0 ? (delta > 0 ? 0 : size - 1) : Math.floorMod(index + delta, size);
+            if (model.get(index).command() != null) {
+                list.setSelectedIndex(index);
+                list.ensureIndexIsVisible(index);
+                return;
+            }
+        }
     }
 
     private void run() {
-        Command command = list.getSelectedValue();
+        Row row = list.getSelectedValue();
         dispose();
-        if (command != null) {
-            SwingUtilities.invokeLater(command.action());
+        if (row != null && row.command() != null) {
+            SwingUtilities.invokeLater(row.command().action());
         }
     }
 
-    /** One row: the title on the left, the hint on the right. */
-    private static final class Row extends JPanel implements javax.swing.ListCellRenderer<Command> {
-        private final DefaultListCellRenderer title = new DefaultListCellRenderer();
-        private final JLabel hint = new JLabel();
+    /** Paints a heading or a command, cutting long text with an ellipsis. */
+    private static final class RowRenderer extends JComponent implements ListCellRenderer<Row> {
+        private Row row;
+        private boolean selected;
+        private int width;
 
-        Row() {
-            super(new BorderLayout(12, 0));
-            setBorder(BorderFactory.createEmptyBorder(0, 12, 0, 12));
-            title.putClientProperty(Theme.HTML_DISABLE, Boolean.TRUE); // error names come from the log
-            hint.putClientProperty(Theme.HTML_DISABLE, Boolean.TRUE);
-            hint.setFont(hint.getFont().deriveFont(Font.PLAIN, 11.5f));
-            add(title, BorderLayout.CENTER);
-            add(hint, BorderLayout.EAST);
+        @Override
+        public Component getListCellRendererComponent(JList<? extends Row> list, Row value, int index,
+                                                      boolean isSelected, boolean focused) {
+            row = value;
+            selected = isSelected && value.command() != null;
+            width = list.getWidth();
+            setFont(list.getFont());
+            return this;
         }
 
         @Override
-        public Component getListCellRendererComponent(JList<? extends Command> list, Command value, int index,
-                                                      boolean selected, boolean focused) {
-            title.getListCellRendererComponent(list, value.title(), index, false, false);
-            title.setOpaque(false);
-            title.setForeground(Theme.TEXT);
-            hint.setText(value.hint());
-            hint.setForeground(Theme.DIM);
-            setBackground(selected ? Theme.SELECTION : Theme.CARD);
-            return this;
+        public Dimension getPreferredSize() {
+            return new Dimension(Math.max(1, width), row != null && row.command() == null ? HEADING_HEIGHT : ROW_HEIGHT);
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            int w = getWidth();
+            int h = getHeight();
+            if (row.command() == null) {
+                Font font = getFont().deriveFont(Font.BOLD, 10.5f);
+                FontMetrics fm = g2.getFontMetrics(font);
+                g2.setFont(font);
+                g2.setColor(Theme.DIM);
+                g2.drawString(TableRenderers.clip(row.heading(), fm, w - 24), 12, h - 7);
+                g2.dispose();
+                return;
+            }
+            if (selected) {
+                g2.setColor(Theme.SELECTION);
+                g2.fillRoundRect(2, 1, w - 4, h - 2, 8, 8);
+            }
+            Font hintFont = getFont().deriveFont(Font.PLAIN, 11.5f);
+            FontMetrics hintMetrics = g2.getFontMetrics(hintFont);
+            String hint = row.command().hint() == null ? "" : row.command().hint();
+            int hintWidth = Math.min(hintMetrics.stringWidth(hint), w / 3);
+            Font titleFont = getFont().deriveFont(13f);
+            FontMetrics titleMetrics = g2.getFontMetrics(titleFont);
+            int baseline = (h - titleMetrics.getHeight()) / 2 + titleMetrics.getAscent();
+            g2.setFont(titleFont);
+            g2.setColor(selected && Theme.mode() == Theme.Mode.DARK ? java.awt.Color.WHITE : Theme.TEXT);
+            g2.drawString(TableRenderers.clip(row.command().title(), titleMetrics, w - 36 - hintWidth), 14, baseline);
+            g2.setFont(hintFont);
+            g2.setColor(Theme.DIM);
+            String shownHint = TableRenderers.clip(hint, hintMetrics, w / 3);
+            g2.drawString(shownHint, w - 14 - hintMetrics.stringWidth(shownHint), baseline);
+            g2.dispose();
         }
     }
 }

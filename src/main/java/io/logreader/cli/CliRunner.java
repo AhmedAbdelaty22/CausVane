@@ -3,6 +3,8 @@ package io.logreader.cli;
 import io.logreader.analysis.ErrorFilter;
 import io.logreader.analysis.ErrorFilter.TextMatcher;
 import io.logreader.explain.ErrorExplainer;
+import io.logreader.explain.IncidentLinker;
+import io.logreader.explain.LogOverview;
 import io.logreader.explain.Explanation;
 import io.logreader.io.ContextBuilder;
 import io.logreader.io.ContextBuilder.ContextLine;
@@ -231,6 +233,36 @@ public final class CliRunner {
                 .append("   Time span: ").append(Formats.duration(result.timeSpan()))
                 .append(" (").append(Formats.timestamp(result.firstTimestamp())).append(" → ")
                 .append(Formats.timestamp(result.lastTimestamp())).append(")\n\n");
+        if (!result.groups().isEmpty()) {
+            LogOverview.Overview overview = LogOverview.of(result);
+            sb.append(paint(overview.health() == LogOverview.Health.SERIOUS ? RED : YELLOW, overview.health().label() + "."))
+                    .append('\n');
+            wrap(sb, overview.verdict(), "");
+            sb.append('\n').append(paint(BOLD, "What happened, in order")).append('\n');
+            for (LogOverview.Moment m : overview.timeline()) {
+                sb.append(String.format(Locale.ROOT, "  %-8s %-9s ", m.start() == null ? "" :
+                                java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss", Locale.ROOT).format(m.start()), m.kind()))
+                        .append(Formats.truncate(m.text(), 110)).append('\n');
+            }
+            if (overview.hiddenMoments() > 0) {
+                sb.append(paint(DIM, "  and " + overview.hiddenMoments() + " smaller problems below")).append('\n');
+            }
+            sb.append('\n').append(paint(BOLD, "Where to start")).append('\n');
+            int k = 0;
+            for (ErrorGroup g : overview.startWith()) {
+                sb.append("  ").append(++k).append(". ").append(brief(g)).append('\n');
+            }
+            sb.append('\n');
+        }
+        sb.append(paint(BOLD, "What the log contains")).append(paint(DIM, "  (--format markdown explains each fact)")).append('\n');
+        for (io.logreader.explain.LogFacts.Fact fact : io.logreader.explain.LogFacts.forLog(result,
+                io.logreader.explain.IncidentLinker.find(result.groups()).size())) {
+            if (fact.label().equals("File")) {
+                continue; // already in the first line
+            }
+            sb.append(String.format(Locale.ROOT, "  %-19s ", fact.label())).append(TextSanitizer.clean(fact.value())).append('\n');
+        }
+        sb.append('\n');
         if (result.unlistedOccurrences() > 0) {
             sb.append(paint(YELLOW, "Note: " + Formats.count(result.unlistedOccurrences())
                     + " further occurrences are counted above but not listed: the log has more distinct errors than the limit of "
@@ -249,6 +281,25 @@ public final class CliRunner {
                     .append(String.format(Locale.ROOT, " %7s  %-34s ", Formats.count(g.count()), Formats.truncate(g.displayType(), 34)))
                     .append(paint(ORANGE, String.format(Locale.ROOT, "%-32s", Formats.truncate(g.location(), 32))))
                     .append(String.format(Locale.ROOT, " %-23s %s\n", Formats.timestamp(g.firstSeen()), Formats.timestamp(g.lastSeen())));
+        }
+        List<IncidentLinker.Incident> incidents = IncidentLinker.find(result.groups());
+        if (!incidents.isEmpty()) {
+            sb.append('\n').append(paint(BOLD, "Probable incidents")).append(paint(DIM,
+                    "  (linked by timing and kind of problem: a strong hint, not proof)")).append('\n');
+            int k = 0;
+            for (IncidentLinker.Incident incident : incidents) {
+                ErrorGroup lead = incident.lead();
+                sb.append(String.format(Locale.ROOT, "%3d. ", ++k)).append(paint(RED, "First failure  "))
+                        .append(Formats.timestamp(lead.firstSeen())).append("  ").append(brief(lead)).append('\n');
+                for (ErrorGroup w : incident.earlyWarnings()) {
+                    sb.append("       ").append(paint(YELLOW, "warning sign   ")).append(String.format(Locale.ROOT, "%-10s",
+                            "-" + IncidentLinker.gap(w.firstSeen(), lead.firstSeen()))).append(brief(w)).append('\n');
+                }
+                for (ErrorGroup f : incident.followers()) {
+                    sb.append("       ").append(paint(DIM, "knock-on       ")).append(String.format(Locale.ROOT, "%-10s",
+                            "+" + IncidentLinker.gap(lead.firstSeen(), f.firstSeen()))).append(brief(f)).append('\n');
+                }
+            }
         }
         n = 0;
         for (ErrorGroup g : groups) {
@@ -336,6 +387,12 @@ public final class CliRunner {
             }
         }
         return sb.toString();
+    }
+
+    private static String brief(ErrorGroup g) {
+        String meaning = ErrorExplainer.standard().explain(g).title().replace("`", "");
+        return Formats.truncate(meaning, 70) + "  (" + Formats.truncate(g.displayType(), 34)
+                + (g.pinpoint() != null ? " at " + g.location() : "") + ", ×" + Formats.count(g.count()) + ")";
     }
 
     /** Appends text word-wrapped to about 100 columns, each line starting with the indent. */

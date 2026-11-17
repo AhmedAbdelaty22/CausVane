@@ -1,11 +1,14 @@
 package io.logreader.report;
 
+import io.logreader.explain.IncidentLinker;
+import io.logreader.explain.LogOverview;
 import io.logreader.model.AnalysisResult;
 import io.logreader.model.ErrorGroup;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /** Markdown report: summary metrics, error table and one detail section per error. */
 public final class MarkdownReportWriter implements ReportWriter {
@@ -32,6 +35,47 @@ public final class MarkdownReportWriter implements ReportWriter {
                 .append(Formats.timestamp(result.firstTimestamp())).append(" → ")
                 .append(Formats.timestamp(result.lastTimestamp())).append(") |\n\n");
 
+        if (!result.groups().isEmpty()) {
+            LogOverview.Overview overview = LogOverview.of(result);
+            sb.append("## Overview\n\n");
+            sb.append("**").append(overview.health().label()).append(".** ").append(Formats.mdText(overview.verdict())).append("\n\n");
+            sb.append("**What happened, in order**\n\n");
+            for (LogOverview.Moment m : overview.timeline()) {
+                sb.append("- ").append(m.start() == null ? "" : Formats.timestamp(m.start()) + " — ")
+                        .append("**").append(m.kind()).append(":** ").append(Formats.mdText(m.text())).append('\n');
+            }
+            if (overview.hiddenMoments() > 0) {
+                sb.append("- and ").append(overview.hiddenMoments()).append(" smaller problems in the list below\n");
+            }
+            sb.append("\n**Where to start**\n\n");
+            int k = 0;
+            for (ErrorGroup g : overview.startWith()) {
+                sb.append(++k).append(". ").append(SummaryFormatter.describe(g)).append('\n');
+            }
+            sb.append('\n');
+            if (overview.peak() != null) {
+                sb.append("- **Busiest moment:** ").append(Formats.timestamp(overview.peak().start())).append(" — ")
+                        .append(Formats.count(overview.peak().errors())).append(" errors, ")
+                        .append(Formats.count(overview.peak().warnings())).append(" warnings\n");
+            }
+            if (!overview.byKind().isEmpty()) {
+                sb.append("- **Kinds of problem:** ").append(Formats.mdText(overview.byKind().entrySet().stream()
+                        .map(e -> e.getKey() + " " + e.getValue()).collect(java.util.stream.Collectors.joining(" · ")))).append('\n');
+            }
+            if (!overview.places().isEmpty()) {
+                sb.append("- **Where in the code:** ").append(overview.places().stream()
+                        .map(p -> Formats.mdCode(p.file()) + " (" + Formats.count(p.occurrences()) + "×)")
+                        .collect(java.util.stream.Collectors.joining(" · "))).append('\n');
+            }
+            sb.append('\n');
+        }
+        sb.append("## What the log contains\n\n| Fact | Value | What it means |\n|---|---|---|\n");
+        for (io.logreader.explain.LogFacts.Fact fact : io.logreader.explain.LogFacts.forLog(result,
+                io.logreader.explain.IncidentLinker.find(result.groups()).size())) {
+            sb.append("| ").append(fact.label()).append(" | ").append(Formats.mdText(fact.value()))
+                    .append(" | ").append(fact.meaning()).append(" |\n");
+        }
+        sb.append('\n');
         sb.append("## Deduplicated errors\n\n");
         if (groups.isEmpty()) {
             sb.append("_No errors found._\n");
@@ -45,12 +89,33 @@ public final class MarkdownReportWriter implements ReportWriter {
                         .append(Formats.count(g.count())).append(" | ").append(Formats.timestamp(g.firstSeen()))
                         .append(" | ").append(Formats.timestamp(g.lastSeen())).append(" |\n");
             }
+            List<IncidentLinker.Incident> incidents = IncidentLinker.find(result.groups());
+            Map<String, IncidentLinker.Membership> membership = IncidentLinker.index(incidents);
+            if (!incidents.isEmpty()) {
+                sb.append("\n## Probable incidents\n\n");
+                sb.append("Problems linked by timing and kind of problem: a first failure and the problems that started ")
+                        .append("within ").append(IncidentLinker.WINDOW.toMinutes()).append(" minutes after it. A strong hint, not proof.\n");
+                int k = 0;
+                for (IncidentLinker.Incident incident : incidents) {
+                    sb.append("\n### Incident ").append(++k).append(", from ")
+                            .append(Formats.timestamp(incident.lead().firstSeen())).append("\n\n");
+                    sb.append("- **First failure:** ").append(SummaryFormatter.describe(incident.lead())).append('\n');
+                    for (ErrorGroup w : incident.earlyWarnings()) {
+                        sb.append("- **Warning sign** (").append(IncidentLinker.gap(w.firstSeen(), incident.lead().firstSeen()))
+                                .append(" before): ").append(SummaryFormatter.describe(w)).append('\n');
+                    }
+                    for (ErrorGroup f : incident.followers()) {
+                        sb.append("- **Knock-on** (+").append(IncidentLinker.gap(incident.lead().firstSeen(), f.firstSeen()))
+                                .append(", ×").append(Formats.count(f.count())).append("): ").append(SummaryFormatter.describe(f)).append('\n');
+                    }
+                }
+            }
             sb.append("\n## Details\n\n");
             n = 0;
             for (ErrorGroup g : groups) {
                 sb.append("### ").append(++n).append(". [").append(g.severity()).append("] ")
                         .append(Formats.mdText(g.displayType())).append(" — ").append(Formats.mdText(g.location())).append("\n\n");
-                SummaryFormatter.appendDetails(sb, result, g);
+                SummaryFormatter.appendDetails(sb, result, g, membership.get(g.id()));
                 sb.append('\n');
             }
         }

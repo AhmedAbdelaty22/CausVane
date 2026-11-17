@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.logreader.explain.ErrorExplainer;
 import io.logreader.explain.Explanation;
+import io.logreader.explain.IncidentLinker;
+import io.logreader.explain.LogOverview;
 import io.logreader.model.AnalysisResult;
 import io.logreader.model.ErrorGroup;
 import io.logreader.model.LogEvent;
@@ -37,6 +39,45 @@ public final class JsonReportWriter implements ReportWriter {
         summary.put("totalWarnings", result.warningCount());
         summary.put("uniqueErrorTypes", result.uniqueErrorTypes());
         summary.put("unlistedOccurrences", result.unlistedOccurrences());
+        LogOverview.Overview whole = LogOverview.of(result);
+        ObjectNode overviewNode = root.putObject("overview");
+        overviewNode.put("health", whole.health().label());
+        overviewNode.put("verdict", whole.verdict());
+        ArrayNode timeline = overviewNode.putArray("whatHappened");
+        for (LogOverview.Moment m : whole.timeline()) {
+            ObjectNode moment = timeline.addObject();
+            putTime(moment, "from", m.start());
+            putTime(moment, "until", m.end());
+            moment.put("kind", m.kind());
+            moment.put("text", m.text());
+            moment.put("errorType", m.group().errorType());
+            moment.put("location", m.group().location());
+        }
+        ArrayNode start = overviewNode.putArray("whereToStart");
+        whole.startWith().forEach(g -> start.add(brief(g, null)));
+        ObjectNode kinds = overviewNode.putObject("kindsOfProblem");
+        whole.byKind().forEach(kinds::put);
+        if (whole.peak() != null) {
+            ObjectNode peak = overviewNode.putObject("busiestMoment");
+            putTime(peak, "from", whole.peak().start());
+            peak.put("seconds", whole.peak().seconds());
+            peak.put("errors", whole.peak().errors());
+            peak.put("warnings", whole.peak().warnings());
+        }
+        ArrayNode places = overviewNode.putArray("whereInTheCode");
+        whole.places().forEach(p -> places.addObject().put("file", p.file()).put("problems", p.problems()).put("occurrences", p.occurrences()));
+        io.logreader.model.LogContents c = result.contents();
+        ObjectNode contents = root.putObject("contents");
+        ObjectNode levels = contents.putObject("entriesByLevel");
+        for (io.logreader.model.Severity level : io.logreader.model.Severity.values()) {
+            levels.put(level.name(), c.level(level));
+        }
+        contents.put("entriesWithTime", c.timestamped());
+        contents.put("entriesOverSeveralLines", c.multiLine());
+        contents.put("jsonEntries", c.structured());
+        contents.put("entriesWithStackTrace", c.withStackTrace());
+        contents.put("entriesWithTraceId", c.withTraceId());
+        contents.put("differentTraceIds", c.distinctTraceIds());
         putTime(summary, "firstTimestamp", result.firstTimestamp());
         putTime(summary, "lastTimestamp", result.lastTimestamp());
         Duration span = result.timeSpan();
@@ -44,10 +85,29 @@ public final class JsonReportWriter implements ReportWriter {
             summary.put("timeSpanSeconds", span.getSeconds());
         }
 
+        List<IncidentLinker.Incident> incidents = IncidentLinker.find(result.groups());
+        java.util.Map<String, IncidentLinker.Membership> membership = IncidentLinker.index(incidents);
+        ArrayNode incidentArray = root.putArray("incidents");
+        for (IncidentLinker.Incident incident : incidents) {
+            ObjectNode node = incidentArray.addObject();
+            putTime(node, "startedAt", incident.lead().firstSeen());
+            node.set("firstFailure", brief(incident.lead(), null));
+            ArrayNode knockOn = node.putArray("knockOn");
+            incident.followers().forEach(f -> knockOn.add(brief(f, incident.lead())));
+            ArrayNode warnings = node.putArray("warningSigns");
+            incident.earlyWarnings().forEach(w -> warnings.add(brief(w, incident.lead())));
+        }
         ArrayNode errors = root.putArray("errors");
         for (ErrorGroup g : groups) {
             ObjectNode e = errors.addObject();
             e.put("severity", g.severity().name());
+            if (membership.containsKey(g.id())) {
+                e.put("incidentRole", switch (membership.get(g.id()).part()) {
+                    case LEAD -> "firstFailure";
+                    case FOLLOWER -> "knockOn";
+                    case EARLY_WARNING -> "warningSign";
+                });
+            }
             e.put("errorType", g.errorType());
             e.put("message", g.message());
             e.put("language", g.language().displayName());
@@ -90,6 +150,18 @@ public final class JsonReportWriter implements ReportWriter {
             }
         }
         out.append(mapper.writeValueAsString(root)).append('\n');
+    }
+
+    private ObjectNode brief(ErrorGroup g, ErrorGroup lead) {
+        ObjectNode node = mapper.createObjectNode();
+        node.put("errorType", g.errorType());
+        node.put("location", g.location());
+        node.put("meaning", ErrorExplainer.standard().explain(g).title().replace("`", ""));
+        node.put("count", g.count());
+        if (lead != null && g.firstSeen() != null && lead.firstSeen() != null) {
+            node.put("secondsFromFirstFailure", java.time.Duration.between(lead.firstSeen(), g.firstSeen()).getSeconds());
+        }
+        return node;
     }
 
     private ObjectNode frame(StackFrame f) {

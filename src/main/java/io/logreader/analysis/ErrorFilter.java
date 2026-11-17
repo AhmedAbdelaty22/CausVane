@@ -3,6 +3,7 @@ package io.logreader.analysis;
 import io.logreader.model.ErrorGroup;
 import io.logreader.model.Severity;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Predicate;
@@ -14,7 +15,17 @@ import java.util.regex.PatternSyntaxException;
  *
  * @param severity exact severity to keep, or null for all
  */
-public record ErrorFilter(TextMatcher text, Severity severity) implements Predicate<ErrorGroup> {
+public record ErrorFilter(TextMatcher text, Severity severity, LocalDateTime from, LocalDateTime to)
+        implements Predicate<ErrorGroup> {
+
+    public ErrorFilter(TextMatcher text, Severity severity) {
+        this(text, severity, null, null);
+    }
+
+    /** The same filter, limited to problems that occurred during {@code [from, to]}. */
+    public ErrorFilter during(LocalDateTime from, LocalDateTime to) {
+        return new ErrorFilter(text, severity, from, to);
+    }
 
     public static final ErrorFilter NONE = new ErrorFilter(new TextMatcher.All(), null);
 
@@ -47,6 +58,13 @@ public record ErrorFilter(TextMatcher text, Severity severity) implements Predic
     public boolean test(ErrorGroup group) {
         if (severity != null && group.severity() != severity) {
             return false;
+        }
+        if (from != null && to != null) {
+            // a problem counts when the period between its first and last occurrence overlaps the range
+            if (group.firstSeen() == null || group.lastSeen() == null
+                    || group.firstSeen().isAfter(to) || group.lastSeen().isBefore(from)) {
+                return false;
+            }
         }
         String haystack = group.searchText();
         return switch (text) {

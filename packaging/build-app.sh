@@ -25,7 +25,7 @@ mkdir -p dist
 jpackage \
   --type "$TYPE" \
   --name LogReader \
-  --app-version 1.2.0 \
+  --app-version 2.0.0 \
   --description "Finds, explains and pinpoints errors in application logs" \
   --vendor "LogReader" \
   --icon "$ICON" \
@@ -35,5 +35,12 @@ jpackage \
   --java-options "--enable-native-access=ALL-UNNAMED" \
   --java-options "-Xmx1g" \
   --dest dist
+
+# macOS: Finder caches app icons by path. After a rebuild at the same path it can show a blank
+# placeholder until the bundle's date changes and it is registered again.
+if [ "$(uname -s)" = "Darwin" ] && [ -d dist/LogReader.app ]; then
+  touch dist/LogReader.app
+  /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f dist/LogReader.app 2>/dev/null || true
+fi
 
 echo "Done. Output is in: $(pwd)/dist"

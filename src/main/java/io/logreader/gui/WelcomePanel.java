@@ -22,7 +22,8 @@ final class WelcomePanel extends JPanel {
 
     private final JPanel dropZone = new JPanel();
 
-    WelcomePanel(Runnable onOpen) {
+    WelcomePanel(Runnable onOpen, java.util.List<java.nio.file.Path> recent,
+                 java.util.function.Consumer<java.nio.file.Path> openRecent) {
         super(new GridBagLayout());
         setBackground(Theme.EDITOR);
 
@@ -30,7 +31,7 @@ final class WelcomePanel extends JPanel {
         dropZone.setLayout(new BoxLayout(dropZone, BoxLayout.Y_AXIS));
         dropZone.setBorder(BorderFactory.createEmptyBorder(44, 64, 44, 64));
 
-        JLabel arrow = new JLabel(new Glyphs.DropArrow(56, Theme.ORANGE));
+        JLabel arrow = new JLabel(new Glyphs.DropArrow(56, Theme.BLUE));
         JLabel title = new JLabel("Drop a log file here");
         title.setFont(title.getFont().deriveFont(Font.BOLD, 24f));
         title.setForeground(Theme.TEXT);
@@ -46,7 +47,7 @@ final class WelcomePanel extends JPanel {
 
         boolean mac = System.getProperty("os.name", "").toLowerCase(java.util.Locale.ROOT).contains("mac");
         String key = mac ? "\u2318" : "Ctrl+";
-        JLabel hints = new JLabel(key + "O  open a file      " + key + "K  command palette      " + key + "F  filter");
+        JLabel hints = new JLabel(key + "O  open a file      " + key + "K  quick actions      " + key + "F  filter");
         hints.setForeground(Theme.DIM);
         hints.setFont(hints.getFont().deriveFont(12f));
 
@@ -57,7 +58,48 @@ final class WelcomePanel extends JPanel {
             }
             dropZone.add(c);
         }
+        if (!recent.isEmpty()) {
+            recentParts.add(dropZone.add(Box.createVerticalStrut(26)));
+            JLabel heading = new JLabel("RECENT FILES");
+            heading.setForeground(Theme.DIM);
+            heading.setFont(heading.getFont().deriveFont(Font.BOLD, 11f));
+            heading.setAlignmentX(Component.CENTER_ALIGNMENT);
+            recentParts.add(dropZone.add(heading));
+            recentParts.add(dropZone.add(Box.createVerticalStrut(6)));
+            for (java.nio.file.Path file : recent.subList(0, Math.min(5, recent.size()))) {
+                JButton entry = new JButton(file.getFileName().toString());
+                entry.putClientProperty(Theme.HTML_DISABLE, Boolean.TRUE);
+                entry.putClientProperty(FlatClientProperties.BUTTON_TYPE, FlatClientProperties.BUTTON_TYPE_BORDERLESS);
+                entry.setForeground(Theme.BLUE);
+                entry.setToolTipText(Theme.literal(file.toAbsolutePath().toString()));
+                entry.setAlignmentX(Component.CENTER_ALIGNMENT);
+                entry.addActionListener(e -> openRecent.accept(file));
+                recentParts.add(dropZone.add(entry));
+            }
+            JButton clear = new JButton("Clear recent files");
+            clear.putClientProperty(FlatClientProperties.BUTTON_TYPE, FlatClientProperties.BUTTON_TYPE_BORDERLESS);
+            clear.setForeground(Theme.DIM);
+            clear.setFont(clear.getFont().deriveFont(11.5f));
+            clear.setToolTipText("Forget the list of recently opened files (the files themselves are not touched)");
+            clear.setAlignmentX(Component.CENTER_ALIGNMENT);
+            clear.addActionListener(e -> {
+                Settings.get().clearRecent();
+                clearRecent();
+            });
+            recentParts.add(dropZone.add(Box.createVerticalStrut(4)));
+            recentParts.add(dropZone.add(clear));
+        }
         add(dropZone);
+    }
+
+    private final java.util.List<Component> recentParts = new java.util.ArrayList<>();
+
+    /** Removes the recent-files list from the screen, after the list was cleared. */
+    void clearRecent() {
+        recentParts.forEach(dropZone::remove);
+        recentParts.clear();
+        revalidate();
+        repaint();
     }
 
     @Override

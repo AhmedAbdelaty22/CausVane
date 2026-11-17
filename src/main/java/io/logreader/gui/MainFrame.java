@@ -16,6 +16,7 @@ import io.logreader.report.SummaryFormatter;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.Box;
 import javax.swing.Icon;
 import javax.swing.JButton;
@@ -91,23 +92,39 @@ public final class MainFrame extends JFrame {
     private final ErrorTableModel tableModel = new ErrorTableModel();
     private final JTable table = new JTable(tableModel);
     private final JTextField searchField = new JTextField(26);
-    private final JToggleButton regexToggle = new JToggleButton(".*");
     private static final Severity[] CHIP_LEVELS = {null, Severity.FATAL, Severity.ERROR, Severity.WARN};
-    private static final String[] CHIP_NAMES = {"All", "Fatal", "Error", "Warn"};
+    private static final String[] CHIP_NAMES = {"All", "Fatal", "Errors", "Warnings"};
+    private final WelcomePanel welcome = new WelcomePanel(this::chooseFile, Settings.get().recentFiles(), this::openFile);
+    private JLabel brandLabel;
+    private JButton quickButton;
+    private JSplitPane mainSplit;
+    private final long[] chipCounts = new long[CHIP_LEVELS.length];
+    /** 0 wide, 1 medium, 2 narrow; -1 until first fitted. */
+    private int widthLevel = -1;
+    private static final String SEARCH_TIP = "Type words or a request / trace ID; every word must appear. "
+            + "Advanced: text between slashes, such as /timeout|refused/, is a regular expression.";
+    private static final String[] CHIP_HINTS = {"", "the application could not go on", "something failed",
+            "something looked wrong but work went on"};
+    private JPanel severitySegments;
     private final JToggleButton[] severityChips = new JToggleButton[CHIP_LEVELS.length];
-    private final JToggleButton tailToggle = new JToggleButton("Live tail");
-    private final JSpinner contextSpinner = new JSpinner(new SpinnerNumberModel(8, 0, 500, 1));
-    private final JButton exportButton = new JButton("Export", new Glyphs.Triangle(Glyphs.Triangle.DOWN));
-    private final JButton copyButton = new JButton("Copy summary");
-
-    private final MetricCard linesCard = new MetricCard("Lines read", Theme.TEXT);
-    private final MetricCard errorsCard = new MetricCard("Errors found", Theme.RED);
-    private final MetricCard uniqueCard = new MetricCard("Different problems", Theme.ORANGE);
-    private final MetricCard spanCard = new MetricCard("Period covered", Theme.BLUE);
+    private final JToggleButton tailToggle = new JToggleButton("Watch live");
+    private final JSpinner contextSpinner = new JSpinner(new SpinnerNumberModel(Settings.get().contextLinesOr(8), 0, 500, 1));
+    private final JButton moreButton = new JButton("More", new Glyphs.Triangle(Glyphs.Triangle.DOWN));
     private final TimelineChart timelineChart = new TimelineChart();
-    private final JLabel contextTitle = new JLabel("THE LOG LINES, EXPLAINED");
-    /** Plain-language overview of the whole file, shown above the list. */
-    private final javax.swing.JTextArea overview = new javax.swing.JTextArea();
+    private final SummaryStrip summary = new SummaryStrip(timelineChart, this::reveal);
+    private final JLabel contextTitle = new JLabel("WHAT THE LOG SAYS");
+    /** Plain-language overview of the whole file: the summary strip's tooltip. */
+    private String overview = "";
+    private final StoryView storyView = new StoryView();
+    /** Right-hand side: the whole-log overview, or the selected problem. */
+    private final OverviewPanel overviewPanel = new OverviewPanel(this::reveal);
+    private final CardLayout rightCards = new CardLayout();
+    private final JPanel right = new JPanel(rightCards);
+    private boolean overviewMode = true;
+    private final CardLayout logCards = new CardLayout();
+    private final JPanel logArea = new JPanel(logCards);
+    private final JToggleButton plainToggle = new JToggleButton("In plain words");
+    private final JToggleButton rawToggle = new JToggleButton("All lines");
     /** What the clicked log line means. */
     private final javax.swing.JTextArea aboutLine = new javax.swing.JTextArea();
     private final CardLayout cards = new CardLayout();
@@ -124,6 +141,12 @@ public final class MainFrame extends JFrame {
     private SwingWorker<AnalysisResult, long[]> loader;
     private volatile boolean polling;
     private ErrorGroup selected;
+    /** Period picked on the chart, or null for the whole log. */
+    private java.time.LocalDateTime rangeFrom;
+    private java.time.LocalDateTime rangeTo;
+    private final JButton rangeChip = new JButton();
+    private List<io.logreader.explain.IncidentLinker.Incident> incidentList = List.of();
+    private Map<String, io.logreader.explain.IncidentLinker.Membership> incidents = Map.of();
     private int occurrence;
     /** Guards against selection events fired while the table is being repopulated. */
     private boolean updatingTable;
@@ -148,6 +171,7 @@ public final class MainFrame extends JFrame {
      * @return 0 when everything worked, 1 otherwise (details are printed)
      */
     public static int selfTest(Path file) {
+        System.setProperty("logreader.noPersist", "true"); // a check must not change the user's settings or recent files
         String platform = System.getProperty("os.name") + " " + System.getProperty("os.arch")
                 + ", Java " + System.getProperty("java.version");
         try {
@@ -168,6 +192,9 @@ public final class MainFrame extends JFrame {
             int[] rows = new int[1];
             SwingUtilities.invokeAndWait(() -> {
                 rows[0] = frame.tableModel.getRowCount();
+                if (rows[0] > 0 && frame.selected == null) {
+                    frame.table.setRowSelectionInterval(0, 0); // the window opens on the overview; check a problem too
+                }
                 if (!loaded[0]) {
                     failure[0] = "the file was not analyzed within 30 seconds";
                 } else if (rows[0] == 0) {
@@ -217,16 +244,35 @@ public final class MainFrame extends JFrame {
         // fit smaller laptop screens: never open larger than the usable desktop area
         Rectangle desktop = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
         setSize(Math.min(1440, desktop.width), Math.min(880, desktop.height));
-        setMinimumSize(new Dimension(Math.min(980, desktop.width), Math.min(620, desktop.height)));
+        setMinimumSize(new Dimension(Math.min(720, desktop.width), Math.min(520, desktop.height)));
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentResized(java.awt.event.ComponentEvent e) {
+                fitLayout(); // the layout follows the window while it is dragged larger or smaller
+            }
+        });
         setLocationRelativeTo(null);
+        Rectangle saved = Settings.get().windowBounds();
+        if (saved != null) {
+            setBounds(saved);
+        }
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                if ((getExtendedState() & MAXIMIZED_BOTH) == 0) {
+                    Settings.get().windowBounds(getBounds());
+                }
+            }
+        });
 
         JPanel north = new JPanel(new BorderLayout());
         north.add(buildToolbar(), BorderLayout.NORTH);
         north.add(buildMetrics(), BorderLayout.CENTER);
+        summary.setVisible(false); // shown once a file is open
 
         JPanel content = new JPanel(new BorderLayout());
         content.add(north, BorderLayout.NORTH);
-        center.add(new WelcomePanel(this::chooseFile), "welcome");
+        center.add(welcome, "welcome");
         center.add(buildWorkspace(), "workspace");
         content.add(center, BorderLayout.CENTER);
         content.add(buildStatusBar(), BorderLayout.SOUTH);
@@ -263,42 +309,54 @@ public final class MainFrame extends JFrame {
         brand.setFont(brand.getFont().deriveFont(Font.BOLD, 15f));
         brand.setForeground(Theme.TEXT);
         brand.setBorder(BorderFactory.createEmptyBorder(0, 2, 0, 16));
+        brandLabel = brand;
 
         boolean mac = System.getProperty("os.name", "").toLowerCase(java.util.Locale.ROOT).contains("mac");
-        JButton paletteButton = new JButton(mac ? "\u2318K" : "Ctrl K");
+        JButton paletteButton = new JButton("Quick actions", new Glyphs.Bolt());
+        paletteButton.setIconTextGap(6);
         paletteButton.putClientProperty(FlatClientProperties.BUTTON_TYPE, FlatClientProperties.BUTTON_TYPE_ROUND_RECT);
-        paletteButton.setToolTipText("Command palette: search every action and every error");
+        paletteButton.setToolTipText("Find any action or any error by typing a few letters ("
+                + (mac ? "\u2318K" : "Ctrl+K") + ")");
         paletteButton.addActionListener(e -> openPalette());
+        quickButton = paletteButton;
 
         JButton themeButton = new JButton(new Glyphs.ThemeSwitch(Theme.mode() == Theme.Mode.DARK));
         themeButton.putClientProperty(FlatClientProperties.BUTTON_TYPE, FlatClientProperties.BUTTON_TYPE_ROUND_RECT);
         themeButton.setToolTipText(Theme.mode() == Theme.Mode.DARK ? "Switch to the light theme" : "Switch to the dark theme");
         themeButton.addActionListener(e -> switchTheme());
 
-        JButton open = new JButton("Open log file");
+        JButton open = new JButton("Open");
         open.putClientProperty(FlatClientProperties.BUTTON_TYPE, FlatClientProperties.BUTTON_TYPE_ROUND_RECT);
-        open.setToolTipText("Open a log file (or drag and drop one anywhere on the window)");
+        open.setToolTipText("Open a log file (or drop one anywhere on the window)");
         open.addActionListener(e -> chooseFile());
 
-        searchField.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Filter: keyword, trace ID or regex…");
+        searchField.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Find a problem…");
         searchField.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
         searchField.putClientProperty(FlatClientProperties.TEXT_FIELD_LEADING_ICON, new FlatSearchIcon());
-        searchField.setMaximumSize(new Dimension(420, 30));
+        searchField.setMaximumSize(new Dimension(300, 30));
+        searchField.setPreferredSize(new Dimension(300, 30));
+        searchField.setMinimumSize(new Dimension(120, 30));
+        searchField.setToolTipText(SEARCH_TIP);
         searchField.getDocument().addDocumentListener(new DocumentListener() {
             @Override public void insertUpdate(DocumentEvent e) { applyFilter(); }
             @Override public void removeUpdate(DocumentEvent e) { applyFilter(); }
             @Override public void changedUpdate(DocumentEvent e) { applyFilter(); }
         });
-        regexToggle.setToolTipText("Treat the filter as a regular expression");
-        regexToggle.setFont(Theme.mono(12f));
-        regexToggle.addActionListener(e -> applyFilter());
         ButtonGroup levels = new ButtonGroup();
         for (int i = 0; i < CHIP_LEVELS.length; i++) {
             JToggleButton chip = new JToggleButton(CHIP_NAMES[i]);
-            chip.putClientProperty(FlatClientProperties.BUTTON_TYPE, FlatClientProperties.BUTTON_TYPE_ROUND_RECT);
-            chip.setToolTipText(CHIP_LEVELS[i] == null ? "Show every severity" : "Show only " + CHIP_LEVELS[i] + " entries");
+            // one segmented control: neutral text, a small dot for the level's colour, the chosen one filled
+            chip.putClientProperty(FlatClientProperties.BUTTON_TYPE, FlatClientProperties.BUTTON_TYPE_BORDERLESS);
+            chip.putClientProperty(FlatClientProperties.STYLE, "arc: 8; margin: 3,10,3,10; selectedBackground: "
+                    + Theme.hex(Theme.CARD) + "; selectedForeground: " + Theme.hex(Theme.TEXT) + "; foreground: "
+                    + Theme.hex(Theme.DIM) + "; hoverBackground: " + Theme.hex(Theme.HOVER_STRONG));
+            chip.setFocusable(false);
+            chip.setToolTipText(CHIP_LEVELS[i] == null ? "List problems of every severity"
+                    : "List only " + CHIP_NAMES[i].toLowerCase(java.util.Locale.ROOT) + ": " + CHIP_HINTS[i]);
             if (CHIP_LEVELS[i] != null) {
-                chip.setForeground(Theme.severity(CHIP_LEVELS[i]));
+                chip.setIcon(new Glyphs.Dot(Theme.severity(CHIP_LEVELS[i]),
+                        CHIP_LEVELS[i] == Severity.FATAL));
+                chip.setIconTextGap(6);
             }
             chip.addActionListener(e -> applyFilter());
             levels.add(chip);
@@ -309,76 +367,99 @@ public final class MainFrame extends JFrame {
         tailToggle.setToolTipText("Watch the file and analyze new lines as they are written");
         tailToggle.addActionListener(e -> toggleTail());
 
-        contextSpinner.setToolTipText("How many log lines to show before and after each error");
-        contextSpinner.setMaximumSize(new Dimension(70, 30));
-        contextSpinner.addChangeListener(e -> refreshContext());
+        contextSpinner.setToolTipText("How many log lines to read before and after each error");
+        contextSpinner.setMaximumSize(new Dimension(64, 26));
+        contextSpinner.setPreferredSize(new Dimension(64, 26));
+        contextSpinner.addChangeListener(e -> {
+            Settings.get().contextLines((Integer) contextSpinner.getValue());
+            refreshContext();
+        });
 
-        JPopupMenu exportMenu = new JPopupMenu();
+        JPopupMenu moreMenu = new JPopupMenu();
+        JMenuItem copyItem = new JMenuItem("Copy a summary for a ticket");
+        copyItem.addActionListener(e -> copySummary());
+        moreMenu.add(copyItem);
         for (ReportWriter.Format format : ReportWriter.Format.values()) {
-            JMenuItem item = new JMenuItem("Export as " + format.label() + "…");
+            JMenuItem item = new JMenuItem("Save a report as " + format.label() + "…");
             item.addActionListener(e -> exportReport(format));
-            exportMenu.add(item);
+            moreMenu.add(item);
         }
-        exportButton.setHorizontalTextPosition(SwingConstants.LEADING);
-        exportButton.setIconTextGap(8);
-        exportButton.setToolTipText("Export the filtered errors as a Markdown or JSON report");
-        exportButton.addActionListener(e -> exportMenu.show(exportButton, 0, exportButton.getHeight()));
-        copyButton.setToolTipText("Copy a ticket-ready summary of the selected error to the clipboard");
-        copyButton.addActionListener(e -> copySummary());
+        moreMenu.addSeparator();
+        JMenuItem words = new JMenuItem("Explain the words used here");
+        words.addActionListener(e -> showGlossary());
+        moreMenu.add(words);
+        moreMenu.addSeparator();
+        JMenuItem clearRecent = new JMenuItem("Clear recent files");
+        clearRecent.addActionListener(e -> clearRecentFiles());
+        moreMenu.add(clearRecent);
+        moreMenu.addPopupMenuListener(new javax.swing.event.PopupMenuListener() {
+            @Override public void popupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent e) {
+                clearRecent.setEnabled(!Settings.get().recentFiles().isEmpty());
+            }
+            @Override public void popupMenuWillBecomeInvisible(javax.swing.event.PopupMenuEvent e) { }
+            @Override public void popupMenuCanceled(javax.swing.event.PopupMenuEvent e) { }
+        });
+        moreButton.putClientProperty(FlatClientProperties.BUTTON_TYPE, FlatClientProperties.BUTTON_TYPE_ROUND_RECT);
+        moreButton.setHorizontalTextPosition(SwingConstants.LEADING);
+        moreButton.setIconTextGap(6);
+        moreButton.setToolTipText("Copy, save a report, explain the words");
+        moreButton.addActionListener(e -> moreMenu.show(moreButton, 0, moreButton.getHeight()));
 
         bar.add(brand);
         bar.add(open);
         bar.addSeparator();
         bar.add(searchField);
         bar.add(Box.createHorizontalStrut(4));
-        bar.add(regexToggle);
-        bar.add(Box.createHorizontalStrut(6));
-        for (JToggleButton chip : severityChips) {
-            bar.add(chip);
-            bar.add(Box.createHorizontalStrut(4));
-        }
-        bar.addSeparator();
-        bar.add(tailToggle);
-        bar.addSeparator();
-        bar.add(new JLabel("Lines around  "));
-        bar.add(contextSpinner);
-        bar.add(Box.createHorizontalGlue());
-        bar.add(exportButton);
-        bar.add(Box.createHorizontalStrut(6));
-        bar.add(copyButton);
         bar.add(Box.createHorizontalStrut(10));
-        JButton helpButton = new JButton("?");
-        helpButton.putClientProperty(FlatClientProperties.BUTTON_TYPE, FlatClientProperties.BUTTON_TYPE_ROUND_RECT);
-        helpButton.setToolTipText("What the words in this window mean");
-        helpButton.addActionListener(e -> showGlossary());
-        bar.add(helpButton);
+        JPanel segments = new JPanel() {
+            @Override
+            protected void paintComponent(java.awt.Graphics g) {
+                java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
+                g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(Theme.mode() == Theme.Mode.DARK ? Theme.EDITOR : new java.awt.Color(0xEDEEF0));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+                g2.setColor(Theme.CARD_BORDER);
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 10, 10);
+                g2.dispose();
+            }
+        };
+        segments.setOpaque(false);
+        segments.setLayout(new BoxLayout(segments, BoxLayout.X_AXIS));
+        segments.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+        for (JToggleButton chip : severityChips) {
+            segments.add(chip);
+        }
+        segments.setMaximumSize(segments.getPreferredSize());
+        bar.add(segments);
+        severitySegments = segments;
+        rangeChip.putClientProperty(FlatClientProperties.BUTTON_TYPE, FlatClientProperties.BUTTON_TYPE_ROUND_RECT);
+        rangeChip.setToolTipText("Showing only problems from this period. Click to show the whole log again.");
+        rangeChip.setVisible(false);
+        rangeChip.addActionListener(e -> clearTimeRange());
+        bar.add(Box.createHorizontalStrut(6));
+        bar.add(rangeChip);
+        bar.add(Box.createHorizontalGlue());
+        bar.add(tailToggle);
         bar.add(Box.createHorizontalStrut(6));
         bar.add(paletteButton);
+        bar.add(Box.createHorizontalStrut(6));
+        bar.add(moreButton);
         bar.add(Box.createHorizontalStrut(6));
         bar.add(themeButton);
         return bar;
     }
 
     private JPanel buildMetrics() {
-        JPanel cardRow = new JPanel(new GridLayout(1, 4, 10, 0));
-        cardRow.add(linesCard);
-        cardRow.add(errorsCard);
-        cardRow.add(uniqueCard);
-        cardRow.add(spanCard);
-        timelineChart.setPreferredSize(new Dimension(420, 84));
-        JPanel panel = new JPanel(new BorderLayout(10, 0));
-        panel.setBorder(BorderFactory.createEmptyBorder(2, 10, 10, 10));
-        panel.add(cardRow, BorderLayout.CENTER);
-        panel.add(timelineChart, BorderLayout.EAST);
-        return panel;
+        timelineChart.onRangeSelected(this::setTimeRange);
+        return summary;
     }
 
     private JSplitPane buildWorkspace() {
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        table.setRowHeight(50);
+        table.setRowHeight(52);
         table.setIntercellSpacing(new Dimension(0, 1));
         table.setFillsViewportHeight(true);
-        table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF); // keep File:Line readable; scroll sideways for the message
+        table.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
         table.setShowVerticalLines(false);
         TableRowSorter<ErrorTableModel> sorter = new TableRowSorter<>(tableModel);
         sorter.setSortKeys(List.of(new RowSorter.SortKey(ErrorTableModel.COUNT, SortOrder.DESCENDING)));
@@ -387,15 +468,20 @@ public final class MainFrame extends JFrame {
         TableColumnModel columns = table.getColumnModel();
         columns.getColumn(ErrorTableModel.SEVERITY).setCellRenderer(new TableRenderers.SeverityBadge());
         columns.getColumn(ErrorTableModel.TYPE).setCellRenderer(new TableRenderers.IssueCell());
-        columns.getColumn(ErrorTableModel.LOCATION).setCellRenderer(new TableRenderers.Text(Theme.ORANGE, true, false, SwingConstants.LEADING));
+        columns.getColumn(ErrorTableModel.LOCATION).setCellRenderer(new TableRenderers.Text(Theme.TEXT, true, false, SwingConstants.LEADING));
         columns.getColumn(ErrorTableModel.COUNT).setCellRenderer(new TableRenderers.CountBar());
         columns.getColumn(ErrorTableModel.FIRST_SEEN).setCellRenderer(new TableRenderers.Text(Theme.DIM, false, false, SwingConstants.LEADING));
         columns.getColumn(ErrorTableModel.LAST_SEEN).setCellRenderer(new TableRenderers.Text(Theme.DIM, false, false, SwingConstants.LEADING));
         columns.getColumn(ErrorTableModel.MESSAGE).setCellRenderer(TableRenderers.Text.plain());
-        int[] widths = {92, 318, 196, 78, 172, 172, 520};
-        for (int i = 0; i < widths.length; i++) {
-            columns.getColumn(i).setPreferredWidth(widths[i]);
+        // only what a reader needs to choose a problem; the rest is in the detail panel
+        for (int hidden : new int[] {ErrorTableModel.MESSAGE, ErrorTableModel.FIRST_SEEN, ErrorTableModel.LAST_SEEN, ErrorTableModel.LOCATION}) {
+            table.removeColumn(columns.getColumn(hidden));
         }
+        columns.getColumn(0).setMinWidth(96);
+        columns.getColumn(0).setMaxWidth(96);
+        columns.getColumn(2).setMinWidth(78);
+        columns.getColumn(2).setMaxWidth(90);
+        columns.getColumn(1).setPreferredWidth(420);
         // highlight the row under the pointer
         java.awt.event.MouseAdapter hover = new java.awt.event.MouseAdapter() {
             private void set(Integer row) {
@@ -415,52 +501,52 @@ public final class MainFrame extends JFrame {
         };
         table.addMouseMotionListener(hover);
         table.addMouseListener(hover);
+        spotlight.onReveal(this::reveal);
+        spotlight.onBack(this::showOverview);
+        spotlight.onCopy(this::copySummary);
         table.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting() && !updatingTable) {
                 onSelectionChanged();
             }
         });
 
-        JScrollPane tableScroll = new JScrollPane(table);
+        JScrollPane tableScroll = new JScrollPane(table, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         tableScroll.setBorder(BorderFactory.createEmptyBorder());
         tableScroll.getViewport().setBackground(Theme.CARD);
 
-        overview.setEditable(false);
-        overview.setLineWrap(true);
-        overview.setWrapStyleWord(true);
-        overview.setOpaque(true);
-        overview.setBackground(Theme.CALLOUT);
-        overview.setForeground(Theme.TEXT);
-        overview.setFont(overview.getFont().deriveFont(13f));
-        overview.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createMatteBorder(0, 0, 1, 0, Theme.CARD_BORDER),
-                BorderFactory.createEmptyBorder(12, 16, 12, 16)));
         JPanel listPanel = new JPanel(new BorderLayout());
-        listPanel.add(overview, BorderLayout.NORTH);
         listPanel.add(tableScroll, BorderLayout.CENTER);
 
         contextTitle.setForeground(Theme.DIM);
         contextTitle.setFont(contextTitle.getFont().deriveFont(Font.BOLD, 11f));
-        contextTitle.setBorder(BorderFactory.createEmptyBorder(8, 14, 2, 14));
-        contextTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // legend: what the labels beside the lines mean
-        JPanel legend = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 6, 0));
-        legend.setOpaque(false);
-        legend.setBorder(BorderFactory.createEmptyBorder(2, 8, 6, 8));
-        legend.setAlignmentX(Component.LEFT_ALIGNMENT);
-        legend.add(new Pill("STARTS HERE", Theme.RED, false));
-        legend.add(new Pill("ROOT CAUSE", Theme.RED, false));
-        legend.add(new Pill("CAUSED BY", Theme.ORANGE, false));
-        legend.add(new Pill("YOUR CODE", Theme.GREEN, false));
-        legend.add(new Pill("LIBRARY", Theme.DIM, false));
-        legend.add(new Pill("BEFORE / AFTER", Theme.DIM, false));
-        legend.setToolTipText("The label beside each line says what part it plays in the error");
+
+        ButtonGroup views = new ButtonGroup();
+        for (JToggleButton toggle : new JToggleButton[] {plainToggle, rawToggle}) {
+            toggle.putClientProperty(FlatClientProperties.BUTTON_TYPE, FlatClientProperties.BUTTON_TYPE_ROUND_RECT);
+            toggle.setFont(toggle.getFont().deriveFont(12f));
+            views.add(toggle);
+        }
+        plainToggle.setToolTipText("The error and what happened around it, told in plain sentences");
+        rawToggle.setToolTipText("Every log line as written, each labelled with the part it plays");
+        plainToggle.addActionListener(e -> showLogView("plain"));
+        rawToggle.addActionListener(e -> showLogView("raw"));
+        JLabel around = new JLabel("lines around");
+        around.setForeground(Theme.DIM);
+        around.setFont(around.getFont().deriveFont(11.5f));
         JPanel contextHeader = new JPanel();
         contextHeader.setOpaque(false);
-        contextHeader.setLayout(new javax.swing.BoxLayout(contextHeader, javax.swing.BoxLayout.Y_AXIS));
+        contextHeader.setLayout(new javax.swing.BoxLayout(contextHeader, javax.swing.BoxLayout.X_AXIS));
+        contextHeader.setBorder(BorderFactory.createEmptyBorder(8, 14, 6, 12));
         contextHeader.add(contextTitle);
-        contextHeader.add(legend);
+        contextHeader.add(Box.createHorizontalGlue());
+        contextHeader.add(plainToggle);
+        contextHeader.add(Box.createHorizontalStrut(4));
+        contextHeader.add(rawToggle);
+        contextHeader.add(Box.createHorizontalStrut(12));
+        contextHeader.add(around);
+        contextHeader.add(Box.createHorizontalStrut(6));
+        contextHeader.add(contextSpinner);
 
         aboutLine.setEditable(false);
         aboutLine.setLineWrap(true);
@@ -478,22 +564,62 @@ public final class MainFrame extends JFrame {
                         + (line.role().tag().isEmpty() ? "" : "  ·  " + line.role().tag())
                         + "\n" + line.explanation().replace("`", "")));
 
+        JPanel rawPanel = new JPanel(new BorderLayout());
+        rawPanel.add(contextViewer, BorderLayout.CENTER);
+        rawPanel.add(aboutLine, BorderLayout.SOUTH);
+        logArea.add(storyView, "plain");
+        logArea.add(rawPanel, "raw");
+
         JPanel contextPanel = new JPanel(new BorderLayout());
         contextPanel.setBackground(Theme.EDITOR);
         contextPanel.add(contextHeader, BorderLayout.NORTH);
-        contextPanel.add(contextViewer, BorderLayout.CENTER);
-        contextPanel.add(aboutLine, BorderLayout.SOUTH);
+        contextPanel.add(logArea, BorderLayout.CENTER);
+        showLogView(Settings.get().logView());
 
         JSplitPane detail = new JSplitPane(JSplitPane.VERTICAL_SPLIT, spotlight, contextPanel);
-        detail.setResizeWeight(0.45);
+        detail.setResizeWeight(0.42);
         detail.setDividerLocation(330);
         detail.setBorder(BorderFactory.createEmptyBorder());
 
-        JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, listPanel, detail);
-        split.setResizeWeight(0.45);
-        split.setDividerLocation(700);
+        right.add(overviewPanel, "overview");
+        right.add(detail, "problem");
+        JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, listPanel, right);
+        split.setResizeWeight(0.42);
+        split.setDividerLocation(600);
         split.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, Theme.CARD_BORDER));
+        mainSplit = split;
+        keepProportion(split, 0.42);
+        keepProportion(detail, 0.42);
         return split;
+    }
+
+    /**
+     * Keeps a split at the same proportion while the window is resized, and remembers a new proportion
+     * whenever the user drags the divider, so neither side collapses when the window gets smaller.
+     */
+    private static void keepProportion(JSplitPane split, double initial) {
+        double[] ratio = {initial};
+        boolean[] adjusting = {false};
+        // remember the proportion only when the user drags the divider, not when the window resizes it
+        if (split.getUI() instanceof javax.swing.plaf.basic.BasicSplitPaneUI ui) {
+            ui.getDivider().addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseReleased(java.awt.event.MouseEvent e) {
+                    int size = split.getOrientation() == JSplitPane.HORIZONTAL_SPLIT ? split.getWidth() : split.getHeight();
+                    if (size > 0) {
+                        ratio[0] = Math.max(0.15, Math.min(0.85, split.getDividerLocation() / (double) size));
+                    }
+                }
+            });
+        }
+        split.addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentResized(java.awt.event.ComponentEvent e) {
+                adjusting[0] = true;
+                split.setDividerLocation(ratio[0]);
+                adjusting[0] = false;
+            }
+        });
     }
 
     private JPanel buildStatusBar() {
@@ -520,6 +646,10 @@ public final class MainFrame extends JFrame {
         root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_K, menuMask), "palette");
         root.getActionMap().put("palette", new AbstractAction() {
             @Override public void actionPerformed(ActionEvent e) { openPalette(); }
+        });
+        root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "overview");
+        root.getActionMap().put("overview", new AbstractAction() {
+            @Override public void actionPerformed(ActionEvent e) { showOverview(); }
         });
         root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_F, menuMask), "find");
         root.getActionMap().put("find", new AbstractAction() {
@@ -562,9 +692,11 @@ public final class MainFrame extends JFrame {
     // ---------------------------------------------------------------- loading and tailing
 
     private void chooseFile() {
-        JFileChooser chooser = new JFileChooser(session == null ? null : session.file().getParent().toFile());
+        Path folder = session != null ? session.file().toAbsolutePath().getParent() : Settings.get().lastFolder();
+        JFileChooser chooser = new JFileChooser(folder == null ? null : folder.toFile());
         chooser.setDialogTitle("Open Log File");
-        chooser.addChoosableFileFilter(new FileNameExtensionFilter("Log files (*.log, *.txt, *.json, *.out)", "log", "txt", "json", "out", "err"));
+        chooser.addChoosableFileFilter(new FileNameExtensionFilter(
+                "Log files (*.log, *.txt, *.json, *.out, *.gz)", "log", "txt", "json", "out", "err", "gz"));
         if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             openFile(chooser.getSelectedFile().toPath());
         }
@@ -579,15 +711,28 @@ public final class MainFrame extends JFrame {
         if (loader != null) {
             loader.cancel(true);
         }
+        if (session != null) {
+            session.close();
+        }
+        if (tailToggle.isSelected()) {
+            tailToggle.setSelected(false);
+            tailTimer.stop();
+        }
         LogSession newSession = new LogSession(file);
         session = newSession;
+        Settings.get().addRecent(file);
         result = null;
         selected = null;
         tableModel.setGroups(List.of());
         spotlight.clear();
         contextViewer.showMessage("Analyzing " + file.getFileName() + "…");
         contextTitle.setText("THE LOG LINES, EXPLAINED");
-        overview.setText("Reading " + file.getFileName() + "…");
+        summary.reading(String.valueOf(file.getFileName()));
+        overviewMode = true;
+        showCard("overview");
+        overviewPanel.showMessage("Reading " + file.getFileName() + "…");
+        summary.setVisible(true);
+        storyView.showMessage("Reading " + file.getFileName() + "…");
         cards.show(center, "workspace");
         setTitle(TITLE + " — " + file.getFileName());
         status.setText("Analyzing " + file + "…");
@@ -679,21 +824,29 @@ public final class MainFrame extends JFrame {
 
     private void applyResult(AnalysisResult fresh) {
         result = fresh;
-        linesCard.set(Formats.count(fresh.totalLines()), Formats.count(fresh.totalEvents()) + " log events · " + Formats.bytes(fresh.fileSize()));
-        errorsCard.set(Formats.count(fresh.errorCount()), Formats.count(fresh.warningCount()) + " warnings");
-        uniqueCard.set(Formats.count(fresh.uniqueErrorTypes()), fresh.unlistedOccurrences() > 0
-                ? "listing limit reached: " + Formats.count(fresh.unlistedOccurrences()) + " occurrences not listed"
-                : fresh.groups().size() + " deduplicated rows incl. warnings");
-        spanCard.set(Formats.duration(fresh.timeSpan()),
-                fresh.firstTimestamp() == null ? "no timestamps detected"
-                        : Formats.timestamp(fresh.firstTimestamp()) + " → " + Formats.timestamp(fresh.lastTimestamp()));
         timelineChart.setBuckets(fresh.timeline());
-        overview.setText(describe(fresh));
+        incidentList = io.logreader.explain.IncidentLinker.find(fresh.groups());
+        incidents = io.logreader.explain.IncidentLinker.index(incidentList);
+        tableModel.setIncidents(incidents);
+        overview = describe(fresh, incidentList);
+        io.logreader.explain.LogOverview.Overview whole = io.logreader.explain.LogOverview.of(fresh, incidentList);
+        summary.show(fresh, incidentList, overview, whole);
+        overviewPanel.show(fresh, whole, incidentList.size());
+        if (overviewMode) {
+            showCard("overview");
+        }
+        summary.setVisible(true);
         for (int i = 0; i < CHIP_LEVELS.length; i++) {
             Severity level = CHIP_LEVELS[i];
             long rows = level == null ? fresh.groups().size()
                     : fresh.groups().stream().filter(g -> g.severity() == level).count();
-            severityChips[i].setText(CHIP_NAMES[i] + "  " + rows);
+            chipCounts[i] = rows;
+        }
+        widthLevel = -1;
+        fitLayout();
+        if (severitySegments != null) {
+            severitySegments.setMaximumSize(severitySegments.getPreferredSize());
+            severitySegments.revalidate();
         }
         applyFilter();
         updateActions();
@@ -707,10 +860,14 @@ public final class MainFrame extends JFrame {
             }
         }
         try {
-            TextMatcher matcher = TextMatcher.of(searchField.getText(), regexToggle.isSelected());
+            // words by default; text between slashes, such as /timeout|refused/, is a regular expression
+            String query = searchField.getText().strip();
+            boolean regex = query.length() > 2 && query.startsWith("/") && query.endsWith("/");
+            TextMatcher matcher = TextMatcher.of(regex ? query.substring(1, query.length() - 1) : query, regex);
             searchField.putClientProperty(FlatClientProperties.OUTLINE, null);
-            searchField.setToolTipText(null);
-            return new ErrorFilter(matcher, severity);
+            searchField.setToolTipText(SEARCH_TIP);
+            ErrorFilter filter = new ErrorFilter(matcher, severity);
+            return rangeFrom == null ? filter : filter.during(rangeFrom, rangeTo);
         } catch (PatternSyntaxException e) {
             searchField.putClientProperty(FlatClientProperties.OUTLINE, FlatClientProperties.OUTLINE_ERROR);
             searchField.setToolTipText("Invalid regular expression: " + e.getDescription());
@@ -732,7 +889,7 @@ public final class MainFrame extends JFrame {
         updatingTable = true;
         tableModel.setGroups(rows);
         int modelRow = keepId == null ? -1 : tableModel.indexOf(keepId);
-        if (modelRow < 0 && !rows.isEmpty()) {
+        if (modelRow < 0 && !rows.isEmpty() && !overviewMode) {
             modelRow = table.convertRowIndexToModel(0);
         }
         if (modelRow >= 0) {
@@ -748,9 +905,11 @@ public final class MainFrame extends JFrame {
             select(now, sameError ? Math.min(occurrence, now.samples().size() - 1) : 0);
         }
         if (rows.isEmpty() && !result.groups().isEmpty()) {
-            contextViewer.showMessage("No errors match the current filter.");
+            contextViewer.showMessage("No problems match the current filter.");
+            storyView.showMessage("No problems match the current filter.");
         } else if (result.groups().isEmpty()) {
             contextViewer.showMessage("No errors or warnings found in " + result.file().getFileName() + ".");
+            storyView.showMessage("No errors or warnings found in " + result.file().getFileName() + ". As far as this file shows, the application ran normally.");
         }
     }
 
@@ -761,9 +920,16 @@ public final class MainFrame extends JFrame {
 
     private void select(ErrorGroup group, int occurrenceIndex) {
         selected = group;
+        if (group != null) {
+            overviewMode = false;
+            showCard("problem");
+        } else if (overviewMode) {
+            showCard("overview");
+        }
         if (group == null) {
             spotlight.clear();
             contextViewer.showMessage("");
+            storyView.showMessage("");
         } else {
             showOccurrence(occurrenceIndex);
         }
@@ -775,7 +941,7 @@ public final class MainFrame extends JFrame {
             return;
         }
         occurrence = index;
-        spotlight.show(selected, index);
+        spotlight.show(selected, index, incidents.get(selected.id()));
         refreshContext();
     }
 
@@ -786,9 +952,10 @@ public final class MainFrame extends JFrame {
         int lines = (Integer) contextSpinner.getValue();
         try {
             LogEvent event = selected.samples().get(occurrence);
-            contextViewer.showLines(ContextBuilder.build(session, event, lines, lines));
-            contextTitle.setText("THE LOG LINES, EXPLAINED  ·  lines " + Formats.count(Math.max(1, event.lineNumber() - lines)) + "–"
-                    + Formats.count(event.lastLineNumber() + lines) + "  ·  click a line for what it means");
+            List<ContextBuilder.ContextLine> context = ContextBuilder.build(session, event, lines, lines);
+            contextViewer.showLines(context);
+            storyView.show(io.logreader.explain.PlainStory.build(event, context));
+            contextTitle.setText("WHAT THE LOG SAYS  ·  line " + Formats.count(event.lineNumber()));
         } catch (IOException e) {
             contextViewer.showMessage("Could not read log context: " + e.getMessage());
         }
@@ -801,7 +968,8 @@ public final class MainFrame extends JFrame {
             return;
         }
         String base = result.file().getFileName().toString().replaceFirst("\\.[^.]+$", "");
-        JFileChooser chooser = new JFileChooser(result.file().getParent().toFile());
+        Path exportFolder = result.file().toAbsolutePath().getParent();
+        JFileChooser chooser = new JFileChooser(exportFolder == null ? null : exportFolder.toFile());
         chooser.setDialogTitle("Export " + format.label() + " Report");
         chooser.setSelectedFile(new File(base + "-report." + format.extension()));
         if (chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) {
@@ -837,7 +1005,7 @@ public final class MainFrame extends JFrame {
     }
 
     /** The whole file in two or three plain sentences, for someone who has not read it. */
-    private static String describe(AnalysisResult r) {
+    private static String describe(AnalysisResult r, List<io.logreader.explain.IncidentLinker.Incident> found) {
         if (r.groups().isEmpty()) {
             return "LogReader read " + Formats.count(r.totalLines()) + " lines and found no errors or warnings. "
                     + "As far as this file shows, the application was running normally.";
@@ -870,6 +1038,18 @@ public final class MainFrame extends JFrame {
                         .append(" (").append(Formats.timestamp(earliest.firstSeen())).append(").");
             }
         }
+        if (!found.isEmpty()) {
+            var biggest = found.stream().max(java.util.Comparator.comparingInt(io.logreader.explain.IncidentLinker.Incident::size)).get();
+            String lead = io.logreader.explain.ErrorExplainer.standard().explain(biggest.lead()).title().replace("`", "");
+            text.append("\n\n").append(biggest.size()).append(" of these problems look like one incident that began at ")
+                    .append(Formats.timestamp(biggest.lead().firstSeen())).append(" with: ")
+                    .append(Character.toLowerCase(lead.charAt(0))).append(lead.substring(1))
+                    .append(". It is marked FIRST FAILURE in the list; start there.");
+            if (found.size() > 1) {
+                text.append(" ").append(found.size() - 1).append(found.size() == 2 ? " smaller incident is" : " smaller incidents are")
+                        .append(" marked the same way.");
+            }
+        }
         return text.toString();
     }
 
@@ -885,6 +1065,8 @@ public final class MainFrame extends JFrame {
                 {"Starts here", "The first line of the application's own code in the root cause. The place to look first."},
                 {"Occurrence", "One time the problem happened. The same problem at the same place is shown as one row with a count."},
                 {"Trace ID", "An identifier attached to every log entry of one request. Searching for it shows everything that request did."},
+                {"Incident", "Several problems that probably share one cause: a first failure (marked FIRST FAILURE) and the problems it set off a few minutes later (KNOCK-ON). LogReader links them by timing and kind of problem, so treat the link as a strong hint."},
+                {"Warning sign", "A warning that appeared shortly before a failure and stopped when it began. Often the first visible symptom."},
                 {"Live tail", "Watching a log that is still being written, so new problems appear as they happen."},
         };
         StringBuilder html = new StringBuilder("<html><body style='width: 430px; font-size: 12px;'>");
@@ -902,45 +1084,164 @@ public final class MainFrame extends JFrame {
         List<CommandPalette.Command> commands = new java.util.ArrayList<>();
         boolean mac = System.getProperty("os.name", "").toLowerCase(java.util.Locale.ROOT).contains("mac");
         String key = mac ? "\u2318" : "Ctrl+";
-        commands.add(new CommandPalette.Command("Open log file…", key + "O", this::chooseFile));
-        commands.add(new CommandPalette.Command("Filter errors", key + "F", () -> {
-            searchField.requestFocusInWindow();
-            searchField.selectAll();
-        }));
-        commands.add(new CommandPalette.Command("Explain the words used here", "Help", this::showGlossary));
-        commands.add(new CommandPalette.Command(
-                Theme.mode() == Theme.Mode.DARK ? "Switch to light theme" : "Switch to dark theme", "Appearance", this::switchTheme));
-        if (session != null) {
-            commands.add(new CommandPalette.Command(tailToggle.isSelected() ? "Turn live tail off" : "Turn live tail on",
-                    "Live", tailToggle::doClick));
+        if (result != null) {
+            // problems first, listed by what they mean; the technical name is still searchable
+            List<ErrorGroup> problems = new java.util.ArrayList<>(tableModel.groups());
+            problems.sort(java.util.Comparator.comparing((ErrorGroup g) -> {
+                var member = incidents.get(g.id());
+                return member != null && member.part() == io.logreader.explain.IncidentLinker.Part.LEAD ? 0 : 1;
+            }));
+            java.util.Map<String, Long> sameMeaning = new java.util.HashMap<>();
+            for (ErrorGroup group : problems) {
+                sameMeaning.merge(io.logreader.explain.ErrorExplainer.standard().explain(group).title(), 1L, Long::sum);
+            }
+            for (ErrorGroup group : problems) {
+                String title = io.logreader.explain.ErrorExplainer.standard().explain(group).title();
+                String meaning = title.replace("`", "");
+                if (sameMeaning.get(title) > 1) {
+                    // several problems mean the same thing: say where each one is
+                    meaning += group.pinpoint() != null ? "  (" + group.location() + ")" : "  (" + group.displayType() + ")";
+                }
+                var member = incidents.get(group.id());
+                String tag = member == null ? "" : TableRenderers.tag(member.part()).toLowerCase(java.util.Locale.ROOT) + "  ·  ";
+                commands.add(new CommandPalette.Command("Problems", meaning, tag + "×" + Formats.count(group.count()),
+                        group.displayType() + " " + group.errorType() + " " + group.location() + " " + group.severity(),
+                        () -> reveal(group.id())));
+            }
+        }
+        commands.add(new CommandPalette.Command("Actions", "Open a log file…", key + "O", "browse load", this::chooseFile));
+        if (result != null) {
+            commands.add(new CommandPalette.Command("Actions", "Show the overview of the whole log", "Esc",
+                    "summary story timeline health", this::showOverview));
         }
         if (result != null) {
-            commands.add(new CommandPalette.Command("Copy summary to clipboard", "Share", this::copySummary));
-            for (ReportWriter.Format format : ReportWriter.Format.values()) {
-                commands.add(new CommandPalette.Command("Export report as " + format.label() + "…", "Share",
-                        () -> exportReport(format)));
-            }
-            for (int i = 0; i < CHIP_LEVELS.length; i++) {
-                JToggleButton chip = severityChips[i];
-                commands.add(new CommandPalette.Command(
-                        CHIP_LEVELS[i] == null ? "Show all severities" : "Show only " + CHIP_NAMES[i].toLowerCase(java.util.Locale.ROOT) + " entries",
-                        "Filter", chip::doClick));
-            }
-            commands.add(new CommandPalette.Command("Clear filter", "Filter", () -> {
+            commands.add(new CommandPalette.Command("Actions", "Filter the problems", key + "F", "search find", () -> {
+                searchField.requestFocusInWindow();
+                searchField.selectAll();
+            }));
+            commands.add(new CommandPalette.Command("Actions", "Show every problem again", "", "clear reset filter all", () -> {
                 searchField.setText("");
                 severityChips[0].doClick();
+                clearTimeRange();
             }));
-            for (ErrorGroup group : tableModel.groups()) {
-                commands.add(new CommandPalette.Command(
-                        "Go to  " + group.displayType() + (group.pinpoint() != null ? "  ·  " + group.location() : ""),
-                        "×" + Formats.count(group.count()), () -> reveal(group.id())));
+            commands.add(new CommandPalette.Command("Actions", "Copy a summary for a ticket", "", "clipboard share", this::copySummary));
+            for (ReportWriter.Format format : ReportWriter.Format.values()) {
+                commands.add(new CommandPalette.Command("Actions", "Save a report as " + format.label() + "…", "",
+                        "export share file", () -> exportReport(format)));
             }
+        }
+        if (session != null && !session.isCompressed()) {
+            commands.add(new CommandPalette.Command("Actions", tailToggle.isSelected() ? "Stop watching the file" : "Watch the file for new problems",
+                    "live tail", "follow tail live", tailToggle::doClick));
+        }
+        commands.add(new CommandPalette.Command("Actions",
+                Theme.mode() == Theme.Mode.DARK ? "Switch to the light theme" : "Switch to the dark theme", "", "appearance dark light", this::switchTheme));
+        commands.add(new CommandPalette.Command("Actions", "Explain the words used here", "", "help glossary", this::showGlossary));
+        if (!Settings.get().recentFiles().isEmpty()) {
+            commands.add(new CommandPalette.Command("Actions", "Clear recent files", "", "forget history recent", this::clearRecentFiles));
+        }
+        for (Path recent : Settings.get().recentFiles()) {
+            Path folder = recent.toAbsolutePath().getParent();
+            commands.add(new CommandPalette.Command("Recent files", String.valueOf(recent.getFileName()),
+                    folder == null ? "" : String.valueOf(folder.getFileName()), String.valueOf(folder), () -> openFile(recent)));
         }
         CommandPalette.open(this, commands);
     }
 
+    /**
+     * Fits the window's parts to its width: the toolbar shortens its labels, the chart narrows, and in a
+     * narrow window the problem list moves above the details instead of beside them.
+     */
+    private void fitLayout() {
+        int width = getContentPane().getWidth();
+        if (width <= 0 || brandLabel == null) {
+            return;
+        }
+        summary.fitWidth(width);
+        int level = width >= 1250 ? 0 : width >= 980 ? 1 : 2;
+        SwingUtilities.invokeLater(() -> { // the facts wrap to the new width: measure them again once laid out
+            summary.revalidate();
+            summary.repaint();
+        });
+        if (level == widthLevel) {
+            return;
+        }
+        widthLevel = level;
+        brandLabel.setText(level == 0 ? "LogReader" : "");
+        quickButton.setText(level == 0 ? "Quick actions" : "");
+        moreButton.setText(level == 2 ? "" : "More");
+        tailToggle.setText(level == 0 ? "Watch live" : "Live");
+        for (int i = 0; i < CHIP_LEVELS.length; i++) {
+            boolean counted = result != null;
+            String name = level == 2 && CHIP_LEVELS[i] != null ? "" : CHIP_NAMES[i];
+            severityChips[i].setText((name + (counted ? "  " + chipCounts[i] : "")).strip());
+        }
+        if (severitySegments != null) {
+            severitySegments.setMaximumSize(severitySegments.getPreferredSize());
+            severitySegments.revalidate();
+        }
+        int orientation = level == 2 ? JSplitPane.VERTICAL_SPLIT : JSplitPane.HORIZONTAL_SPLIT;
+        if (mainSplit != null && mainSplit.getOrientation() != orientation) {
+            mainSplit.setOrientation(orientation);
+            SwingUtilities.invokeLater(() -> mainSplit.setDividerLocation(0.42));
+        }
+        getContentPane().revalidate();
+        getContentPane().repaint();
+    }
+
+    /** Forgets the recently opened files; the files themselves are not touched. */
+    private void clearRecentFiles() {
+        Settings.get().clearRecent();
+        welcome.clearRecent();
+        Toast.show(this, "Recent files cleared");
+    }
+
+    private void setTimeRange(java.time.LocalDateTime from, java.time.LocalDateTime to) {
+        rangeFrom = from;
+        rangeTo = to;
+        boolean sameDay = from.toLocalDate().equals(to.toLocalDate());
+        java.time.format.DateTimeFormatter format = java.time.format.DateTimeFormatter.ofPattern(
+                sameDay ? "HH:mm:ss" : "MMM d HH:mm", java.util.Locale.ENGLISH);
+        rangeChip.setText(format.format(from) + " – " + format.format(to) + "   ×");
+        rangeChip.setVisible(true);
+        applyFilter();
+    }
+
+    private void clearTimeRange() {
+        rangeFrom = null;
+        rangeTo = null;
+        rangeChip.setVisible(false);
+        timelineChart.clearSelection();
+        applyFilter();
+    }
+
+    /** Switches the right-hand panel between the overview and the selected problem. */
+    private void showCard(String card) {
+        rightCards.show(right, card);
+    }
+
+    /** Shows the whole-log overview on the right and clears the selection in the list. */
+    private void showOverview() {
+        if (result == null) {
+            return;
+        }
+        overviewMode = true;
+        updatingTable = true;
+        table.clearSelection();
+        updatingTable = false;
+        select(null, 0);
+        showCard("overview");
+    }
+
     private void reveal(String groupId) {
         int modelRow = tableModel.indexOf(groupId);
+        if (modelRow < 0 && result != null) {
+            // the problem is hidden by the current filter: clear it, then select
+            searchField.setText("");
+            severityChips[0].setSelected(true);
+            clearTimeRange();
+            modelRow = tableModel.indexOf(groupId);
+        }
         if (modelRow >= 0) {
             int viewRow = table.convertRowIndexToView(modelRow);
             table.getSelectionModel().setSelectionInterval(viewRow, viewRow);
@@ -958,6 +1259,7 @@ public final class MainFrame extends JFrame {
             return;
         }
         Theme.apply(Theme.mode() == Theme.Mode.DARK ? Theme.Mode.LIGHT : Theme.Mode.DARK);
+        Settings.get().theme(Theme.mode());
         MainFrame next = new MainFrame();
         next.setBounds(getBounds());
         next.setExtendedState(getExtendedState());
@@ -969,7 +1271,6 @@ public final class MainFrame extends JFrame {
 
     private void adopt(MainFrame previous) {
         searchField.setText(previous.searchField.getText());
-        regexToggle.setSelected(previous.regexToggle.isSelected());
         contextSpinner.setValue(previous.contextSpinner.getValue());
         for (int i = 0; i < severityChips.length; i++) {
             severityChips[i].setSelected(previous.severityChips[i].isSelected());
@@ -977,11 +1278,19 @@ public final class MainFrame extends JFrame {
         session = previous.session;
         selected = previous.selected;
         occurrence = previous.occurrence;
+        overviewMode = previous.overviewMode;
         if (previous.result != null) {
             setTitle(previous.getTitle());
             cards.show(center, "workspace");
             applyResult(previous.result);
             status.setText(previous.status.getText());
+            if (overviewMode) {
+                showOverview();
+            }
+        }
+        if (previous.rangeFrom != null) {
+            timelineChart.select(previous.rangeFrom, previous.rangeTo);
+            setTimeRange(previous.rangeFrom, previous.rangeTo);
         }
         if (previous.tailToggle.isSelected()) {
             tailToggle.setSelected(true);
@@ -992,11 +1301,22 @@ public final class MainFrame extends JFrame {
 
     // ---------------------------------------------------------------- helpers
 
+    /** Switches the log area between the plain story and every line, and remembers the choice. */
+    private void showLogView(String view) {
+        String chosen = "raw".equals(view) ? "raw" : "plain";
+        logCards.show(logArea, chosen);
+        (chosen.equals("raw") ? rawToggle : plainToggle).setSelected(true);
+        Settings.get().logView(chosen);
+    }
+
     private void updateActions() {
         boolean loaded = result != null;
-        exportButton.setEnabled(loaded);
-        copyButton.setEnabled(loaded);
-        tailToggle.setEnabled(session != null);
+        moreButton.setEnabled(loaded);
+        boolean archive = session != null && session.isCompressed();
+        tailToggle.setEnabled(session != null && !archive);
+        tailToggle.setToolTipText(archive
+                ? "Live tail is not available for a compressed (archived) log"
+                : "Watch the file and analyze new lines as they are written");
     }
 
     private void showError(String message, Throwable cause) {

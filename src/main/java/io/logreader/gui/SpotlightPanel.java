@@ -2,6 +2,8 @@ package io.logreader.gui;
 
 import io.logreader.explain.ErrorExplainer;
 import io.logreader.explain.Explanation;
+import io.logreader.explain.IncidentLinker;
+import io.logreader.explain.LogFacts;
 import io.logreader.model.ErrorGroup;
 import io.logreader.model.LogEvent;
 import io.logreader.model.ParsedTrace;
@@ -38,6 +40,13 @@ final class SpotlightPanel extends JPanel {
     private final JLabel headline = new JLabel(" ");
     private final JPanel pills = new JPanel();
     private final JLabel occurrenceLabel = new JLabel();
+    private final JLabel subline = new JLabel(" ");
+    private final JButton copy = new JButton("Copy for a ticket");
+    private final JButton back = new JButton("\u2190  Overview");
+    /** Whether the technical details are unfolded; kept while moving between problems. */
+    private boolean technical;
+    private ErrorGroup shownGroup;
+    private IncidentLinker.Membership shownIncident;
     private final JButton previous = new JButton(new Glyphs.Triangle(Glyphs.Triangle.LEFT));
     private final JButton next = new JButton(new Glyphs.Triangle(Glyphs.Triangle.RIGHT));
     private int occurrence;
@@ -48,21 +57,33 @@ final class SpotlightPanel extends JPanel {
         super(new BorderLayout());
         setBackground(Theme.CARD);
         setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createMatteBorder(0, 3, 0, 0, Theme.ORANGE),
+                BorderFactory.createMatteBorder(0, 0, 0, 0, Theme.CARD_BORDER),
                 BorderFactory.createEmptyBorder(12, 18, 6, 10)));
 
         JLabel title = new JLabel("WHAT WENT WRONG");
-        title.setForeground(Theme.ORANGE);
-        title.setFont(title.getFont().deriveFont(Font.BOLD, 12f));
+        title.setForeground(Theme.DIM);
+        title.setFont(title.getFont().deriveFont(Font.BOLD, 11f));
+        copy.putClientProperty(com.formdev.flatlaf.FlatClientProperties.BUTTON_TYPE,
+                com.formdev.flatlaf.FlatClientProperties.BUTTON_TYPE_ROUND_RECT);
+        copy.setFont(copy.getFont().deriveFont(11.5f));
+        copy.setToolTipText("Copy a short, ready-to-paste summary of this problem");
+        copy.setEnabled(false);
         occurrenceLabel.setForeground(Theme.DIM);
         previous.setToolTipText("Previous occurrence");
         next.setToolTipText("Next occurrence");
         previous.addActionListener(e -> onOccurrenceChange.accept(occurrence - 1));
         next.addActionListener(e -> onOccurrenceChange.accept(occurrence + 1));
 
+        back.putClientProperty(com.formdev.flatlaf.FlatClientProperties.BUTTON_TYPE,
+                com.formdev.flatlaf.FlatClientProperties.BUTTON_TYPE_ROUND_RECT);
+        back.setFont(back.getFont().deriveFont(Font.BOLD, 12f));
+        back.setToolTipText("Back to the overview of the whole log (Esc)");
+        back.setFocusable(false);
         JPanel header = new JPanel();
         header.setOpaque(false);
         header.setLayout(new BoxLayout(header, BoxLayout.X_AXIS));
+        header.add(back);
+        header.add(Box.createHorizontalStrut(12));
         header.add(title);
         header.add(Box.createHorizontalGlue());
         header.add(occurrenceLabel);
@@ -70,10 +91,17 @@ final class SpotlightPanel extends JPanel {
         header.add(previous);
         header.add(Box.createHorizontalStrut(4));
         header.add(next);
-        headline.setFont(headline.getFont().deriveFont(Font.BOLD, 19f));
+        header.add(Box.createHorizontalStrut(10));
+        header.add(copy);
+        headline.setFont(headline.getFont().deriveFont(Font.BOLD, 18f));
         headline.setForeground(Theme.TEXT);
         headline.putClientProperty(Theme.HTML_DISABLE, Boolean.TRUE); // the error name comes from the log
-        headline.setBorder(BorderFactory.createEmptyBorder(8, 0, 6, 0));
+        headline.setBorder(BorderFactory.createEmptyBorder(8, 0, 2, 0));
+        subline.setForeground(Theme.DIM);
+        subline.setFont(subline.getFont().deriveFont(12f));
+        subline.putClientProperty(Theme.HTML_DISABLE, Boolean.TRUE);
+        subline.setBorder(BorderFactory.createEmptyBorder(0, 0, 6, 0));
+        subline.setAlignmentX(LEFT_ALIGNMENT);
         headline.setAlignmentX(LEFT_ALIGNMENT);
         pills.setOpaque(false);
         pills.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 6, 0));
@@ -86,6 +114,7 @@ final class SpotlightPanel extends JPanel {
         top.setLayout(new BoxLayout(top, BoxLayout.Y_AXIS));
         top.add(header);
         top.add(headline);
+        top.add(subline);
         top.add(pills);
         add(top, BorderLayout.NORTH);
 
@@ -103,20 +132,40 @@ final class SpotlightPanel extends JPanel {
         css.addRule(".at { color: " + Theme.hex(Theme.DIM) + "; }");
         css.addRule(".cat { color: " + Theme.hex(Theme.BLUE) + "; font-weight: bold; font-size: 90%; }");
         css.addRule(".means { font-size: 120%; font-weight: bold; }");
+        css.addRule(".lead { font-size: 108%; }");
+        css.addRule(".toggle { color: " + Theme.hex(Theme.BLUE) + "; font-weight: bold; font-size: 95%; }");
         css.addRule(".sub { color: " + Theme.hex(Theme.DIM) + "; font-weight: bold; font-size: 90%; }");
-        css.addRule(".code { font-family: '" + mono + "'; color: " + Theme.hex(Theme.ORANGE) + "; }");
+        css.addRule(Theme.codeRule("code", mono));
         css.addRule(".k { color: " + Theme.hex(Theme.DIM) + "; padding-right: 14px; }");
-        css.addRule(".hot { color: " + Theme.hex(Theme.ORANGE) + "; font-weight: bold; font-size: 115%; font-family: '" + mono + "'; }");
+        css.addRule(".hot { color: " + Theme.hex(Theme.GREEN) + "; font-weight: bold; font-size: 115%; font-family: '" + mono + "'; }");
         css.addRule(".line { color: " + Theme.hex(Theme.RED) + "; font-weight: bold; font-size: 125%; font-family: '" + mono + "'; }");
         css.addRule(".cause { color: " + Theme.hex(Theme.RED) + "; font-weight: bold; }");
         css.addRule(".app { color: " + Theme.hex(Theme.GREEN) + "; font-weight: bold; }");
         css.addRule(".lib { color: " + Theme.hex(Theme.DIM) + "; }");
         css.addRule(".dim { color: " + Theme.hex(Theme.DIM) + "; }");
+        css.addRule(".inc { color: " + Theme.hex(Theme.RED) + "; font-weight: bold; font-size: 90%; }");
+        css.addRule("a { color: " + Theme.hex(Theme.BLUE) + "; text-decoration: none; font-weight: bold; }");
+        css.addRule(".tech { color: " + Theme.hex(Theme.DIM) + "; font-size: 92%; }");
+        css.addRule(".expl { color: " + Theme.hex(Theme.DIM) + "; font-size: 92%; font-weight: normal; }");
+        css.addRule(".fact { padding-bottom: 6px; }");
         css.addRule(".frames { font-family: '" + mono + "'; margin-top: 4px; }");
-        css.addRule(".pin { color: " + Theme.hex(Theme.ORANGE) + "; font-weight: bold; }");
+        css.addRule(".pin { color: " + Theme.hex(Theme.RED) + "; font-weight: bold; }");
         kit.setStyleSheet(css);
         html.setEditorKit(kit);
         html.setEditable(false);
+        html.addHyperlinkListener(e -> {
+            if (e.getEventType() != javax.swing.event.HyperlinkEvent.EventType.ACTIVATED || e.getDescription() == null) {
+                return;
+            }
+            if (e.getDescription().startsWith("group:")) {
+                onReveal.accept(e.getDescription().substring("group:".length()));
+            } else if (e.getDescription().equals("technical")) {
+                technical = !technical;
+                if (shownGroup != null) {
+                    show(shownGroup, occurrence, shownIncident);
+                }
+            }
+        });
         html.setOpaque(false);
         html.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
 
@@ -133,7 +182,20 @@ final class SpotlightPanel extends JPanel {
         return html;
     }
 
+    /** What the Overview button does. */
+    void onBack(Runnable action) {
+        back.addActionListener(e -> action.run());
+    }
+
+    /** What the "Copy for a ticket" button does. */
+    void onCopy(Runnable action) {
+        copy.addActionListener(e -> action.run());
+    }
+
     void clear() {
+        shownGroup = null;
+        copy.setEnabled(false);
+        subline.setText(" ");
         occurrences = 0;
         occurrenceLabel.setText("");
         previous.setEnabled(false);
@@ -144,87 +206,107 @@ final class SpotlightPanel extends JPanel {
         html.setText("<html><body><span class='dim'>Select an error in the table to see what it means and where it started.</span></body></html>");
     }
 
+    private java.util.function.Consumer<String> onReveal = id -> { };
+
+    /** Called with a problem id when the user clicks a link to another problem. */
+    void onReveal(java.util.function.Consumer<String> listener) {
+        onReveal = listener;
+    }
+
     void show(ErrorGroup group, int occurrenceIndex) {
+        show(group, occurrenceIndex, null);
+    }
+
+    void show(ErrorGroup group, int occurrenceIndex, IncidentLinker.Membership incident) {
+        shownGroup = group;
+        shownIncident = incident;
+        copy.setEnabled(true);
         occurrences = group.samples().size();
         occurrence = occurrenceIndex;
         LogEvent event = group.samples().get(occurrenceIndex);
-        String shown = "showing time " + (occurrenceIndex + 1) + " of " + Formats.count(group.count()) + " it happened";
-        if (group.count() > occurrences) {
-            shown += " (first " + occurrences + " browsable)";
-        }
+        String shown = (occurrenceIndex + 1) + " of " + Formats.count(group.count());
         occurrenceLabel.setText(shown);
+        occurrenceLabel.setToolTipText("This problem happened " + Formats.count(group.count()) + " times; the arrows step through "
+                + (group.count() > occurrences ? "the first " + occurrences : "each") + " of them");
         previous.setEnabled(occurrenceIndex > 0);
         next.setEnabled(occurrenceIndex < occurrences - 1);
         Explanation explanation = ErrorExplainer.standard().explain(group);
-        headline.setText(group.displayType());
-        headline.setToolTipText(Theme.literal(group.errorType()));
+        headline.setText(explanation.title().replace("`", ""));
+        headline.setToolTipText(Theme.literal(explanation.title().replace("`", "")));
+        String when = group.firstSeen() == null ? ""
+                : group.count() == 1 || group.firstSeen().equals(group.lastSeen())
+                ? "  ·  " + Formats.timestamp(group.firstSeen())
+                : "  ·  " + Formats.timestamp(group.firstSeen()) + " to " + Formats.timestamp(group.lastSeen());
+        subline.setText(group.displayType() + (group.pinpoint() != null ? " at " + group.location() : "")
+                + "  ·  " + Formats.count(group.count()) + (group.count() == 1 ? " time" : " times") + when);
+        subline.setToolTipText(Theme.literal(group.errorType()));
         pills.removeAll();
         pills.add(new Pill(event.severity().name(), Theme.severity(event.severity()), false));
-        pills.add(new Pill(explanation.category(), Theme.BLUE, false));
-        if (group.pinpoint() != null) {
-            pills.add(new Pill(Formats.truncate(group.location(), 44), Theme.ORANGE, true));
-        }
-        pills.add(new Pill(Formats.count(group.count()) + (group.count() == 1 ? " occurrence" : " occurrences"), Theme.DIM, false));
-        if (group.language() != io.logreader.model.Language.UNKNOWN) {
-            pills.add(new Pill(group.language().displayName(), Theme.DIM, false));
+        if (incident != null) {
+            pills.add(new Pill(TableRenderers.tag(incident.part()), TableRenderers.tagColor(incident.part()), false));
         }
         pills.revalidate();
         pills.repaint();
-        html.setText(render(group, event, explanation));
+        html.setText(render(group, event, explanation, incident, technical));
         html.setCaretPosition(0);
     }
 
-    private static String render(ErrorGroup group, LogEvent event, Explanation explanation) {
+    private static String render(ErrorGroup group, LogEvent event, Explanation explanation,
+                                 IncidentLinker.Membership incident, boolean technical) {
         ParsedTrace trace = event.trace();
         StackFrame pin = trace == null ? null : trace.pinpoint();
         StringBuilder sb = new StringBuilder("<html><body>");
-
-        explanation(sb, explanation);
-
-        sb.append("<p class='sub'>WHERE IT STARTED</p><table cellspacing='0' cellpadding='1'>");
-        if (pin != null) {
-            row(sb, "File", "<span class='hot'>" + esc(pin.fileName() == null ? "(unknown)" : pin.fileName()) + "</span>"
-                    + (pin.file() != null && !pin.file().equals(pin.fileName())
-                    ? " &nbsp;<span class='dim'>" + esc(pin.file()) + "</span>" : ""));
-            row(sb, "Function", "<span class='hot'>"
-                    + esc(pin.qualifiedFunction() == null ? "(unknown)" : pin.qualifiedFunction()) + "</span>");
-            row(sb, "Line", "<span class='line'>" + (pin.line() > 0 ? String.valueOf(pin.line()) : "?") + "</span>"
-                    + (pin.column() > 0 ? " <span class='dim'>column " + pin.column() + "</span>" : ""));
-            row(sb, "Whose code", pin.application()
-                    ? "<span class='app'>The application's own code</span> <span class='dim'>(the place to look first)</span>"
-                    : "<span class='lib'>A library the application uses</span> <span class='dim'>(no line of the application's own code was logged)</span>");
-        } else {
-            row(sb, "Location", "<span class='dim'>The application did not log where in the code this happened. The log line itself is marked below.</span>");
+        if (incident != null) {
+            incident(sb, group, incident);
         }
-        if (trace != null && trace.rootType() != null) {
-            row(sb, "Underlying error", "<span class='cause'>" + esc(trace.rootType()) + "</span>"
-                    + (trace.rootMessage() != null ? ": " + esc(Formats.truncate(trace.rootMessage(), 500)) : ""));
-        } else {
-            row(sb, "Message", esc(Formats.truncate(event.message(), 500)));
+        sb.append("<p class='lead'>").append(rich(explanation.meaning()));
+        if (explanation.detail() != null) {
+            sb.append(" <b>").append(rich(explanation.detail())).append("</b>");
         }
-        if (trace != null && trace.chain().size() > 1) {
-            row(sb, "Chain of errors", esc(String.join("  →  ", trace.chain())));
+        sb.append("</p>");
+        sb.append("<p class='sub'>WHAT TO DO</p><ol>");
+        explanation.nextSteps().forEach(step -> sb.append("<li>").append(rich(step)).append("</li>"));
+        sb.append("</ol>");
+        if (!explanation.likelyCauses().isEmpty()) {
+            sb.append("<p class='sub'>WHY IT USUALLY HAPPENS</p><ul>");
+            explanation.likelyCauses().forEach(cause -> sb.append("<li>").append(rich(cause)).append("</li>"));
+            sb.append("</ul>");
         }
-        row(sb, "Details", "<b><font color='" + Theme.hex(Theme.severity(event.severity())) + "'>"
-                + event.severity() + "</font></b> &nbsp;·&nbsp; " + esc(group.language().displayName())
-                + " &nbsp;·&nbsp; log line " + Formats.count(event.lineNumber())
-                + " &nbsp;·&nbsp; " + esc(Formats.timestamp(event.timestamp())));
-        if (event.traceId() != null) {
-            row(sb, "Trace ID", esc(event.traceId()));
+        if (!explanation.context().isEmpty()) {
+            sb.append("<p class='sub'>IN THIS LOG</p>");
+            for (String line : explanation.context()) {
+                sb.append("<p>").append(rich(line)).append("</p>");
+            }
+        }
+        sb.append("<p class='sub'>EVERYTHING THE LOG SAYS ABOUT IT</p><table cellspacing='0' cellpadding='0'>");
+        for (LogFacts.Fact fact : LogFacts.forProblem(group, event, explanation)) {
+            String value = factValue(fact.value());
+            sb.append("<tr><td class='k' valign='top' nowrap>").append(esc(fact.label())).append("</td><td width='14'></td><td class='fact' valign='top'>").append(value)
+                    .append("<br><span class='expl'>").append(esc(fact.meaning())).append("</span></td></tr>");
         }
         sb.append("</table>");
-
+        List<StackFrame> path = trace == null || trace.root() == null ? List.of() : framesToShow(trace);
+        if (path.isEmpty()) {
+            return sb.append("</body></html>").toString();
+        }
+        sb.append("<p><a class='toggle' href='technical'>").append(technical ? "Hide the path through the code" : "Show the path through the code")
+                .append("</a> <span class='dim'>").append(technical ? "" : "(" + path.size() + " code locations, newest first)")
+                .append("</span></p>");
+        if (!technical) {
+            return sb.append("</body></html>").toString();
+        }
         if (trace != null && trace.root() != null) {
             List<StackFrame> frames = framesToShow(trace);
             if (!frames.isEmpty()) {
                 long app = frames.stream().filter(StackFrame::application).count();
-                sb.append("<p class='sub'>THE PATH THROUGH THE CODE, NEWEST FIRST &nbsp;<span class='dim'>").append(app)
-                        .append(" in the application's own code · ").append(frames.size() - app).append(" in libraries</span></p>")
+                sb.append("<p class='dim'>").append(app)
+                        .append(" in the application's own code (YOURS), ").append(frames.size() - app)
+                        .append(" in libraries it uses (LIB). The line marked &gt;&gt; is where it started.</p>")
                         .append("<div class='frames'>");
-                int shown = 0;
+                int count = 0;
                 for (StackFrame frame : frames) {
-                    if (++shown > MAX_FRAMES) {
-                        sb.append("<span class='dim'>… ").append(frames.size() - MAX_FRAMES).append(" more frames</span>");
+                    if (++count > MAX_FRAMES) {
+                        sb.append("<span class='dim'>… ").append(frames.size() - MAX_FRAMES).append(" more</span>");
                         break;
                     }
                     boolean isPin = pin != null && frame.eventLineIndex() == pin.eventLineIndex();
@@ -241,27 +323,65 @@ final class SpotlightPanel extends JPanel {
         return sb.append("</body></html>").toString();
     }
 
-    /** The "what this means" callout: meaning, this error's specifics, likely causes and next steps. */
-    private static void explanation(StringBuilder sb, Explanation e) {
-        sb.append("<table width='100%' cellspacing='0' cellpadding='10' bgcolor='").append(Theme.hex(Theme.CALLOUT))
-                .append("' style='margin-top: 4px; margin-bottom: 4px;'><tr><td>");
-        sb.append("<span class='cat'>IN PLAIN WORDS &nbsp;·&nbsp; ").append(esc(e.category().toUpperCase(java.util.Locale.ROOT))).append("</span><br>");
-        sb.append("<span class='means'>").append(rich(e.title())).append("</span>");
-        sb.append("<p>").append(rich(e.meaning()));
-        if (e.detail() != null) {
-            sb.append(" <b>").append(rich(e.detail())).append("</b>");
+    /** The "part of an incident" callout, with links to the related problems. */
+    private static void incident(StringBuilder sb, ErrorGroup group, IncidentLinker.Membership membership) {
+        IncidentLinker.Incident incident = membership.incident();
+        ErrorGroup lead = incident.lead();
+        sb.append("<table width='100%' cellspacing='0' cellpadding='9' bgcolor='").append(Theme.hex(Theme.CALLOUT))
+                .append("' style='margin-bottom: 8px;'><tr><td>");
+        switch (membership.part()) {
+            case LEAD -> {
+                sb.append("<span class='inc'>THE FIRST FAILURE OF AN INCIDENT</span><br>");
+                int others = incident.followers().size();
+                if (others > 0) {
+                    ErrorGroup last = incident.followers().get(others - 1);
+                    sb.append(others).append(others == 1 ? " other problem" : " other problems")
+                            .append(" started within ").append(IncidentLinker.gap(lead.firstSeen(), last.firstSeen()))
+                            .append(" after this one and look like knock-on effects of it. Fixing this one first is likely to clear them.");
+                    links(sb, incident.followers(), lead, "+");
+                }
+                if (!incident.earlyWarnings().isEmpty()) {
+                    sb.append("<p class='sub'>WARNING SIGNS BEFORE IT</p>");
+                    links(sb, incident.earlyWarnings(), lead, "−");
+                }
+            }
+            case FOLLOWER -> sb.append("<span class='inc'>PROBABLY A KNOCK-ON EFFECT</span><br>This is probably not the real problem. It started ")
+                    .append(IncidentLinker.gap(lead.firstSeen(), group.firstSeen()))
+                    .append(" after the failure below, which looks like where this incident began. Look at that one first:<br>")
+                    .append(link(lead));
+            case EARLY_WARNING -> sb.append("<span class='inc'>A WARNING SIGN</span><br>It appeared ")
+                    .append(IncidentLinker.gap(group.firstSeen(), lead.firstSeen()))
+                    .append(" before the failure below and stopped around the time that failure began:<br>").append(link(lead));
         }
-        sb.append("</p>");
-        for (String line : e.context()) {
-            sb.append("<p>").append(rich(line)).append("</p>");
-        }
-        sb.append("<table width='100%' cellspacing='0' cellpadding='0'><tr><td width='50%'>");
-        sb.append("<span class='sub'>LIKELY CAUSES</span><ul>");
-        e.likelyCauses().forEach(cause -> sb.append("<li>").append(rich(cause)).append("</li>"));
-        sb.append("</ul></td><td width='50%'><span class='sub'>WHAT TO CHECK NEXT</span><ol>");
-        e.nextSteps().forEach(step -> sb.append("<li>").append(rich(step)).append("</li>"));
-        sb.append("</ol></td></tr></table>");
+        sb.append(membership.part() == IncidentLinker.Part.LEAD ? "" : "<br>")
+                .append("<span class='dim'>Linked by timing and kind of problem, so treat it as a strong hint rather than proof.</span>");
         sb.append("</td></tr></table>");
+    }
+
+    private static void links(StringBuilder sb, List<ErrorGroup> groups, ErrorGroup lead, String sign) {
+        int shown = 0;
+        for (ErrorGroup g : groups) {
+            if (++shown > 8) {
+                sb.append("<p class='dim'>and ").append(groups.size() - 8).append(" more</p>");
+                break;
+            }
+            sb.append(link(g, (sign.equals("+") ? "started " : "appeared ") + IncidentLinker.gap(lead.firstSeen(), g.firstSeen())
+                    + (sign.equals("+") ? " after" : " before") + "  ·  " + Formats.count(g.count())
+                    + (g.count() == 1 ? " time" : " times")));
+        }
+    }
+
+    /** A problem named in plain words, its technical name in small type, and an Open link. */
+    private static String link(ErrorGroup g) {
+        return link(g, null);
+    }
+
+    private static String link(ErrorGroup g, String note) {
+        String meaning = ErrorExplainer.standard().explain(g).title().replace("`", "");
+        return "<table cellspacing='0' cellpadding='0' width='100%'><tr><td valign='top' class='fact'><b>" + esc(meaning)
+                + "</b><br><span class='tech'>" + esc(g.displayType()) + (g.pinpoint() != null ? " at&nbsp;<span class='code'>&nbsp;" + esc(g.location()) + "&nbsp;</span>" : "")
+                + (note != null ? "  ·  " + esc(note) : "") + "</span></td><td valign='top' align='right' width='64' nowrap><a href='group:" + esc(g.id())
+                + "'>Open&nbsp;&rsaquo;</a></td></tr></table>";
     }
 
     /** Frames of the root cause, or of the section holding the pinpoint when the root cause lists none. */
@@ -281,13 +401,29 @@ final class SpotlightPanel extends JPanel {
         return trace.root().frames();
     }
 
-    private static void row(StringBuilder sb, String key, String valueHtml) {
-        sb.append("<tr><td class='k' nowrap>").append(key).append("</td><td>").append(valueHtml).append("</td></tr>");
-    }
-
     /** Escapes text and renders {@code `code`} spans in the monospace accent style. */
     private static String rich(String s) {
-        return esc(s).replaceAll("`([^`]+)`", "<span class='code'>$1</span>");
+        StringBuilder out = new StringBuilder();
+        String[] parts = s.split("`", -1);
+        for (int i = 0; i < parts.length; i++) {
+            boolean quoted = i % 2 == 1 && i < parts.length - 1;
+            out.append(quoted ? "<span class='code'>" + esc(parts[i]) + "</span>" : Theme.markFiles(esc(parts[i]), "code"));
+        }
+        return Theme.keepSpaceBefore(out.toString(), "code");
+    }
+
+    /** A fact's value: each part that names a file or code is shown as code. */
+    private static String factValue(String value) {
+        StringBuilder out = new StringBuilder();
+        String[] parts = value.split("  ·  ", -1);
+        for (int i = 0; i < parts.length; i++) {
+            if (i > 0) {
+                out.append(" &nbsp;&middot;&nbsp; ");
+            }
+            out.append(Theme.looksLikeCode(parts[i]) ? "<span class='code'>" + esc(parts[i]) + "</span>"
+                    : Theme.markFiles(esc(parts[i]), "code"));
+        }
+        return Theme.keepSpaceBefore(out.toString(), "code");
     }
 
     private static String esc(String s) {

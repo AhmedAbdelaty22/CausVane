@@ -39,22 +39,52 @@ requirement, run `sh packaging/build-app.sh` (see `NOTES.md`, section 2).
 
 ### GUI
 
-- **Open Log File**, or drag and drop a file anywhere on the window (Ctrl/Cmd+O).
-- **Filter** by keyword, trace ID or regex (toggle `.*`), and by severity (Ctrl/Cmd+F).
-- **Live Tail (-f)** re-analyzes the file as it grows; handles truncation and rotation.
-- **Context ±** sets how many log lines are shown around the error.
-- **Export Report** writes the filtered errors as Markdown or JSON.
-- **Copy Error Summary** copies a ticket-ready summary of the selected error.
-- **Problems over time** chart shows when errors and warnings clustered; hover a bar for counts.
-- **What this means** in the spotlight explains the selected error, with likely causes and next steps.
-  The same text goes into exported reports, the copied summary and the CLI output.
-- **Command palette** (Ctrl/Cmd+K) searches every action and every error; type a few letters and press Enter.
-- **Light and dark themes**: follows the macOS appearance at start, and the sun / moon button switches at any time.
-  Start with `-Dlogreader.theme=light` or `dark` to force one.
-- **For newcomers:** a plain-language overview of the whole file, a label beside every log line saying what part
-  it plays (STARTS HERE, ROOT CAUSE, YOUR CODE, LIBRARY, BEFORE, AFTER), a sentence about any line you click,
-  and a `?` button that explains the terms.
-- The table sorts on any column. ◀ ▶ in the spotlight step through occurrences.
+The window is built for people who have never read a log. It has four parts:
+
+- **Toolbar:** Open (or drop a file anywhere, Ctrl/Cmd+O), *Find a problem* (words or a request or trace ID, Ctrl/Cmd+F;
+  advanced: text between slashes such as `/timeout|refused/` is a regular expression), All / Fatal / Errors /
+  Warnings (one switch, with the number of problems of each), **Watch live** (follows a file that is
+  still being written), **Quick actions**, **More** (copy a summary, save a report as Markdown or JSON,
+  explain the words) and the light / dark switch.
+- **Summary strip:** the file in numbers (errors, problems, lines, fatal, warnings, period), then key facts:
+  health, first and last error, busiest minute, the most frequent problem (click to open it) and the probable
+  incidents; and the chart **Problems over time**: errors and warnings stacked per slice of time, a scale on the
+  left, times underneath and totals in the legend. Hover a bar to read its exact numbers in the chart's
+  title; click a bar, or drag across several, to list only that period (the period chip in the toolbar goes back).
+- **Overview of the whole log** (shown when a file opens, and with Esc or the **← Overview** button at the top of a problem): how
+  serious it is, one paragraph on what went on, what happened in order, where to start (each with an
+  **Open ›** link to its problem), at a glance the busiest minute, the kinds of problem and the files of the
+  code involved, and **everything read from the log**: every entry counted by level, the period covered,
+  stack traces, trace IDs, JSON entries and the language, each with a sentence on what it means.
+- **Problem list:** one row per problem, saying what it means in plain words with the technical name
+  and the place in the code underneath, how many times it happened, and a tag when it belongs to an incident: FIRST FAILURE,
+  KNOCK-ON or WARNING SIGN (linked by timing and kind of problem, so a strong hint rather than proof).
+- **What went wrong:** the problem in plain words, how it relates to its incident (with **Open ›** links),
+  what to do, why it usually happens, and **everything the log says about it**: how serious, how often and
+  when, where in the file, the error name and message, the underlying error, the chain of errors, where in
+  the code it started, the requests affected and the occurrence shown, each with a sentence on what it means.
+  *Show the path through the code* unfolds the code locations. **Copy for a ticket** copies a ready-to-paste summary; ◀ ▶ step
+  through the times it happened.
+- **What the log says:** *In plain words* tells the error and what was logged just before and after as short
+  sentences, with the original text kept under each step. *All lines* shows every line as written, each
+  labelled with the part it plays (STARTS HERE, ROOT CAUSE, YOUR CODE, LIBRARY, BEFORE, AFTER…); click a
+  line for a sentence about it. *Lines around* sets how much of the log is read around each error.
+
+*Clear recent files* is on the start screen, in **More** and in Quick actions.
+
+The window can be made larger or smaller by dragging its edges, down to 720 × 520, or maximized. The layout
+follows: the toolbar shortens its labels, the chart narrows, the facts wrap onto more lines, and in a narrow
+window the problem list moves above the details. Dragged dividers keep their proportion while resizing.
+
+**Quick actions** (the ⚡ button, or Cmd+K / Ctrl+K) finds any problem, by what it means or by its technical
+name, any action, and recent files, in three sections. Type a few letters and press Enter.
+
+Also: light and dark themes with neutral surfaces and bright, clearly different colours for meaning (violet
+for fatal, red for errors, amber for warnings, blue for actions, teal chips for names of files and code in the
+explanations; follows the macOS appearance at first start, then remembers your choice;
+`-Dlogreader.theme=light|dark` forces one), compressed `.gz` logs (recognised by content, decompressed to a
+private temporary file, up to 8 GB; not watched live), and settings remembered between launches (theme, view,
+lines around, window position, last folder, up to 8 recent files) in the operating system's per-user preferences.
 
 ### CLI
 

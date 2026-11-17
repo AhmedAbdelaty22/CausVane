@@ -2,6 +2,7 @@ package io.logreader.report;
 
 import io.logreader.explain.ErrorExplainer;
 import io.logreader.explain.Explanation;
+import io.logreader.explain.IncidentLinker;
 import io.logreader.model.AnalysisResult;
 import io.logreader.model.ErrorGroup;
 import io.logreader.model.LogEvent;
@@ -24,7 +25,8 @@ public final class SummaryFormatter {
             sb.append(" at ").append(Formats.mdText(group.location()));
         }
         sb.append("**\n\n");
-        appendDetails(sb, result, group);
+        appendDetails(sb, result, group,
+                IncidentLinker.index(IncidentLinker.find(result.groups())).get(group.id()));
         return sb.toString();
     }
 
@@ -70,6 +72,36 @@ public final class SummaryFormatter {
         int n = 0;
         for (String step : explanation.nextSteps()) {
             sb.append(++n).append(". ").append(step).append('\n');
+        }
+    }
+
+    /** One sentence on how this problem relates to its incident, in plain words; Markdown-safe. */
+    static String incidentSentence(ErrorGroup group, IncidentLinker.Membership membership) {
+        IncidentLinker.Incident incident = membership.incident();
+        ErrorGroup lead = incident.lead();
+        return switch (membership.part()) {
+            case LEAD -> "This is the first failure of a probable incident: " + incident.followers().size()
+                    + " other problem(s) started within " + IncidentLinker.WINDOW.toMinutes()
+                    + " minutes after it and look like knock-on effects.";
+            case FOLLOWER -> "Probably a knock-on effect of " + describe(lead) + ", which started "
+                    + IncidentLinker.gap(lead.firstSeen(), group.firstSeen()) + " earlier. Look at that one first.";
+            case EARLY_WARNING -> "A warning sign: it appeared " + IncidentLinker.gap(group.firstSeen(), lead.firstSeen())
+                    + " before " + describe(lead) + ".";
+        };
+    }
+
+    /** "the database connection was cut while in use (`X` at `File.java:12`)", Markdown-safe. */
+    static String describe(ErrorGroup group) {
+        String meaning = ErrorExplainer.standard().explain(group).title().replace("`", "");
+        return Formats.mdText(Character.toLowerCase(meaning.charAt(0)) + meaning.substring(1)) + " ("
+                + Formats.mdCode(group.displayType()) + (group.pinpoint() != null ? " at " + Formats.mdCode(group.location()) : "") + ")";
+    }
+
+    static void appendDetails(StringBuilder sb, AnalysisResult result, ErrorGroup group,
+                              IncidentLinker.Membership membership) {
+        appendDetails(sb, result, group);
+        if (membership != null) {
+            sb.append("\n**Incident:** ").append(incidentSentence(group, membership)).append('\n');
         }
     }
 

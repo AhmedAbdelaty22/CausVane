@@ -20,13 +20,19 @@ final class ErrorTableModel extends AbstractTableModel {
     static final int MESSAGE = 6;
 
     private static final String[] COLUMNS =
-            {"How bad", "Problem and what it means", "Where it started", "Times", "Last seen", "First seen", "Original message"};
+            {"", "Problem", "Where it started", "Times", "Last seen", "First seen", "Original message"};
     private static final Class<?>[] TYPES =
             {Severity.class, TableRenderers.Issue.class, String.class, Long.class, LocalDateTime.class, LocalDateTime.class, String.class};
 
     private List<ErrorGroup> groups = List.of();
     /** Explanation titles by group id, filled on demand: explaining thousands of rows up front would stall the window. */
     private final java.util.Map<String, String> meanings = new java.util.HashMap<>();
+    private java.util.Map<String, io.logreader.explain.IncidentLinker.Membership> incidents = java.util.Map.of();
+
+    /** Which problems belong to a probable incident, by problem id. */
+    void setIncidents(java.util.Map<String, io.logreader.explain.IncidentLinker.Membership> incidents) {
+        this.incidents = incidents;
+    }
     private long maxCount = 1;
 
     void setGroups(List<ErrorGroup> groups) {
@@ -85,8 +91,9 @@ final class ErrorTableModel extends AbstractTableModel {
         ErrorGroup g = groups.get(row);
         return switch (column) {
             case SEVERITY -> g.severity();
-            case TYPE -> new TableRenderers.Issue(g.displayType(), meanings.computeIfAbsent(g.id() + "#" + g.count(),
-                    key -> ErrorExplainer.standard().explain(g).title().replace("`", "")));
+            case TYPE -> new TableRenderers.Issue(g.displayType() + (g.pinpoint() != null ? "  ·  " + g.location() : ""), meanings.computeIfAbsent(g.id() + "#" + g.count(),
+                    key -> ErrorExplainer.standard().explain(g).title().replace("`", "")),
+                    incidents.containsKey(g.id()) ? incidents.get(g.id()).part() : null);
             case LOCATION -> g.location();
             case COUNT -> g.count();
             case FIRST_SEEN -> g.firstSeen();

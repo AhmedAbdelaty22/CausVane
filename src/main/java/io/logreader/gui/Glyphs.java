@@ -91,6 +91,38 @@ final class Glyphs {
         }
     }
 
+    /** Lightning bolt: "quick actions". Drawn in the button's text colour. */
+    record Bolt() implements Icon {
+        private static final int SIZE = 14;
+
+        @Override
+        public void paintIcon(Component c, Graphics g, int x, int y) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(c.isEnabled() ? c.getForeground() : UIManager.getColor("Label.disabledForeground"));
+            Path2D.Double path = new Path2D.Double();
+            path.moveTo(x + 8.5, y + 0.5);
+            path.lineTo(x + 2.0, y + 8.0);
+            path.lineTo(x + 6.5, y + 8.0);
+            path.lineTo(x + 5.0, y + 13.5);
+            path.lineTo(x + 12.0, y + 5.5);
+            path.lineTo(x + 7.5, y + 5.5);
+            path.closePath();
+            g2.fill(path);
+            g2.dispose();
+        }
+
+        @Override
+        public int getIconWidth() {
+            return SIZE;
+        }
+
+        @Override
+        public int getIconHeight() {
+            return SIZE;
+        }
+    }
+
     /** Arrow pointing down onto a line: "drop a file here". */
     record DropArrow(int size, Color color) implements Icon {
         @Override
@@ -124,6 +156,42 @@ final class Glyphs {
         @Override
         public int getIconHeight() {
             return size;
+        }
+    }
+
+    /** A small filled circle, or a ring around a dot for the most serious level. */
+    static final class Dot implements javax.swing.Icon {
+        private final java.awt.Color color;
+        private final boolean strong;
+
+        Dot(java.awt.Color color, boolean strong) {
+            this.color = color;
+            this.strong = strong;
+        }
+
+        @Override
+        public void paintIcon(java.awt.Component c, java.awt.Graphics g, int x, int y) {
+            java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
+            g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(color);
+            if (strong) {
+                g2.setStroke(new java.awt.BasicStroke(1.4f));
+                g2.drawOval(x, y, 8, 8);
+                g2.fillOval(x + 2, y + 2, 5, 5);
+            } else {
+                g2.fillOval(x + 1, y + 1, 7, 7);
+            }
+            g2.dispose();
+        }
+
+        @Override
+        public int getIconWidth() {
+            return 9;
+        }
+
+        @Override
+        public int getIconHeight() {
+            return 9;
         }
     }
 }

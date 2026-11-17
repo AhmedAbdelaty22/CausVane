@@ -1,5 +1,6 @@
 package io.logreader.gui;
 
+import io.logreader.explain.IncidentLinker;
 import io.logreader.model.Severity;
 import io.logreader.report.Formats;
 
@@ -37,7 +38,11 @@ final class TableRenderers {
      * The title of an error and, beneath it, what it means in plain language.
      * Sorts by title.
      */
-    record Issue(String title, String meaning) implements Comparable<Issue> {
+    record Issue(String title, String meaning, IncidentLinker.Part part) implements Comparable<Issue> {
+        Issue(String title, String meaning) {
+            this(title, meaning, null);
+        }
+
         @Override
         public int compareTo(Issue other) {
             return title.compareToIgnoreCase(other.title);
@@ -89,7 +94,7 @@ final class TableRenderers {
             issue = value instanceof Issue i ? i : new Issue(String.valueOf(value), "");
             background = background(table, row, selected);
             titleFont = table.getFont().deriveFont(Font.BOLD, 13f);
-            meaningFont = table.getFont().deriveFont(Font.PLAIN, 12f);
+            meaningFont = Theme.mono(11f);
             setToolTipText(Theme.literal(issue.title() + (issue.meaning().isEmpty() ? "" : " — " + issue.meaning())));
             return this;
         }
@@ -106,15 +111,46 @@ final class TableRenderers {
             FontMetrics meaningMetrics = g2.getFontMetrics(meaningFont);
             int block = titleMetrics.getHeight() + meaningMetrics.getHeight();
             int top = (getHeight() - block) / 2;
+            String tag = tag(issue.part());
+            Font tagFont = titleFont.deriveFont(Font.BOLD, 10f);
+            FontMetrics tagMetrics = g2.getFontMetrics(tagFont);
+            int tagWidth = tag == null ? 0 : tagMetrics.stringWidth(tag) + 14;
             g2.setFont(titleFont);
             g2.setColor(Theme.TEXT);
-            g2.drawString(clip(issue.title(), titleMetrics, width), x, top + titleMetrics.getAscent());
+            // what it means first, in plain words; the technical name underneath
+            String plain = issue.meaning().isBlank() ? issue.title() : issue.meaning();
+            String title = clip(plain, titleMetrics, width - (tag == null ? 0 : tagWidth + 8));
+            g2.drawString(title, x, top + titleMetrics.getAscent());
+            if (tag != null) {
+                int tagHeight = tagMetrics.getHeight() + 2;
+                Pill.paint(g2, tag, tagColor(issue.part()), tagFont, x + titleMetrics.stringWidth(title) + 8,
+                        top + (titleMetrics.getHeight() - tagHeight) / 2, tagWidth, tagHeight);
+            }
             g2.setFont(meaningFont);
             g2.setColor(Theme.DIM);
-            g2.drawString(clip(issue.meaning(), meaningMetrics, width), x,
+            g2.drawString(clip(issue.meaning().isBlank() ? "" : issue.title(), meaningMetrics, width), x,
                     top + titleMetrics.getHeight() + meaningMetrics.getAscent());
             g2.dispose();
         }
+    }
+
+    static String tag(IncidentLinker.Part part) {
+        if (part == null) {
+            return null;
+        }
+        return switch (part) {
+            case LEAD -> "FIRST FAILURE";
+            case FOLLOWER -> "KNOCK-ON";
+            case EARLY_WARNING -> "WARNING SIGN";
+        };
+    }
+
+    static Color tagColor(IncidentLinker.Part part) {
+        return switch (part) {
+            case LEAD -> Theme.RED;
+            case FOLLOWER -> Theme.BLUE;
+            case EARLY_WARNING -> Theme.YELLOW;
+        };
     }
 
     /** Occurrence count with a proportional bar under it, so the most frequent errors stand out. */
@@ -153,7 +189,7 @@ final class TableRenderers {
             int y = top + fm.getHeight() + 3;
             g2.setColor(Theme.TRACK);
             g2.fillRoundRect(8, y, track, barHeight, barHeight, barHeight);
-            g2.setColor(Theme.ORANGE);
+            g2.setColor(Theme.DIM);
             g2.fillRoundRect(8, y, (int) Math.max(4, Math.round(track * (value / (double) max))), barHeight, barHeight, barHeight);
             g2.dispose();
         }

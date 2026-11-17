@@ -3,6 +3,7 @@ package io.logreader.analysis;
 import io.logreader.model.AnalysisResult;
 import io.logreader.model.ErrorGroup;
 import io.logreader.model.Language;
+import io.logreader.model.LogContents;
 import io.logreader.model.LogEvent;
 import io.logreader.model.ParsedTrace;
 import io.logreader.model.Severity;
@@ -12,6 +13,8 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -58,6 +61,13 @@ public final class LogAnalyzer implements Consumer<LogEvent> {
     private long warningCount;
     private LocalDateTime first;
     private LocalDateTime last;
+    private final long[] byLevel = new long[Severity.values().length];
+    private long timestamped;
+    private long multiLine;
+    private long structured;
+    private long withStackTrace;
+    private long withTraceId;
+    private final Set<String> traceIdsSeen = new HashSet<>();
 
     public LogAnalyzer() {
         this(MAX_GROUPS, SAMPLE_SOFT_BUDGET, SAMPLE_HARD_BUDGET);
@@ -73,8 +83,25 @@ public final class LogAnalyzer implements Consumer<LogEvent> {
     @Override
     public void accept(LogEvent event) {
         totalEvents++;
+        byLevel[event.severity().ordinal()]++;
+        if (event.lineCount() > 1) {
+            multiLine++;
+        }
+        if (event.structured()) {
+            structured++;
+        }
+        if (event.trace() != null && event.trace().hasFrames()) {
+            withStackTrace++;
+        }
+        if (event.traceId() != null) {
+            withTraceId++;
+            if (traceIdsSeen.size() < LogContents.TRACE_ID_LIMIT) {
+                traceIdsSeen.add(event.traceId());
+            }
+        }
         LocalDateTime ts = event.timestamp();
         if (ts != null) {
+            timestamped++;
             if (first == null || ts.isBefore(first)) {
                 first = ts;
             }
@@ -124,7 +151,16 @@ public final class LogAnalyzer implements Consumer<LogEvent> {
                 .thenComparing(ErrorGroup::severity, Comparator.reverseOrder())
                 .thenComparingLong(ErrorGroup::firstLine));
         return new AnalysisResult(file, fileSize, totalLines, totalEvents, errorCount, warningCount, first, last, result,
-                timeline.snapshot(), unlistedOccurrences);
+                timeline.snapshot(), unlistedOccurrences, contents());
+    }
+
+    private LogContents contents() {
+        Map<Severity, Long> levels = new EnumMap<>(Severity.class);
+        for (Severity s : Severity.values()) {
+            levels.put(s, byLevel[s.ordinal()]);
+        }
+        return new LogContents(levels, timestamped, multiLine, structured, withStackTrace, withTraceId,
+                traceIdsSeen.size());
     }
 
     /**
