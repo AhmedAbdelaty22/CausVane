@@ -41,6 +41,8 @@ final class SummaryStrip extends JPanel {
     private final JLabel numbers = new JLabel(" ");
     /** Key facts; they wrap onto more lines when the window is narrow. */
     private final JPanel facts = new JPanel(new WrapLayout(FlowLayout.LEFT, 0, 3));
+    /** "Most frequent": the problem on one line, its details on the next; both wrap when narrow. */
+    private final JPanel frequent = new JPanel();
     private final TimelineChart chart;
     private final Consumer<String> reveal;
 
@@ -50,6 +52,10 @@ final class SummaryStrip extends JPanel {
         this.chart = chart;
         facts.setOpaque(false);
         facts.setAlignmentX(Component.LEFT_ALIGNMENT);
+        frequent.setOpaque(false);
+        frequent.setLayout(new BoxLayout(frequent, BoxLayout.Y_AXIS));
+        frequent.setAlignmentX(Component.LEFT_ALIGNMENT);
+        frequent.setBorder(BorderFactory.createEmptyBorder(2, 0, 0, 0));
         setBorder(BorderFactory.createEmptyBorder(4, 16, 10, 12));
 
         headline.setFont(headline.getFont().deriveFont(Font.BOLD, 15f));
@@ -68,6 +74,7 @@ final class SummaryStrip extends JPanel {
         text.add(headline);
         text.add(numbers);
         text.add(facts);
+        text.add(frequent);
         add(text, BorderLayout.CENTER);
         chart.setCompact(true);
         chart.setPreferredSize(new Dimension(560, 112));
@@ -88,6 +95,7 @@ final class SummaryStrip extends JPanel {
         headline.setText("Reading " + fileName + "…");
         numbers.setText(" ");
         facts.removeAll();
+        frequent.removeAll();
         revalidate();
         setToolTipText(null);
     }
@@ -109,6 +117,7 @@ final class SummaryStrip extends JPanel {
                 + (r.unlistedOccurrences() > 0 ? "  ·  " + Formats.count(r.unlistedOccurrences()) + " not listed (limit)" : ""));
 
         facts.removeAll();
+        frequent.removeAll();
         if (whole != null) {
             fact(facts, "Health", whole.health().label(), health(whole.health()), null,
                     "LogReader's overall rating of this log");
@@ -130,10 +139,7 @@ final class SummaryStrip extends JPanel {
             fact(facts, "Last " + kind, SECONDS.format(last), null, null, "When the log last reported a problem");
         }
         if (!pool.isEmpty()) {
-            ErrorGroup top = pool.get(0); // the list is sorted by count
-            String meaning = ErrorExplainer.standard().explain(top).title().replace("`", "");
-            fact(facts, "Most frequent", Formats.truncate(meaning, 52) + "  ×" + Formats.count(top.count()),
-                    null, top.id(), "The problem that happened most often. Click to open it.");
+            mostFrequent(pool, incidents);
         }
         int linked = incidents.stream().mapToInt(IncidentLinker.Incident::size).sum();
         fact(facts, "Incidents", incidents.isEmpty() ? "none found"
@@ -178,6 +184,70 @@ final class SummaryStrip extends JPanel {
         }
         JLabel gap = new JLabel("    ");
         row.add(gap);
+    }
+
+    /**
+     * The problem that happened most often, with what makes the number useful: its share of all errors,
+     * when it ran, its kind, where in the code, and whether it is only a knock-on effect of another failure.
+     */
+    private void mostFrequent(List<ErrorGroup> pool, List<IncidentLinker.Incident> incidents) {
+        ErrorGroup top = pool.get(0); // the list is sorted by count
+        io.logreader.explain.Explanation explanation = ErrorExplainer.standard().explain(top);
+        long all = pool.stream().mapToLong(ErrorGroup::count).sum();
+        long share = all == 0 ? 0 : Math.round(100.0 * top.count() / all);
+        String noun = top.severity().isAtLeast(Severity.ERROR) ? "errors" : "warnings";
+
+        JPanel what = line();
+        JPanel more = line();
+        frequent.add(what);
+        frequent.add(more);
+        String tip = "The problem that happened most often in this log";
+        JLabel key = label("Most frequent", Theme.DIM, Font.PLAIN, tip, 6);
+        what.add(key);
+        more.setBorder(BorderFactory.createEmptyBorder(0, key.getPreferredSize().width, 0, 0)); // details under the name
+        what.add(label(explanation.title().replace("`", ""), Theme.TEXT, Font.BOLD, tip, 10));
+        IncidentLinker.Membership membership = IncidentLinker.index(incidents).get(top.id());
+        if (membership != null && membership.part() == IncidentLinker.Part.FOLLOWER) {
+            what.add(label("probably a knock-on effect, not the cause", Theme.BLUE, Font.PLAIN,
+                    "It started after the first failure of an incident and is the kind of problem that failure causes."
+                            + " Fixing the first failure is likely to stop it.", 0));
+        } else if (membership != null && membership.part() == IncidentLinker.Part.LEAD) {
+            what.add(label("the first failure of an incident", Theme.RED, Font.PLAIN,
+                    "Other problems probably followed from this one", 0));
+        }
+        more.add(label(Formats.count(top.count()) + (top.count() == 1 ? " time" : " times")
+                + " (" + share + "% of all " + noun + ")", Theme.DIM, Font.PLAIN,
+                "How often it happened and its share of all " + noun, 14));
+        if (top.firstSeen() != null && top.lastSeen() != null) {
+            more.add(label(SECONDS.format(top.firstSeen()) + (top.firstSeen().equals(top.lastSeen()) ? ""
+                    : " – " + SECONDS.format(top.lastSeen())), Theme.DIM, Font.PLAIN, "When it first and last happened", 14));
+        }
+        more.add(label(explanation.category(), Theme.DIM, Font.PLAIN, "The kind of problem", 14));
+        if (top.pinpoint() != null) {
+            JLabel where = label(top.location(), Theme.CODE, Font.PLAIN, "Where in the code it started", 0);
+            where.setFont(Theme.mono(11.5f));
+            where.setOpaque(true);
+            where.setBackground(Theme.tintOpaqueOn(Theme.CODE, Theme.mode() == Theme.Mode.DARK ? new Color(0x191919) : new Color(0xF6F6F7)));
+            where.setBorder(BorderFactory.createEmptyBorder(1, 5, 1, 5));
+            more.add(where);
+        }
+    }
+
+    private static JPanel line() {
+        JPanel line = new JPanel(new WrapLayout(FlowLayout.LEFT, 0, 1));
+        line.setOpaque(false);
+        line.setAlignmentX(Component.LEFT_ALIGNMENT);
+        return line;
+    }
+
+    private static JLabel label(String text, Color color, int style, String tip, int gapAfter) {
+        JLabel label = new JLabel(text);
+        label.putClientProperty(Theme.HTML_DISABLE, Boolean.TRUE);
+        label.setForeground(color);
+        label.setFont(label.getFont().deriveFont(style, 12f));
+        label.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, gapAfter));
+        label.setToolTipText(tip);
+        return label;
     }
 
     private static Color health(LogOverview.Health health) {

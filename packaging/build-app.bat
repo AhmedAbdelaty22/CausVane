@@ -9,7 +9,7 @@ if exist dist\LogReader rmdir /s /q dist\LogReader
 if exist dist\stage rmdir /s /q dist\stage
 mkdir dist\stage
 copy target\LogReader.jar dist\stage\ >nul
-jpackage --type app-image --name LogReader --app-version 2.0.0 ^
+jpackage --type app-image --name LogReader --app-version 2.1.0 ^
   --description "Finds, explains and pinpoints errors in application logs" --vendor "LogReader" ^
   --icon packaging\LogReader.ico --input dist\stage --main-jar LogReader.jar ^
   --add-modules java.base,java.desktop,java.logging,java.sql ^

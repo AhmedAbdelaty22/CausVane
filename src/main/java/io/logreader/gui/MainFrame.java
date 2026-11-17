@@ -24,6 +24,7 @@ import javax.swing.ButtonGroup;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JRootPane;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -84,7 +85,15 @@ import java.util.concurrent.ExecutionException;
 import java.util.regex.PatternSyntaxException;
 
 /** The support engineer workspace: toolbar, metric cards, error navigator, spotlight and context viewer. */
-public final class MainFrame extends JFrame {
+public final class MainFrame {
+
+    /**
+     * The window. It stays the same when the theme changes: only its contents are built again in the new
+     * colours, so switching looks like one smooth change rather than a new window opening.
+     */
+    private final JFrame frame;
+    /** Window listeners added by this instance, removed when a theme change hands the window on. */
+    private final List<java.util.EventListener> windowHooks = new java.util.ArrayList<>();
 
     private static final String TITLE = "LogReader";
     private static final int TAIL_INTERVAL_MS = 1000;
@@ -235,35 +244,46 @@ public final class MainFrame extends JFrame {
     }
 
     public MainFrame() {
-        super(TITLE);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
-        AppIcon.install(this);
+        this(null);
+    }
+
+    private MainFrame(JFrame reuse) {
+        frame = reuse != null ? reuse : new JFrame(TITLE);
+        boolean fresh = reuse == null;
+        if (fresh) {
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            AppIcon.install(frame);
+        }
         // macOS: make the title bar match the theme of the content
         getRootPane().putClientProperty("apple.awt.windowAppearance",
                 Theme.mode() == Theme.Mode.DARK ? "NSAppearanceNameDarkAqua" : "NSAppearanceNameAqua");
-        // fit smaller laptop screens: never open larger than the usable desktop area
-        Rectangle desktop = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
-        setSize(Math.min(1440, desktop.width), Math.min(880, desktop.height));
-        setMinimumSize(new Dimension(Math.min(720, desktop.width), Math.min(520, desktop.height)));
-        addComponentListener(new java.awt.event.ComponentAdapter() {
+        if (fresh) {
+            // fit smaller laptop screens: never open larger than the usable desktop area
+            Rectangle desktop = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
+            frame.setSize(Math.min(1440, desktop.width), Math.min(880, desktop.height));
+            frame.setMinimumSize(new Dimension(Math.min(720, desktop.width), Math.min(520, desktop.height)));
+            frame.setLocationRelativeTo(null);
+            Rectangle saved = Settings.get().windowBounds();
+            if (saved != null) {
+                frame.setBounds(saved);
+            }
+            frame.addWindowListener(new java.awt.event.WindowAdapter() {
+                @Override
+                public void windowClosing(java.awt.event.WindowEvent e) {
+                    if ((frame.getExtendedState() & JFrame.MAXIMIZED_BOTH) == 0) {
+                        Settings.get().windowBounds(frame.getBounds());
+                    }
+                }
+            });
+        }
+        java.awt.event.ComponentAdapter resized = new java.awt.event.ComponentAdapter() {
             @Override
             public void componentResized(java.awt.event.ComponentEvent e) {
                 fitLayout(); // the layout follows the window while it is dragged larger or smaller
             }
-        });
-        setLocationRelativeTo(null);
-        Rectangle saved = Settings.get().windowBounds();
-        if (saved != null) {
-            setBounds(saved);
-        }
-        addWindowListener(new java.awt.event.WindowAdapter() {
-            @Override
-            public void windowClosing(java.awt.event.WindowEvent e) {
-                if ((getExtendedState() & MAXIMIZED_BOTH) == 0) {
-                    Settings.get().windowBounds(getBounds());
-                }
-            }
-        });
+        };
+        frame.addComponentListener(resized);
+        windowHooks.add(resized);
 
         JPanel north = new JPanel(new BorderLayout());
         north.add(buildToolbar(), BorderLayout.NORTH);
@@ -598,16 +618,17 @@ public final class MainFrame extends JFrame {
      * whenever the user drags the divider, so neither side collapses when the window gets smaller.
      */
     private static void keepProportion(JSplitPane split, double initial) {
-        double[] ratio = {initial};
-        boolean[] adjusting = {false};
+        split.putClientProperty(ViewState.RATIO, initial);
         // remember the proportion only when the user drags the divider, not when the window resizes it
         if (split.getUI() instanceof javax.swing.plaf.basic.BasicSplitPaneUI ui) {
             ui.getDivider().addMouseListener(new java.awt.event.MouseAdapter() {
                 @Override
                 public void mouseReleased(java.awt.event.MouseEvent e) {
                     int size = split.getOrientation() == JSplitPane.HORIZONTAL_SPLIT ? split.getWidth() : split.getHeight();
-                    if (size > 0) {
-                        ratio[0] = Math.max(0.15, Math.min(0.85, split.getDividerLocation() / (double) size));
+                    int room = size - split.getDividerSize();
+                    if (room > 0) {
+                        split.putClientProperty(ViewState.RATIO,
+                                Math.max(0.15, Math.min(0.85, split.getDividerLocation() / (double) room)));
                     }
                 }
             });
@@ -615,9 +636,9 @@ public final class MainFrame extends JFrame {
         split.addComponentListener(new java.awt.event.ComponentAdapter() {
             @Override
             public void componentResized(java.awt.event.ComponentEvent e) {
-                adjusting[0] = true;
-                split.setDividerLocation(ratio[0]);
-                adjusting[0] = false;
+                if (split.getClientProperty(ViewState.RATIO) instanceof Double ratio) {
+                    split.setDividerLocation(ratio);
+                }
             }
         });
     }
@@ -697,7 +718,7 @@ public final class MainFrame extends JFrame {
         chooser.setDialogTitle("Open Log File");
         chooser.addChoosableFileFilter(new FileNameExtensionFilter(
                 "Log files (*.log, *.txt, *.json, *.out, *.gz)", "log", "txt", "json", "out", "err", "gz"));
-        if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+        if (chooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
             openFile(chooser.getSelectedFile().toPath());
         }
     }
@@ -784,7 +805,7 @@ public final class MainFrame extends JFrame {
         if (tailToggle.isSelected()) {
             tailTimer.start();
             status.setText("Live tail on: watching " + (session == null ? "" : session.file().getFileName()) + "…");
-            Toast.show(this, "Live tail on. New errors appear as they are written.");
+            Toast.show(frame, "Live tail on. New errors appear as they are written.");
         } else {
             tailTimer.stop();
             status.setText("Live tail off.");
@@ -831,7 +852,7 @@ public final class MainFrame extends JFrame {
         overview = describe(fresh, incidentList);
         io.logreader.explain.LogOverview.Overview whole = io.logreader.explain.LogOverview.of(fresh, incidentList);
         summary.show(fresh, incidentList, overview, whole);
-        overviewPanel.show(fresh, whole, incidentList.size());
+        overviewPanel.show(fresh, whole, incidentList);
         if (overviewMode) {
             showCard("overview");
         }
@@ -972,18 +993,18 @@ public final class MainFrame extends JFrame {
         JFileChooser chooser = new JFileChooser(exportFolder == null ? null : exportFolder.toFile());
         chooser.setDialogTitle("Export " + format.label() + " Report");
         chooser.setSelectedFile(new File(base + "-report." + format.extension()));
-        if (chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) {
+        if (chooser.showSaveDialog(frame) != JFileChooser.APPROVE_OPTION) {
             return;
         }
         Path target = chooser.getSelectedFile().toPath();
-        if (Files.exists(target) && JOptionPane.showConfirmDialog(this, target.getFileName() + " already exists. Replace it?",
+        if (Files.exists(target) && JOptionPane.showConfirmDialog(frame, target.getFileName() + " already exists. Replace it?",
                 "Export Report", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.OK_OPTION) {
             return;
         }
         try (Writer writer = Files.newBufferedWriter(target, StandardCharsets.UTF_8)) {
             format.writer().write(result, tableModel.groups(), writer);
             status.setText("Report exported to " + target);
-            Toast.show(this, "Report exported to " + target.getFileName());
+            Toast.show(frame, "Report exported to " + target.getFileName());
         } catch (IOException e) {
             showError("Could not export the report", e);
         }
@@ -1001,7 +1022,7 @@ public final class MainFrame extends JFrame {
                 ? "Copied summary of " + selected.displayType() + " to the clipboard"
                 : "Copied analysis overview to the clipboard";
         status.setText(confirmation + ".");
-        Toast.show(this, confirmation);
+        Toast.show(frame, confirmation);
     }
 
     /** The whole file in two or three plain sentences, for someone who has not read it. */
@@ -1073,7 +1094,7 @@ public final class MainFrame extends JFrame {
         for (String[] term : terms) {
             html.append("<p style='margin: 0 0 8px 0;'><b>").append(term[0]).append("</b><br>").append(term[1]).append("</p>");
         }
-        JOptionPane.showMessageDialog(this, new JLabel(html.append("</body></html>").toString()),
+        JOptionPane.showMessageDialog(frame, new JLabel(html.append("</body></html>").toString()),
                 "Words used in LogReader", JOptionPane.PLAIN_MESSAGE);
     }
 
@@ -1145,7 +1166,7 @@ public final class MainFrame extends JFrame {
             commands.add(new CommandPalette.Command("Recent files", String.valueOf(recent.getFileName()),
                     folder == null ? "" : String.valueOf(folder.getFileName()), String.valueOf(folder), () -> openFile(recent)));
         }
-        CommandPalette.open(this, commands);
+        CommandPalette.open(frame, commands);
     }
 
     /**
@@ -1193,7 +1214,7 @@ public final class MainFrame extends JFrame {
     private void clearRecentFiles() {
         Settings.get().clearRecent();
         welcome.clearRecent();
-        Toast.show(this, "Recent files cleared");
+        Toast.show(frame, "Recent files cleared");
     }
 
     private void setTimeRange(java.time.LocalDateTime from, java.time.LocalDateTime to) {
@@ -1214,6 +1235,19 @@ public final class MainFrame extends JFrame {
         timelineChart.clearSelection();
         applyFilter();
     }
+
+    // ---------------------------------------------------------------- the window
+
+    private java.awt.Container getContentPane() { return frame.getContentPane(); }
+    private void setContentPane(java.awt.Container pane) { frame.setContentPane(pane); }
+    private JRootPane getRootPane() { return frame.getRootPane(); }
+    private void setTitle(String title) { frame.setTitle(title); }
+    private String getTitle() { return frame.getTitle(); }
+    private void setVisible(boolean visible) { frame.setVisible(visible); }
+    private void dispose() { frame.dispose(); }
+    private Rectangle getBounds() { return frame.getBounds(); }
+    private void setBounds(Rectangle bounds) { frame.setBounds(bounds); }
+    private void setSize(int width, int height) { frame.setSize(width, height); }
 
     /** Switches the right-hand panel between the overview and the selected problem. */
     private void showCard(String card) {
@@ -1253,20 +1287,66 @@ public final class MainFrame extends JFrame {
      * Switches between the dark and the light theme. Colors are read when components are built, so the
      * window is rebuilt and the open file, filter and selection are carried over.
      */
+    /**
+     * Switches between the dark and light theme in the same window: the contents are built again in the new
+     * colours, everything that was open is carried over, and a short fade hides the change.
+     */
     private void switchTheme() {
         if (loader != null && !loader.isDone()) {
-            Toast.show(this, "The theme can be switched once the file has finished loading");
+            Toast.show(frame, "The theme can be switched once the file has finished loading");
             return;
         }
+        // everything happens inside this one event, so the window is painted once, already in the new colours
+        ViewState view = ViewState.capture(getContentPane());
+        boolean searching = searchField.isFocusOwner();
+        int caret = searchField.getCaretPosition();
         Theme.apply(Theme.mode() == Theme.Mode.DARK ? Theme.Mode.LIGHT : Theme.Mode.DARK);
         Settings.get().theme(Theme.mode());
-        MainFrame next = new MainFrame();
-        next.setBounds(getBounds());
-        next.setExtendedState(getExtendedState());
+        retire();
+        setContentPane(new JPanel());
+        SwingUtilities.updateComponentTreeUI(frame); // the window's own parts in the new look
+        MainFrame next = new MainFrame(frame);
+        next.spotlight.technical(spotlight.technical());
+        next.spotlight.incidentAll(spotlight.incidentAll());
         next.adopt(this);
+        frame.validate();
+        // second pass: the wrapping rows of facts measure themselves against the widths the first pass gave them
+        invalidateTree(next.summary);
+        frame.validate();
+        view.restore(frame.getContentPane());
+        Runnable focus = () -> {
+            if (searching) {
+                next.searchField.requestFocusInWindow();
+                next.searchField.setCaretPosition(Math.min(caret, next.searchField.getText().length()));
+            } else {
+                next.table.requestFocusInWindow();
+            }
+        };
+        focus.run();
+        SwingUtilities.invokeLater(() -> { // after any layout still pending
+            view.restore(frame.getContentPane());
+            focus.run();
+        });
+    }
+
+    private static void invalidateTree(Component component) {
+        component.invalidate();
+        if (component instanceof Container container) {
+            for (Component child : container.getComponents()) {
+                invalidateTree(child);
+            }
+        }
+    }
+
+    /** Stops this instance's timers and listeners once the window has been handed to a new instance. */
+    private void retire() {
         tailTimer.stop();
-        next.setVisible(true);
-        dispose();
+        for (java.util.EventListener hook : windowHooks) {
+            if (hook instanceof java.awt.event.ComponentListener listener) {
+                frame.removeComponentListener(listener);
+            }
+        }
+        windowHooks.clear();
     }
 
     private void adopt(MainFrame previous) {
@@ -1286,6 +1366,8 @@ public final class MainFrame extends JFrame {
             status.setText(previous.status.getText());
             if (overviewMode) {
                 showOverview();
+            } else if (selected != null) {
+                select(selected, occurrence); // draw the open problem again in the new colours
             }
         }
         if (previous.rangeFrom != null) {
@@ -1322,6 +1404,6 @@ public final class MainFrame extends JFrame {
     private void showError(String message, Throwable cause) {
         String detail = cause == null || cause.getMessage() == null ? "" : "\n" + cause.getMessage();
         status.setText(message);
-        JOptionPane.showMessageDialog(this, message + detail, TITLE, JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(frame, message + detail, TITLE, JOptionPane.ERROR_MESSAGE);
     }
 }

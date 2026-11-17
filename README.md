@@ -47,23 +47,31 @@ The window is built for people who have never read a log. It has four parts:
   still being written), **Quick actions**, **More** (copy a summary, save a report as Markdown or JSON,
   explain the words) and the light / dark switch.
 - **Summary strip:** the file in numbers (errors, problems, lines, fatal, warnings, period), then key facts:
-  health, first and last error, busiest minute, the most frequent problem (click to open it) and the probable
-  incidents; and the chart **Problems over time**: errors and warnings stacked per slice of time, a scale on the
+  health, first and last error, busiest minute, the probable incidents, and the most frequent problem with
+  how often it happened, its share of all errors, when it ran, its kind, where in the code, and whether it is only
+  a knock-on effect of another failure; and the chart **Problems over time**: errors and warnings stacked per slice of time, a scale on the
   left, times underneath and totals in the legend. Hover a bar to read its exact numbers in the chart's
   title; click a bar, or drag across several, to list only that period (the period chip in the toolbar goes back).
 - **Overview of the whole log** (shown when a file opens, and with Esc or the **← Overview** button at the top of a problem): how
   serious it is, one paragraph on what went on, what happened in order, where to start (each with an
-  **Open ›** link to its problem), at a glance the busiest minute, the kinds of problem and the files of the
+  **Open ›** link to its problem), a **map of all problems** (a folding tree: each probable incident as a
+  branch with its first failure, warning signs and knock-on effects, and every other problem under its kind), at a glance the busiest minute, the kinds of problem and the files of the
   code involved, and **everything read from the log**: every entry counted by level, the period covered,
   stack traces, trace IDs, JSON entries and the language, each with a sentence on what it means.
 - **Problem list:** one row per problem, saying what it means in plain words with the technical name
   and the place in the code underneath, how many times it happened, and a tag when it belongs to an incident: FIRST FAILURE,
   KNOCK-ON or WARNING SIGN (linked by timing and kind of problem, so a strong hint rather than proof).
-- **What went wrong:** the problem in plain words, how it relates to its incident (with **Open ›** links),
+- **What went wrong:** the problem in plain words; when it belongs to an incident, **the whole incident** as one
+  timeline (warning signs, the first failure and the knock-on effects in the order they began, this problem
+  marked *you are here*, each step with an **Open ›** link);
   what to do, why it usually happens, and **everything the log says about it**: how serious, how often and
   when, where in the file, the error name and message, the underlying error, the chain of errors, where in
   the code it started, the requests affected and the occurrence shown, each with a sentence on what it means.
-  *Show the path through the code* unfolds the code locations. **Copy for a ticket** copies a ready-to-paste summary; ◀ ▶ step
+  When the error came with a stack trace, **the error, step by step** shows it as a folding tree: what was
+  reported, each error that caused the one above it down to the root cause, and under it how the code got
+  there, oldest call first, ending at *started here*; runs of library code fold into one line named after the
+  library. Works the same for Java, .NET, Python, Node.js, Go and the rest; an error logged as a single line
+  without a stack trace shows no tree. **Copy for a ticket** copies a ready-to-paste summary; ◀ ▶ step
   through the times it happened.
 - **What the log says:** *In plain words* tells the error and what was logged just before and after as short
   sentences, with the original text kept under each step. *All lines* shows every line as written, each
@@ -81,7 +89,9 @@ name, any action, and recent files, in three sections. Type a few letters and pr
 
 Also: light and dark themes with neutral surfaces and bright, clearly different colours for meaning (violet
 for fatal, red for errors, amber for warnings, blue for actions, teal chips for names of files and code in the
-explanations; follows the macOS appearance at first start, then remembers your choice;
+explanations; the light / dark switch changes only the colours, instantly and in the same window, the way
+VS Code does: the open file, search, selection, scroll positions, dividers, folded sections and keyboard focus
+all stay as they were; follows the macOS appearance at first start, then remembers your choice;
 `-Dlogreader.theme=light|dark` forces one), compressed `.gz` logs (recognised by content, decompressed to a
 private temporary file, up to 8 GB; not watched live), and settings remembered between launches (theme, view,
 lines around, window position, last folder, up to 8 recent files) in the operating system's per-user preferences.

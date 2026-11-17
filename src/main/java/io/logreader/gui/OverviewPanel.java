@@ -1,6 +1,7 @@
 package io.logreader.gui;
 
 import io.logreader.explain.ErrorExplainer;
+import io.logreader.explain.IncidentLinker;
 import io.logreader.explain.LogFacts;
 import io.logreader.explain.LogOverview;
 import io.logreader.explain.LogOverview.Moment;
@@ -16,6 +17,7 @@ import javax.swing.text.html.StyleSheet;
 import java.awt.Color;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Locale;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -30,6 +32,10 @@ final class OverviewPanel extends JScrollPane {
     private static final DateTimeFormatter CLOCK = DateTimeFormatter.ofPattern("HH:mm", Locale.ROOT);
 
     private final JEditorPane html = new JEditorPane();
+    private final ProblemTree tree = new ProblemTree();
+    private AnalysisResult shownResult;
+    private LogOverview.Overview shownOverview;
+    private List<IncidentLinker.Incident> shownIncidents = List.of();
 
     OverviewPanel(Consumer<String> reveal) {
         HTMLEditorKit kit = new HTMLEditorKit();
@@ -51,6 +57,10 @@ final class OverviewPanel extends JScrollPane {
         css.addRule("ol { margin-left: 20px; margin-top: 0; }");
         css.addRule("li { margin-bottom: 4px; }");
         css.addRule(Theme.codeRule("code", mono));
+        css.addRule(".tree { color: " + Theme.hex(Theme.GUTTER) + "; font-family: '" + mono + "'; font-size: 12px; padding-top: 1px; }");
+        css.addRule(".node { padding-bottom: 6px; }");
+        css.addRule(".branch { color: " + Theme.hex(Theme.BLUE) + "; font-weight: bold; font-family: '" + mono + "'; }");
+        css.addRule(".small { font-size: 90%; font-weight: normal; }");
         css.addRule("a { color: " + Theme.hex(Theme.BLUE) + "; text-decoration: none; font-weight: bold; font-size: 11.5px; }");
         kit.setStyleSheet(css);
         html.setEditorKit(kit);
@@ -58,9 +68,15 @@ final class OverviewPanel extends JScrollPane {
         html.setBackground(Theme.CARD);
         html.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
         html.addHyperlinkListener(e -> {
-            if (e.getEventType() == javax.swing.event.HyperlinkEvent.EventType.ACTIVATED
-                    && e.getDescription() != null && e.getDescription().startsWith("group:")) {
+            if (e.getEventType() != javax.swing.event.HyperlinkEvent.EventType.ACTIVATED || e.getDescription() == null) {
+                return;
+            }
+            if (e.getDescription().startsWith("group:")) {
                 reveal.accept(e.getDescription().substring("group:".length()));
+            } else if (shownResult != null && tree.click(e.getDescription(), shownResult, shownIncidents)) {
+                java.awt.Point at = getViewport().getViewPosition();
+                show(shownResult, shownOverview, shownIncidents);
+                javax.swing.SwingUtilities.invokeLater(() -> getViewport().setViewPosition(at)); // stay where the reader is
             }
         });
         setViewportView(html);
@@ -78,7 +94,11 @@ final class OverviewPanel extends JScrollPane {
         html.setText("<html><body><span class='dim'>" + esc(message) + "</span></body></html>");
     }
 
-    void show(AnalysisResult result, LogOverview.Overview overview, int incidents) {
+    void show(AnalysisResult result, LogOverview.Overview overview, List<IncidentLinker.Incident> incidents) {
+        shownResult = result;
+        shownOverview = overview;
+        shownIncidents = incidents;
+        tree.prepare(result, incidents);
         StringBuilder sb = new StringBuilder("<html><body>");
         sb.append("<div class='title'>THE WHOLE LOG &nbsp;&middot;&nbsp; <font color='").append(Theme.hex(health(overview.health())))
                 .append("'>").append(overview.health().label().toUpperCase(Locale.ROOT)).append("</font></div>");
@@ -114,6 +134,10 @@ final class OverviewPanel extends JScrollPane {
             sb.append("</table>");
         }
 
+        if (!result.groups().isEmpty()) {
+            sb.append(tree.html(result, incidents));
+        }
+
         sb.append("<div class='sub'>AT A GLANCE</div><table cellspacing='0' cellpadding='0'>");
         if (overview.peak() != null) {
             LogOverview.Peak p = overview.peak();
@@ -133,7 +157,7 @@ final class OverviewPanel extends JScrollPane {
         sb.append("</table>");
 
         sb.append("<div class='sub'>EVERYTHING READ FROM THE LOG</div><table cellspacing='0' cellpadding='0'>");
-        for (LogFacts.Fact fact : LogFacts.forLog(result, incidents)) {
+        for (LogFacts.Fact fact : LogFacts.forLog(result, incidents.size())) {
             row(sb, fact.label(), fact.value(), fact.meaning());
         }
         sb.append("</table>");

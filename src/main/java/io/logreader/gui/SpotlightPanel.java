@@ -45,6 +45,10 @@ final class SpotlightPanel extends JPanel {
     private final JButton back = new JButton("\u2190  Overview");
     /** Whether the technical details are unfolded; kept while moving between problems. */
     private boolean technical;
+    /** Whether the incident timeline lists every problem or only the main steps. */
+    private boolean incidentAll;
+    /** "The error, step by step" and which of its branches are open. */
+    private final ErrorTree errorTree = new ErrorTree();
     private ErrorGroup shownGroup;
     private IncidentLinker.Membership shownIncident;
     private final JButton previous = new JButton(new Glyphs.Triangle(Glyphs.Triangle.LEFT));
@@ -148,6 +152,10 @@ final class SpotlightPanel extends JPanel {
         css.addRule(".tech { color: " + Theme.hex(Theme.DIM) + "; font-size: 92%; }");
         css.addRule(".expl { color: " + Theme.hex(Theme.DIM) + "; font-size: 92%; font-weight: normal; }");
         css.addRule(".fact { padding-bottom: 6px; }");
+        css.addRule(".tree { color: " + Theme.hex(Theme.GUTTER) + "; font-family: '" + mono + "'; font-size: 12px; padding-top: 1px; }");
+        css.addRule(".role { color: " + Theme.hex(Theme.DIM) + "; font-weight: bold; font-size: 85%; }");
+        css.addRule(".branch { color: " + Theme.hex(Theme.BLUE) + "; font-weight: bold; font-family: '" + mono + "'; }");
+        css.addRule(".time { color: " + Theme.hex(Theme.DIM) + "; font-family: '" + mono + "'; font-size: 90%; padding-top: 1px; }");
         css.addRule(".frames { font-family: '" + mono + "'; margin-top: 4px; }");
         css.addRule(".pin { color: " + Theme.hex(Theme.RED) + "; font-weight: bold; }");
         kit.setStyleSheet(css);
@@ -159,6 +167,19 @@ final class SpotlightPanel extends JPanel {
             }
             if (e.getDescription().startsWith("group:")) {
                 onReveal.accept(e.getDescription().substring("group:".length()));
+            } else if (errorTree.click(e.getDescription())) {
+                if (shownGroup != null) {
+                    int at = scroll().getViewport().getViewPosition().y;
+                    show(shownGroup, occurrence, shownIncident);
+                    javax.swing.SwingUtilities.invokeLater(() -> scroll().getViewport().setViewPosition(new java.awt.Point(0, at)));
+                }
+            } else if (e.getDescription().equals("incident-all")) {
+                incidentAll = !incidentAll;
+                if (shownGroup != null) {
+                    int at = scroll().getViewport().getViewPosition().y;
+                    show(shownGroup, occurrence, shownIncident);
+                    javax.swing.SwingUtilities.invokeLater(() -> scroll().getViewport().setViewPosition(new java.awt.Point(0, at)));
+                }
             } else if (e.getDescription().equals("technical")) {
                 technical = !technical;
                 if (shownGroup != null) {
@@ -180,6 +201,24 @@ final class SpotlightPanel extends JPanel {
 
     JEditorPane htmlPane() {
         return html;
+    }
+
+    /** Whether "the path through the code" is unfolded; carried over when the theme changes. */
+    boolean technical() {
+        return technical;
+    }
+
+    void technical(boolean unfolded) {
+        technical = unfolded;
+    }
+
+    /** Whether the whole incident is listed; carried over when the theme changes. */
+    boolean incidentAll() {
+        return incidentAll;
+    }
+
+    void incidentAll(boolean everything) {
+        incidentAll = everything;
     }
 
     /** What the Overview button does. */
@@ -247,17 +286,22 @@ final class SpotlightPanel extends JPanel {
         }
         pills.revalidate();
         pills.repaint();
-        html.setText(render(group, event, explanation, incident, technical));
+        errorTree.prepare(group, event);
+        html.setText(render(group, event, explanation, incident, technical, incidentAll, errorTree.html(event)));
         html.setCaretPosition(0);
     }
 
+    private JScrollPane scroll() {
+        return (JScrollPane) javax.swing.SwingUtilities.getAncestorOfClass(JScrollPane.class, html);
+    }
+
     private static String render(ErrorGroup group, LogEvent event, Explanation explanation,
-                                 IncidentLinker.Membership incident, boolean technical) {
+                                 IncidentLinker.Membership incident, boolean technical, boolean incidentAll, String treeHtml) {
         ParsedTrace trace = event.trace();
         StackFrame pin = trace == null ? null : trace.pinpoint();
         StringBuilder sb = new StringBuilder("<html><body>");
         if (incident != null) {
-            incident(sb, group, incident);
+            incident(sb, group, incident, incidentAll);
         }
         sb.append("<p class='lead'>").append(rich(explanation.meaning()));
         if (explanation.detail() != null) {
@@ -285,120 +329,124 @@ final class SpotlightPanel extends JPanel {
                     .append("<br><span class='expl'>").append(esc(fact.meaning())).append("</span></td></tr>");
         }
         sb.append("</table>");
-        List<StackFrame> path = trace == null || trace.root() == null ? List.of() : framesToShow(trace);
-        if (path.isEmpty()) {
-            return sb.append("</body></html>").toString();
-        }
-        sb.append("<p><a class='toggle' href='technical'>").append(technical ? "Hide the path through the code" : "Show the path through the code")
-                .append("</a> <span class='dim'>").append(technical ? "" : "(" + path.size() + " code locations, newest first)")
-                .append("</span></p>");
-        if (!technical) {
-            return sb.append("</body></html>").toString();
-        }
-        if (trace != null && trace.root() != null) {
-            List<StackFrame> frames = framesToShow(trace);
-            if (!frames.isEmpty()) {
-                long app = frames.stream().filter(StackFrame::application).count();
-                sb.append("<p class='dim'>").append(app)
-                        .append(" in the application's own code (YOURS), ").append(frames.size() - app)
-                        .append(" in libraries it uses (LIB). The line marked &gt;&gt; is where it started.</p>")
-                        .append("<div class='frames'>");
-                int count = 0;
-                for (StackFrame frame : frames) {
-                    if (++count > MAX_FRAMES) {
-                        sb.append("<span class='dim'>… ").append(frames.size() - MAX_FRAMES).append(" more</span>");
-                        break;
-                    }
-                    boolean isPin = pin != null && frame.eventLineIndex() == pin.eventLineIndex();
-                    String function = frame.qualifiedFunction() == null ? "" : "  " + frame.qualifiedFunction();
-                    sb.append(isPin ? "<span class='pin'>&gt;&gt; " : "&nbsp;&nbsp;&nbsp;")
-                            .append(isPin ? "" : frame.application() ? "<span class='app'>" : "<span class='lib'>")
-                            .append(frame.application() ? "YOURS " : "LIB   ")
-                            .append(esc(frame.location())).append(esc(Formats.truncate(function, 140)))
-                            .append("</span><br>");
-                }
-                sb.append("</div>");
-            }
-        }
+        sb.append(treeHtml);
         return sb.append("</body></html>").toString();
     }
 
-    /** The "part of an incident" callout, with links to the related problems. */
-    private static void incident(StringBuilder sb, ErrorGroup group, IncidentLinker.Membership membership) {
+    /** Rows of the incident timeline shown before "show the whole incident". */
+    private static final int TIMELINE_ROWS = 7;
+    private static final java.time.format.DateTimeFormatter CLOCK =
+            java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss", java.util.Locale.ROOT);
+
+    /**
+     * The whole incident as one timeline, the same on every problem in it: the warning signs, the first
+     * failure and the knock-on effects in the order they began, with this problem marked, so the reader
+     * sees the full path of the issue and where this problem sits in it.
+     */
+    private static void incident(StringBuilder sb, ErrorGroup group, IncidentLinker.Membership membership, boolean all) {
         IncidentLinker.Incident incident = membership.incident();
         ErrorGroup lead = incident.lead();
+        List<ErrorGroup> steps = new java.util.ArrayList<>(incident.earlyWarnings());
+        steps.add(lead);
+        steps.addAll(incident.followers());
+        java.util.Comparator<java.time.LocalDateTime> time = java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder());
+        steps.sort(java.util.Comparator.comparing(ErrorGroup::firstSeen, time)
+                .thenComparing(g -> g == lead ? 0 : 1));
+        java.time.LocalDateTime start = steps.stream().map(ErrorGroup::firstSeen).filter(java.util.Objects::nonNull)
+                .min(java.util.Comparator.naturalOrder()).orElse(null);
+        java.time.LocalDateTime end = steps.stream().map(ErrorGroup::lastSeen).filter(java.util.Objects::nonNull)
+                .max(java.util.Comparator.naturalOrder()).orElse(null);
+
         sb.append("<table width='100%' cellspacing='0' cellpadding='9' bgcolor='").append(Theme.hex(Theme.CALLOUT))
                 .append("' style='margin-bottom: 8px;'><tr><td>");
-        switch (membership.part()) {
-            case LEAD -> {
-                sb.append("<span class='inc'>THE FIRST FAILURE OF AN INCIDENT</span><br>");
-                int others = incident.followers().size();
-                if (others > 0) {
-                    ErrorGroup last = incident.followers().get(others - 1);
-                    sb.append(others).append(others == 1 ? " other problem" : " other problems")
-                            .append(" started within ").append(IncidentLinker.gap(lead.firstSeen(), last.firstSeen()))
-                            .append(" after this one and look like knock-on effects of it. Fixing this one first is likely to clear them.");
-                    links(sb, incident.followers(), lead, "+");
+        sb.append("<span class='sub'>THE WHOLE INCIDENT &nbsp;&middot;&nbsp; ").append(steps.size()).append(" problems")
+                .append(start != null && end != null ? " over " + IncidentLinker.gap(start, end) : "").append("</span><br>");
+        sb.append(switch (membership.part()) {
+            case FOLLOWER -> "This problem is probably <b>a knock-on effect</b>, not the real cause. The incident most likely began with the"
+                    + "<span class='cause'>&nbsp;first failure</span> below; fixing that one is likely to stop this one too.";
+            case LEAD -> "This problem is probably <b>the real cause</b>: the knock-on effects below began after it and are the kind of "
+                    + "problem it causes. Fixing it first is likely to clear them.";
+            case EARLY_WARNING -> "This warning was probably <b>an early sign</b>: it began before the"
+                    + "<span class='cause'>&nbsp;first failure</span> below and stopped around when that failure began.";
+        });
+
+        // which rows to show: everything, or the main steps plus this problem
+        java.util.Set<ErrorGroup> shown = new java.util.LinkedHashSet<>();
+        if (all || steps.size() <= TIMELINE_ROWS) {
+            shown.addAll(steps);
+        } else {
+            shown.add(lead);
+            shown.add(group);
+            incident.earlyWarnings().stream().limit(2).forEach(shown::add);
+            for (ErrorGroup g : steps) {
+                if (shown.size() >= TIMELINE_ROWS) {
+                    break;
                 }
-                if (!incident.earlyWarnings().isEmpty()) {
-                    sb.append("<p class='sub'>WARNING SIGNS BEFORE IT</p>");
-                    links(sb, incident.earlyWarnings(), lead, "−");
-                }
+                shown.add(g);
             }
-            case FOLLOWER -> sb.append("<span class='inc'>PROBABLY A KNOCK-ON EFFECT</span><br>This is probably not the real problem. It started ")
-                    .append(IncidentLinker.gap(lead.firstSeen(), group.firstSeen()))
-                    .append(" after the failure below, which looks like where this incident began. Look at that one first:<br>")
-                    .append(link(lead));
-            case EARLY_WARNING -> sb.append("<span class='inc'>A WARNING SIGN</span><br>It appeared ")
-                    .append(IncidentLinker.gap(group.firstSeen(), lead.firstSeen()))
-                    .append(" before the failure below and stopped around the time that failure began:<br>").append(link(lead));
         }
-        sb.append(membership.part() == IncidentLinker.Part.LEAD ? "" : "<br>")
-                .append("<span class='dim'>Linked by timing and kind of problem, so treat it as a strong hint rather than proof.</span>");
+        sb.append("<table width='100%' cellspacing='0' cellpadding='0' style='margin-top: 8px;'>");
+        int hidden = 0;
+        for (ErrorGroup g : steps) {
+            if (!shown.contains(g)) {
+                hidden++;
+                continue;
+            }
+            if (hidden > 0) {
+                hiddenRow(sb, hidden, false);
+                hidden = 0;
+            }
+            timelineRow(sb, g, g == group, g == lead ? IncidentLinker.Part.LEAD
+                    : incident.earlyWarnings().contains(g) ? IncidentLinker.Part.EARLY_WARNING : IncidentLinker.Part.FOLLOWER, lead);
+        }
+        if (hidden > 0) {
+            hiddenRow(sb, hidden, true);
+        }
+        sb.append("</table>");
+        if (steps.size() > TIMELINE_ROWS) {
+            sb.append("<p><a class='toggle' href='incident-all'>").append(all ? "Show only the main steps"
+                    : "Show the whole incident (" + steps.size() + " problems)").append("</a></p>");
+        }
+        sb.append("<span class='dim'>Linked by timing and kind of problem, so treat it as a strong hint rather than proof.</span>");
         sb.append("</td></tr></table>");
     }
 
-    private static void links(StringBuilder sb, List<ErrorGroup> groups, ErrorGroup lead, String sign) {
-        int shown = 0;
-        for (ErrorGroup g : groups) {
-            if (++shown > 8) {
-                sb.append("<p class='dim'>and ").append(groups.size() - 8).append(" more</p>");
-                break;
-            }
-            sb.append(link(g, (sign.equals("+") ? "started " : "appeared ") + IncidentLinker.gap(lead.firstSeen(), g.firstSeen())
-                    + (sign.equals("+") ? " after" : " before") + "  ·  " + Formats.count(g.count())
-                    + (g.count() == 1 ? " time" : " times")));
-        }
+    private static void hiddenRow(StringBuilder sb, int hidden, boolean atEnd) {
+        sb.append("<tr><td></td><td></td><td class='dim' style='padding-bottom: 6px;'>&middot;&middot;&middot; ").append(hidden)
+                .append(atEnd ? (hidden == 1 ? " more knock-on effect after these" : " more knock-on effects after these")
+                        : (hidden == 1 ? " more problem in between" : " more problems in between")).append("</td><td></td></tr>");
     }
 
-    /** A problem named in plain words, its technical name in small type, and an Open link. */
-    private static String link(ErrorGroup g) {
-        return link(g, null);
-    }
-
-    private static String link(ErrorGroup g, String note) {
+    /** One step of the incident: when, what part it plays, what it is, and a way to open it. */
+    private static void timelineRow(StringBuilder sb, ErrorGroup g, boolean current, IncidentLinker.Part part, ErrorGroup lead) {
         String meaning = ErrorExplainer.standard().explain(g).title().replace("`", "");
-        return "<table cellspacing='0' cellpadding='0' width='100%'><tr><td valign='top' class='fact'><b>" + esc(meaning)
-                + "</b><br><span class='tech'>" + esc(g.displayType()) + (g.pinpoint() != null ? " at&nbsp;<span class='code'>&nbsp;" + esc(g.location()) + "&nbsp;</span>" : "")
-                + (note != null ? "  ·  " + esc(note) : "") + "</span></td><td valign='top' align='right' width='64' nowrap><a href='group:" + esc(g.id())
-                + "'>Open&nbsp;&rsaquo;</a></td></tr></table>";
-    }
-
-    /** Frames of the root cause, or of the section holding the pinpoint when the root cause lists none. */
-    private static List<StackFrame> framesToShow(ParsedTrace trace) {
-        if (!trace.root().frames().isEmpty()) {
-            if (trace.pinpoint() == null || trace.root().frames().contains(trace.pinpoint())) {
-                return trace.root().frames();
-            }
-        }
-        for (TraceSection section : trace.sections()) {
-            for (StackFrame frame : section.frames()) {
-                if (trace.pinpoint() != null && frame.eventLineIndex() == trace.pinpoint().eventLineIndex()) {
-                    return section.frames();
-                }
-            }
-        }
-        return trace.root().frames();
+        java.awt.Color color = switch (part) {
+            case LEAD -> Theme.RED;
+            case EARLY_WARNING -> Theme.YELLOW;
+            case FOLLOWER -> Theme.BLUE;
+        };
+        String role = switch (part) {
+            case LEAD -> "FIRST FAILURE";
+            case EARLY_WARNING -> "WARNING SIGN";
+            case FOLLOWER -> "KNOCK-ON";
+        };
+        String when = g.firstSeen() == null || lead.firstSeen() == null || g == lead ? ""
+                : g.firstSeen().isBefore(lead.firstSeen()) ? IncidentLinker.gap(g.firstSeen(), lead.firstSeen()) + " before the first failure"
+                : IncidentLinker.gap(lead.firstSeen(), g.firstSeen()) + " after the first failure";
+        String bg = current ? " bgcolor='" + Theme.hex(Theme.SELECTION) + "'" : "";
+        sb.append("<tr").append(bg).append("><td class='time' valign='top' width='64' nowrap>")
+                .append(g.firstSeen() == null ? "" : CLOCK.format(g.firstSeen()))
+                .append("</td><td valign='top' width='16'><font color='").append(Theme.hex(color)).append("'>")
+                .append(part == IncidentLinker.Part.LEAD ? "&#9679;" : "&#9675;").append("</font></td>")
+                .append("<td valign='top' class='fact'><font color='").append(Theme.hex(color)).append("'><b>").append(role)
+                .append("</b></font>&nbsp;&nbsp;").append(current || part == IncidentLinker.Part.LEAD ? "<b>" : "").append(esc(meaning))
+                .append(current || part == IncidentLinker.Part.LEAD ? "</b>" : "").append("<br><span class='tech'>").append(esc(g.displayType()))
+                .append(g.pinpoint() != null ? " at&nbsp;<span class='code'>&nbsp;" + esc(g.location()) + "&nbsp;</span>" : "")
+                .append(" &nbsp;&middot;&nbsp; ").append(Formats.count(g.count())).append(g.count() == 1 ? " time" : " times")
+                .append(when.isEmpty() ? "" : " &nbsp;&middot;&nbsp; " + esc(when)).append("</span></td>")
+                .append("<td valign='top' align='right' width='92' nowrap>")
+                .append(current ? "<span class='dim'>&#9664; you are here</span>" : "<a href='group:" + esc(g.id()) + "'>Open&nbsp;&rsaquo;</a>")
+                .append("</td></tr>");
     }
 
     /** Escapes text and renders {@code `code`} spans in the monospace accent style. */
