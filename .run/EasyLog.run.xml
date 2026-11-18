@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="EasyLog" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="io.easylog.Main" />
+    <module name="EasyLog" />
+    <option name="VM_PARAMETERS" value="--enable-native-access=ALL-UNNAMED" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

@@ -1,4 +1,4 @@
-# LogReader
+# EasyLog
 
 Desktop GUI and CLI for support engineers: open any application log and get the
 deduplicated errors, each pinpointed to the exact file, function and line of its
@@ -11,7 +11,7 @@ over 50 rules covering common failure types (database, network, memory, null ref
 input, permissions, deployment problems, crashes and more).
 
 Full documentation, with diagrams of how it works, is in
-[docs/LogReader-Documentation.pdf](docs/LogReader-Documentation.pdf).
+[docs/EasyLog-Documentation.pdf](docs/EasyLog-Documentation.pdf).
 
 ## Build
 
@@ -21,20 +21,20 @@ Requires JDK 21+ and Maven.
 mvn clean package
 ```
 
-This runs the tests and produces one self-contained JAR: `target/LogReader.jar`.
+This runs the tests and produces one self-contained JAR: `target/EasyLog.jar`.
 
 ## Run
 
 ```bash
-java -jar target/LogReader.jar                        # GUI
-java -jar target/LogReader.jar samples/api-gateway-cert-expiry.log   # GUI, file opened
-java -jar target/LogReader.jar analyze samples/checkout-db-failover.log
-java -jar target/LogReader.jar --help
+java -jar target/EasyLog.jar                        # GUI
+java -jar target/EasyLog.jar samples/api-gateway-cert-expiry.log   # GUI, file opened
+java -jar target/EasyLog.jar analyze samples/checkout-db-failover.log
+java -jar target/EasyLog.jar --help
 ```
 
 Double-clicking the JAR also opens the GUI.
 
-For a real desktop application named LogReader with its own icon and no Java
+For a real desktop application named EasyLog with its own icon and no Java
 requirement, run `sh packaging/build-app.sh` (see `NOTES.md`, section 2).
 
 ### GUI
@@ -92,17 +92,17 @@ for fatal, red for errors, amber for warnings, blue for actions, teal chips for 
 explanations; the light / dark switch changes only the colours, instantly and in the same window, the way
 VS Code does: the open file, search, selection, scroll positions, dividers, folded sections and keyboard focus
 all stay as they were; follows the macOS appearance at first start, then remembers your choice;
-`-Dlogreader.theme=light|dark` forces one), compressed `.gz` logs (recognised by content, decompressed to a
+`-Deasylog.theme=light|dark` forces one), compressed `.gz` logs (recognised by content, decompressed to a
 private temporary file, up to 8 GB; not watched live), and settings remembered between launches (theme, view,
 lines around, window position, last folder, up to 8 recent files) in the operating system's per-user preferences.
 
 ### CLI
 
 ```bash
-java -jar target/LogReader.jar analyze app.log --min-level ERROR --top 5 --context 5
-java -jar target/LogReader.jar analyze app.log --grep c90b12aa3e7745f1
-java -jar target/LogReader.jar analyze app.log --format json -o report.json
-java -jar target/LogReader.jar analyze app.log --follow
+java -jar target/EasyLog.jar analyze app.log --min-level ERROR --top 5 --context 5
+java -jar target/EasyLog.jar analyze app.log --grep c90b12aa3e7745f1
+java -jar target/EasyLog.jar analyze app.log --format json -o report.json
+java -jar target/EasyLog.jar analyze app.log --follow
 ```
 
 ## How it works

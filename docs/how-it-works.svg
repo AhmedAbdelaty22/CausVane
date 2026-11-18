@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 650" width="1120" height="650" role="img">
-<title>How LogReader works</title>
+<title>How EasyLog works</title>
 <desc>A log file is read line by line, grouped into events, analysed for the root cause, deduplicated, explained, and shown in the desktop window, the terminal or a report.</desc>
 <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1L9 5L1 9z" fill="#4B5563"/></marker></defs>
 <rect x="0.5" y="0.5" width="1119" height="649" rx="14" fill="#FFFFFF" stroke="#E5E7EB"/>
-<text x="40" y="44" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#111827">How LogReader works</text>
+<text x="40" y="44" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#111827">How EasyLog works</text>
 <text x="40" y="66" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" fill="#6B7280">From a raw log file to an explained, pinpointed error. Names in small type are the classes that do each step.</text>
 <rect x="40" y="90" width="230" height="92" rx="10" fill="#F3F4F6" stroke="#6B7280" stroke-width="1.2"/>
 <text x="56" y="116" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1F2937">Log file</text>

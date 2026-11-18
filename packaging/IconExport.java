@@ -1,4 +1,4 @@
-import io.logreader.gui.AppIcon;
+import io.easylog.gui.AppIcon;
 
 import javax.imageio.ImageIO;
 import java.io.ByteArrayOutputStream;
@@ -12,25 +12,25 @@ import java.nio.ByteOrder;
 /**
  * Writes the application icon files used for native packaging. Run from the project root after a build:
  *
- *   java -cp target/LogReader.jar packaging/IconExport.java packaging
+ *   java -cp target/EasyLog.jar packaging/IconExport.java packaging
  *
- * Produces LogReader.png (Linux), LogReader.ico (Windows) and LogReader.iconset/ (turned into
- * LogReader.icns on macOS with: iconutil -c icns packaging/LogReader.iconset).
+ * Produces EasyLog.png (Linux), EasyLog.ico (Windows) and EasyLog.iconset/ (turned into
+ * EasyLog.icns on macOS with: iconutil -c icns packaging/EasyLog.iconset).
  */
 public class IconExport {
 
     public static void main(String[] args) throws IOException {
         File dir = new File(args.length > 0 ? args[0] : "packaging");
-        ImageIO.write(AppIcon.render(512, 0), "png", new File(dir, "LogReader.png"));
+        ImageIO.write(AppIcon.render(512, 0), "png", new File(dir, "EasyLog.png"));
 
-        File iconset = new File(dir, "LogReader.iconset");
+        File iconset = new File(dir, "EasyLog.iconset");
         iconset.mkdirs();
         for (int size : new int[] {16, 32, 128, 256, 512}) {
             ImageIO.write(AppIcon.render(size, 0.09), "png", new File(iconset, "icon_" + size + "x" + size + ".png"));
             ImageIO.write(AppIcon.render(size * 2, 0.09), "png", new File(iconset, "icon_" + size + "x" + size + "@2x.png"));
         }
 
-        writeIco(new File(dir, "LogReader.ico"), 16, 24, 32, 48, 64, 128, 256);
+        writeIco(new File(dir, "EasyLog.ico"), 16, 24, 32, 48, 64, 128, 256);
         System.out.println("Icons written to " + dir.getAbsolutePath());
     }
 
