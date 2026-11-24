@@ -1,4 +1,4 @@
-# Builds and verifies EasyLog on Linux, Windows and macOS, and attaches the native app for each.
+# Builds and verifies CausVane on Linux, Windows and macOS, and attaches the native app for each.
 name: build
 
 on:
@@ -37,16 +37,16 @@ jobs:
       - name: CLI analyzes every sample
         run: |
           for f in samples/*.log; do
-            java -jar target/EasyLog.jar analyze "$f" --no-color --top 1
+            java -jar target/CausVane.jar analyze "$f" --no-color --top 1
           done
 
       - name: GUI self-test (Linux, virtual display)
         if: runner.os == 'Linux'
-        run: xvfb-run -a java -jar target/EasyLog.jar self-test samples/checkout-db-failover.log
+        run: xvfb-run -a java -jar target/CausVane.jar self-test samples/checkout-db-failover.log
 
       - name: GUI self-test
         if: runner.os != 'Linux'
-        run: java -jar target/EasyLog.jar self-test samples/checkout-db-failover.log
+        run: java -jar target/CausVane.jar self-test samples/checkout-db-failover.log
 
       - name: Native app (macOS, Linux)
         if: runner.os != 'Windows'
@@ -59,21 +59,21 @@ jobs:
 
       - name: Native app runs (macOS)
         if: runner.os == 'macOS'
-        run: dist/EasyLog.app/Contents/MacOS/EasyLog analyze samples/api-gateway-cert-expiry.log --no-color --top 1
+        run: dist/CausVane.app/Contents/MacOS/CausVane analyze samples/api-gateway-cert-expiry.log --no-color --top 1
 
       - name: Native app runs (Linux)
         if: runner.os == 'Linux'
-        run: dist/EasyLog/bin/EasyLog analyze samples/api-gateway-cert-expiry.log --no-color --top 1
+        run: dist/CausVane/bin/CausVane analyze samples/api-gateway-cert-expiry.log --no-color --top 1
 
       - name: Native app runs (Windows)
         if: runner.os == 'Windows'
-        run: dist/EasyLog/EasyLogCLI.exe analyze samples/api-gateway-cert-expiry.log --no-color --top 1
+        run: dist/CausVane/CausVaneCLI.exe analyze samples/api-gateway-cert-expiry.log --no-color --top 1
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: EasyLog-${{ runner.os }}
+          name: CausVane-${{ runner.os }}
           path: |
-            target/EasyLog.jar
+            target/CausVane.jar
             dist/
 
       # The steps below run only when a release is published on GitHub.
@@ -81,21 +81,21 @@ jobs:
         if: github.event_name == 'release' && runner.os == 'macOS'
         run: |
           mkdir release
-          ditto -c -k --keepParent dist/EasyLog.app release/EasyLog-macOS.zip
-          cp target/EasyLog.jar release/
+          ditto -c -k --keepParent dist/CausVane.app release/CausVane-macOS.zip
+          cp target/CausVane.jar release/
 
       - name: Package for release (Linux)
         if: github.event_name == 'release' && runner.os == 'Linux'
         run: |
           mkdir release
-          tar -czf release/EasyLog-Linux.tar.gz -C dist EasyLog
+          tar -czf release/CausVane-Linux.tar.gz -C dist CausVane
 
       - name: Package for release (Windows)
         if: github.event_name == 'release' && runner.os == 'Windows'
         shell: pwsh
         run: |
           New-Item -ItemType Directory release | Out-Null
-          Compress-Archive -Path dist/EasyLog -DestinationPath release/EasyLog-Windows.zip
+          Compress-Archive -Path dist/CausVane -DestinationPath release/CausVane-Windows.zip
 
       - name: Keep release files
         if: github.event_name == 'release'
@@ -128,5 +128,5 @@ jobs:
             gh release upload "$GITHUB_REF_NAME" release/* --repo "$GITHUB_REPOSITORY" --clobber
           else
             gh release create "$GITHUB_REF_NAME" release/* --repo "$GITHUB_REPOSITORY" \
-              --title "EasyLog $GITHUB_REF_NAME" --notes-file .github/RELEASE_NOTES.md
+              --title "CausVane $GITHUB_REF_NAME" --notes-file .github/RELEASE_NOTES.md
           fi

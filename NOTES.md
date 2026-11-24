@@ -1,6 +1,6 @@
-# EasyLog: installing, running and publishing notes
+# CausVane: installing, running and publishing notes
 
-Everything starts from one file: `target/EasyLog.jar`. It contains the app and
+Everything starts from one file: `target/CausVane.jar`. It contains the app and
 all its libraries, and it is the same file for macOS, Windows and Linux.
 
 Build it with:
@@ -14,26 +14,26 @@ not been run here.
 
 ---
 
-Contents: [Installing](#installing-easylog) · [1. Running it](#1-running-it) ·
+Contents: [Installing](#installing-causvane) · [1. Running it](#1-running-it) ·
 [2. Native app](#2-native-app-with-its-own-name-and-icon-no-java-required) ·
 [Checking a computer](#checking-that-it-works-on-a-given-computer) ·
 [3. Publishing](#3-ways-to-publish-it) · [4. New versions](#4-releasing-a-new-version)
 
 ---
 
-## Installing EasyLog
+## Installing CausVane
 
 There are two ways to install it. Pick one per computer.
 
 | | Option A: native app | Option B: the JAR |
 |---|---|---|
-| What you copy | An app built for that system | One file, `EasyLog.jar`, the same for every system |
+| What you copy | An app built for that system | One file, `CausVane.jar`, the same for every system |
 | Needs Java installed | No, Java is bundled | Yes, Java 21 or newer |
-| Name and icon in Dock / Start menu | EasyLog | Icon yes; some systems label it "java" |
+| Name and icon in Dock / Start menu | CausVane | Icon yes; some systems label it "java" |
 | Size | About 80 MB | 3.5 MB |
 | Must be built on | The same kind of system it will run on | Anywhere |
 
-EasyLog keeps no settings, database or background service. Installing is copying
+CausVane keeps no settings, database or background service. Installing is copying
 files, and uninstalling is deleting them.
 
 Only the macOS steps below were carried out on a real machine. The Windows and
@@ -49,8 +49,8 @@ Linux steps are the standard procedure for each system but have not been run.
    mvn clean package && sh packaging/build-app.sh
    ```
 
-   This creates `dist/EasyLog.app` **(tested)**.
-2. Drag `dist/EasyLog.app` into the **Applications** folder.
+   This creates `dist/CausVane.app` **(tested)**.
+2. Drag `dist/CausVane.app` into the **Applications** folder.
 3. Open it from Launchpad or Spotlight. To keep it in the Dock, right-click its Dock
    icon and choose Options, then Keep in Dock.
 4. If the app was copied from another Mac or downloaded, macOS blocks the first
@@ -60,19 +60,19 @@ Linux steps are the standard procedure for each system but have not been run.
    and open a new terminal:
 
    ```bash
-   alias easylog="/Applications/EasyLog.app/Contents/MacOS/EasyLog"
+   alias causvane="/Applications/CausVane.app/Contents/MacOS/CausVane"
    ```
 
-   Then `easylog analyze app.log` works anywhere.
+   Then `causvane analyze app.log` works anywhere.
 
 **Option B: the JAR**
 
 1. Install Java 21 or newer if `java -version` does not show it: download the macOS
    `.pkg` from https://adoptium.net and run it.
-2. Copy `EasyLog.jar` anywhere, for example your Applications or Documents folder.
-3. Double-click it, or run `java -jar EasyLog.jar`.
+2. Copy `CausVane.jar` anywhere, for example your Applications or Documents folder.
+3. Double-click it, or run `java -jar CausVane.jar`.
 
-**Uninstall:** drag `EasyLog.app` (or the JAR) to the Trash. Remove the alias line
+**Uninstall:** drag `CausVane.app` (or the JAR) to the Trash. Remove the alias line
 if you added it.
 
 ### Windows
@@ -89,31 +89,31 @@ if you added it.
    packaging\build-app.bat
    ```
 
-   This creates the folder `dist\EasyLog` containing `EasyLog.exe` (the window)
-   and `EasyLogCLI.exe` (the same program for use in a terminal).
-2. Copy the whole `dist\EasyLog` folder to where programs live, for example
-   `C:\Program Files\EasyLog` (needs administrator rights) or
-   `%LOCALAPPDATA%\Programs\EasyLog` (no rights needed). Keep the folder
+   This creates the folder `dist\CausVane` containing `CausVane.exe` (the window)
+   and `CausVaneCLI.exe` (the same program for use in a terminal).
+2. Copy the whole `dist\CausVane` folder to where programs live, for example
+   `C:\Program Files\CausVane` (needs administrator rights) or
+   `%LOCALAPPDATA%\Programs\CausVane` (no rights needed). Keep the folder
    together; the `.exe` does not work on its own.
-3. Right-click `EasyLog.exe` and choose **Pin to Start** or **Pin to taskbar**,
+3. Right-click `CausVane.exe` and choose **Pin to Start** or **Pin to taskbar**,
    or **Send to → Desktop (create shortcut)**.
 4. The first launch may show a blue "Windows protected your PC" box, because the
    program is not signed. Click **More info**, then **Run anyway**.
 5. Optional, for the command line from any folder: add the install folder to the
    PATH (Start → "Edit environment variables for your account" → Path → New), then
-   use `EasyLogCLI analyze app.log`.
+   use `CausVaneCLI analyze app.log`.
 
 For a proper installer with a Start-menu entry and an entry under "Installed apps",
 install the WiX Toolset, change `app-image` to `msi` in `packaging\build-app.bat`,
-and run it again. It produces `dist\EasyLog-2.1.0.msi`; double-click to install.
+and run it again. It produces `dist\CausVane-2.1.0.msi`; double-click to install.
 
 **Option B: the JAR**
 
 1. Install Java 21 or newer: download the Windows `.msi` from https://adoptium.net.
    In the installer, enable **Associate .jar** and **Set JAVA_HOME / add to PATH**.
-2. Copy `EasyLog.jar` anywhere and double-click it.
+2. Copy `CausVane.jar` anywhere and double-click it.
 3. If double-clicking does nothing, open a terminal in that folder and run
-   `java -jar EasyLog.jar` to see the reason.
+   `java -jar CausVane.jar` to see the reason.
 
 **Uninstall:** delete the install folder and any shortcuts, or use "Installed apps"
 if you used the `.msi`. Remove the PATH entry if you added one.
@@ -128,27 +128,27 @@ if you used the `.msi`. Remove the PATH entry if you added one.
    mvn clean package && sh packaging/build-app.sh
    ```
 
-   This creates the folder `dist/EasyLog` with the launcher `bin/EasyLog`.
+   This creates the folder `dist/CausVane` with the launcher `bin/CausVane`.
 2. Copy it into place and make the command available (no root needed):
 
    ```bash
-   mkdir -p ~/.local/opt ~/.local/bin && cp -r dist/EasyLog ~/.local/opt/ && ln -sf ~/.local/opt/EasyLog/bin/EasyLog ~/.local/bin/easylog
+   mkdir -p ~/.local/opt ~/.local/bin && cp -r dist/CausVane ~/.local/opt/ && ln -sf ~/.local/opt/CausVane/bin/CausVane ~/.local/bin/causvane
    ```
 
-   `easylog` now starts the window, and `easylog analyze app.log` runs in the
+   `causvane` now starts the window, and `causvane analyze app.log` runs in the
    terminal (if `~/.local/bin` is on your PATH, which is the default on most
    distributions).
 3. To get an entry with the icon in the applications menu, save this as
-   `~/.local/share/applications/easylog.desktop`, replacing `YOU` with your user
+   `~/.local/share/applications/causvane.desktop`, replacing `YOU` with your user
    name:
 
    ```ini
    [Desktop Entry]
    Type=Application
-   Name=EasyLog
+   Name=CausVane
    Comment=Finds, explains and pinpoints errors in application logs
-   Exec=/home/YOU/.local/opt/EasyLog/bin/EasyLog %f
-   Icon=/home/YOU/.local/opt/EasyLog/lib/EasyLog.png
+   Exec=/home/YOU/.local/opt/CausVane/bin/CausVane %f
+   Icon=/home/YOU/.local/opt/CausVane/lib/CausVane.png
    Categories=Development;Utility;
    Terminal=false
    ```
@@ -165,10 +165,10 @@ package adds the menu entry itself.
    cannot open:
    - Debian / Ubuntu: `sudo apt install openjdk-21-jre`
    - Fedora / RHEL: `sudo dnf install java-21-openjdk`
-2. Copy `EasyLog.jar` anywhere and run `java -jar EasyLog.jar`.
+2. Copy `CausVane.jar` anywhere and run `java -jar CausVane.jar`.
 
-**Uninstall:** `rm -rf ~/.local/opt/EasyLog ~/.local/bin/easylog ~/.local/share/applications/easylog.desktop`,
-or remove the package with `apt remove easylog` / `dnf remove easylog`.
+**Uninstall:** `rm -rf ~/.local/opt/CausVane ~/.local/bin/causvane ~/.local/share/applications/causvane.desktop`,
+or remove the package with `apt remove causvane` / `dnf remove causvane`.
 
 ### After installing
 
@@ -196,10 +196,10 @@ all platforms).
 
 | What you want | Command |
 |---|---|
-| Open the GUI **(tested)** | `java -jar EasyLog.jar` |
-| Open the GUI on a file **(tested)** | `java -jar EasyLog.jar app.log` |
-| Analyze in the terminal **(tested)** | `java -jar EasyLog.jar analyze app.log` |
-| All options | `java -jar EasyLog.jar --help` |
+| Open the GUI **(tested)** | `java -jar CausVane.jar` |
+| Open the GUI on a file **(tested)** | `java -jar CausVane.jar app.log` |
+| Analyze in the terminal **(tested)** | `java -jar CausVane.jar analyze app.log` |
+| All options | `java -jar CausVane.jar --help` |
 
 ### macOS
 
@@ -210,26 +210,26 @@ all platforms).
 
 ### Windows
 
-- PowerShell or cmd: `java -jar EasyLog.jar`
+- PowerShell or cmd: `java -jar CausVane.jar`
 - Double-click: works when `.jar` files are associated with Java. If nothing
   happens, start it from a terminal once to see the error.
-- A window with no console: `javaw -jar EasyLog.jar`
-- Optional `EasyLog.bat` next to the JAR, so you can type `EasyLog app.log`:
+- A window with no console: `javaw -jar CausVane.jar`
+- Optional `CausVane.bat` next to the JAR, so you can type `CausVane app.log`:
 
   ```bat
   @echo off
-  java -jar "%~dp0EasyLog.jar" %*
+  java -jar "%~dp0CausVane.jar" %*
   ```
 
 ### Linux
 
-- Desktop: `java -jar EasyLog.jar`
-- Optional launcher script, saved as `EasyLog` next to the JAR and made
-  executable with `chmod +x EasyLog`:
+- Desktop: `java -jar CausVane.jar`
+- Optional launcher script, saved as `CausVane` next to the JAR and made
+  executable with `chmod +x CausVane`:
 
   ```bash
   #!/bin/sh
-  exec java -jar "$(dirname "$0")/EasyLog.jar" "$@"
+  exec java -jar "$(dirname "$0")/CausVane.jar" "$@"
   ```
 
 - The JDK must not be a "headless" build for the GUI (on Debian/Ubuntu install
@@ -240,9 +240,9 @@ all platforms).
 The GUI cannot start without a display; the app says so and exits. Use the CLI:
 
 ```bash
-java -jar EasyLog.jar analyze /var/log/app/app.log --min-level ERROR --top 5
-java -jar EasyLog.jar analyze app.log --format json -o report.json
-java -jar EasyLog.jar analyze app.log --follow
+java -jar CausVane.jar analyze /var/log/app/app.log --min-level ERROR --top 5
+java -jar CausVane.jar analyze app.log --format json -o report.json
+java -jar CausVane.jar analyze app.log --follow
 ```
 
 A common support workflow: run `analyze --format markdown -o report.md` on the
@@ -261,13 +261,13 @@ project root:
 
 ```dockerfile
 FROM eclipse-temurin:21-jre
-COPY target/EasyLog.jar /opt/EasyLog.jar
-ENTRYPOINT ["java", "-jar", "/opt/EasyLog.jar", "analyze"]
+COPY target/CausVane.jar /opt/CausVane.jar
+ENTRYPOINT ["java", "-jar", "/opt/CausVane.jar", "analyze"]
 ```
 
 ```bash
-docker build -t easylog .
-docker run --rm -v /var/log/app:/logs:ro easylog /logs/app.log --no-color
+docker build -t causvane .
+docker run --rm -v /var/log/app:/logs:ro causvane /logs/app.log --no-color
 ```
 
 ### Large files
@@ -280,8 +280,8 @@ A 55 MB / 668,000-line log was analyzed with `-Xmx256m` **(tested)**.
 ## 2. Native app with its own name and icon (no Java required)
 
 Run from the JAR, the program appears as a Java process: the window and Dock show
-the EasyLog icon, but macOS still labels the Dock entry "java". A native build
-fixes that. It is a normal application called **EasyLog**, with the icon in
+the CausVane icon, but macOS still labels the Dock entry "java". A native build
+fixes that. It is a normal application called **CausVane**, with the icon in
 Finder / Explorer, the Dock and the task switcher, and it bundles its own Java so
 users install nothing else.
 
@@ -290,28 +290,28 @@ each platform needs its own build.
 
 | Platform | Command (from the project root, after `mvn clean package`) | Result |
 |---|---|---|
-| macOS **(tested, 79 MB)** | `sh packaging/build-app.sh` | `dist/EasyLog.app` |
-| Linux | `sh packaging/build-app.sh` | `dist/EasyLog/bin/EasyLog` |
-| Windows | `packaging\build-app.bat` | `dist\EasyLog\EasyLog.exe` |
+| macOS **(tested, 79 MB)** | `sh packaging/build-app.sh` | `dist/CausVane.app` |
+| Linux | `sh packaging/build-app.sh` | `dist/CausVane/bin/CausVane` |
+| Windows | `packaging\build-app.bat` | `dist\CausVane\CausVane.exe` |
 
-On macOS, drag `dist/EasyLog.app` into Applications to install it. The app also
-works as the CLI: `dist/EasyLog.app/Contents/MacOS/EasyLog analyze app.log`.
+On macOS, drag `dist/CausVane.app` into Applications to install it. The app also
+works as the CLI: `dist/CausVane.app/Contents/MacOS/CausVane analyze app.log`.
 
 For an installer instead of a bare app, pass a type: `sh packaging/build-app.sh dmg`
 (macOS, also `pkg`), `deb` or `rpm` (Linux, needs `fakeroot` / `rpm-build`). On
 Windows change `app-image` to `msi` in the `.bat` file (needs the WiX Toolset).
 
-**The icon.** It is drawn in code by `io.easylog.gui.AppIcon`, so the running
-window always has it. The files in `packaging/` (`EasyLog.icns`, `.ico`, `.png`)
+**The icon.** It is drawn in code by `io.causvane.gui.AppIcon`, so the running
+window always has it. The files in `packaging/` (`CausVane.icns`, `.ico`, `.png`)
 are exports of that drawing for the native builds. After changing the design,
 regenerate them:
 
 ```bash
-java -cp target/EasyLog.jar packaging/IconExport.java packaging
+java -cp target/CausVane.jar packaging/IconExport.java packaging
 ```
 
 ```bash
-iconutil -c icns packaging/EasyLog.iconset -o packaging/EasyLog.icns && rm -rf packaging/EasyLog.iconset
+iconutil -c icns packaging/CausVane.iconset -o packaging/CausVane.icns && rm -rf packaging/CausVane.iconset
 ```
 
 **Signing.** Unsigned apps trigger warnings on other people's machines:
@@ -325,18 +325,18 @@ iconutil -c icns packaging/EasyLog.iconset -o packaging/EasyLog.icns && rm -rf p
 
 ## Checking that it works on a given computer
 
-EasyLog has a built-in check. On any Windows, macOS or Linux machine with a
+CausVane has a built-in check. On any Windows, macOS or Linux machine with a
 desktop, run:
 
 ```bash
-java -jar EasyLog.jar self-test samples/checkout-db-failover.log
+java -jar CausVane.jar self-test samples/checkout-db-failover.log
 ```
 
 It opens the real window, loads the file, confirms that errors were listed, one is
 selected and the window painted, then closes and prints one line:
 
 ```
-EasyLog self-test passed on Windows 11 amd64, Java 21.0.5: window opened, 7 errors listed, ...
+CausVane self-test passed on Windows 11 amd64, Java 21.0.5: window opened, 7 errors listed, ...
 ```
 
 Exit code 0 means it works on that system; 1 means it does not, with the reason.
@@ -345,7 +345,7 @@ Status of each system:
 
 | System | Status |
 |---|---|
-| macOS (Apple Silicon, Java 25) | Self-test passed, from the JAR and from `EasyLog.app` |
+| macOS (Apple Silicon, Java 25) | Self-test passed, from the JAR and from `CausVane.app` |
 | Windows | Not run yet. Code audited and adjusted for Windows; run the self-test to confirm |
 | Linux | Not run yet. Code audited and adjusted for Linux; run the self-test to confirm |
 
@@ -363,7 +363,7 @@ What was done so the same JAR behaves the same everywhere:
 - Numbers and dates do not change with the system language.
 - The terminal output switches to plain ASCII on consoles that cannot show box characters.
 - The window never opens larger than the screen.
-- The Windows build includes `EasyLogCLI.exe`, because a windowed `.exe` cannot
+- The Windows build includes `CausVaneCLI.exe`, because a windowed `.exe` cannot
   print to a terminal.
 
 Known cosmetic difference: on Linux, when run from the JAR, some desktops group
@@ -379,7 +379,7 @@ publishing is something you should trigger yourself. Options, simplest first:
 
 ### A. Share the JAR directly
 
-Send `EasyLog.jar` over a shared drive, internal wiki or chat. Recipients need
+Send `CausVane.jar` over a shared drive, internal wiki or chat. Recipients need
 Java 21+. Good for a single team. No setup.
 
 ### B. GitHub repository with Releases (recommended)
@@ -392,18 +392,18 @@ Gives you version history, a download page and a place for bug reports.
 2. Create the repository and push (needs the `gh` tool and a GitHub account):
 
    ```bash
-   git init && git add . && git commit -m "EasyLog 1.0.0"
+   git init && git add . && git commit -m "CausVane 1.0.0"
    ```
 
    ```bash
-   gh repo create EasyLog --private --source . --push
+   gh repo create CausVane --private --source . --push
    ```
 
    Use `--public` instead of `--private` to make it visible to everyone.
 3. Publish a release with the JAR attached:
 
    ```bash
-   gh release create v1.0.0 target/EasyLog.jar --title "EasyLog 1.0.0" --notes "First release"
+   gh release create v1.0.0 target/CausVane.jar --title "CausVane 1.0.0" --notes "First release"
    ```
 
 Before going public, read through `samples/` once more: the logs are invented,
@@ -421,7 +421,7 @@ the release. This builds on option B.
 Lets users install and update with one command. Each needs a GitHub release to
 point at.
 
-- macOS: a Homebrew tap (`brew install yourname/tap/easylog`).
+- macOS: a Homebrew tap (`brew install yourname/tap/causvane`).
 - Windows: Scoop bucket or `winget` manifest.
 - Linux: attach the `.deb` / `.rpm` from option C.
 
@@ -448,6 +448,6 @@ downloads. Add C when people without Java need it.
 ## 4. Releasing a new version
 
 1. Change `<version>` in `pom.xml` and `VERSION` in
-   `src/main/java/io/easylog/Main.java`.
+   `src/main/java/io/causvane/Main.java`.
 2. `mvn clean package` (runs the 157 tests).
-3. Publish the new `target/EasyLog.jar` through whichever channel you chose.
+3. Publish the new `target/CausVane.jar` through whichever channel you chose.

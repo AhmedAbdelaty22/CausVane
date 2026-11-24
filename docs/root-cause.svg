@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 470" width="1120" height="470" role="img">
-<title>How EasyLog picks the root cause and the pinpoint</title>
+<title>How CausVane picks the root cause and the pinpoint</title>
 <desc>An example stack trace with three nested errors. The reported error is the first one, the root cause is the last nested cause, and the pinpoint is the first application frame of that root cause.</desc>
 <rect x="0.5" y="0.5" width="1119" height="469" rx="14" fill="#FFFFFF" stroke="#E5E7EB"/>
 <text x="40" y="42" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#111827">How the root cause and the pinpoint are chosen</text>
@@ -34,7 +34,7 @@
 <text x="746" y="294" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111827">3.  Pinpoint</text>
 <text x="746" y="311" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#4B5563">First frame of your own code in the root cause.</text>
 <rect x="40" y="360" width="1040" height="78" rx="10" fill="#E3F6EF" stroke="#0B7A5C" stroke-width="1.2"/>
-<text x="58" y="386" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#064E3B">What EasyLog shows for this error</text>
+<text x="58" y="386" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#064E3B">What CausVane shows for this error</text>
 <text x="58" y="408" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" fill="#1F2937"><tspan font-weight="700">OrderProcessingException</tspan> at <tspan font-family="'SF Mono', Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-weight="700" fill="#B45309">ConnectionProvider.java:58</tspan>  ·  root cause: SQLTransientConnectionException</text>
 <text x="58" y="427" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" fill="#1F2937">What this means: "The database connection pool ran out of connections", with likely causes and what to check next.</text>
 </svg>

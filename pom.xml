@@ -4,18 +4,18 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.easylog</groupId>
-    <artifactId>EasyLog</artifactId>
+    <groupId>io.causvane</groupId>
+    <artifactId>CausVane</artifactId>
     <version>2.1.0</version>
     <packaging>jar</packaging>
 
-    <name>EasyLog</name>
+    <name>CausVane</name>
     <description>Desktop GUI and CLI that pinpoints root-cause errors in application logs of any language</description>
 
     <properties>
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <main.class>io.easylog.Main</main.class>
+        <main.class>io.causvane.Main</main.class>
         <flatlaf.version>3.8</flatlaf.version>
         <jackson.version>2.23.0</jackson.version>
         <junit.version>5.11.4</junit.version>
@@ -52,7 +52,7 @@
     </dependencies>
 
     <build>
-        <finalName>EasyLog</finalName>
+        <finalName>CausVane</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -81,7 +81,7 @@
                     </archive>
                 </configuration>
             </plugin>
-            <!-- Single executable fat JAR: java -jar target/EasyLog.jar -->
+            <!-- Single executable fat JAR: java -jar target/CausVane.jar -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
