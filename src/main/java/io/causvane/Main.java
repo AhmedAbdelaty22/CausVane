@@ -14,6 +14,8 @@ public final class Main {
 
     public static final String APP_NAME = "CausVane";
     public static final String VERSION = "2.2.0";
+    /** Where CausVane is published: releases, documentation and problem reports. */
+    public static final String REPOSITORY = "https://github.com/AhmedAbdelaty22/CausVane";
 
     private Main() {}
 
@@ -21,6 +23,7 @@ public final class Main {
         // must be set before any AWT class loads: the application name shown in the macOS menu bar
         System.setProperty("apple.awt.application.name", APP_NAME);
         System.setProperty("apple.awt.application.appearance", "system");
+        System.setProperty("apple.laf.useScreenMenuBar", "true"); // macOS: the menus go in the bar at the top of the screen
         if (GraphicsEnvironment.isHeadless()) {
             System.err.println("CausVane is a desktop application and needs a screen to open its window.");
             System.exit(2);

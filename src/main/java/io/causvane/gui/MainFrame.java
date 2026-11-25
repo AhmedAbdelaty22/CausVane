@@ -14,7 +14,6 @@ import io.causvane.report.Formats;
 import io.causvane.report.ReportWriter;
 import io.causvane.report.SummaryFormatter;
 
-import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.Box;
@@ -38,7 +37,6 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
-import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowSorter;
 import javax.swing.SortOrder;
@@ -69,8 +67,6 @@ import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetAdapter;
 import java.awt.dnd.DropTargetDropEvent;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
@@ -183,6 +179,11 @@ public final class MainFrame {
         if (fresh) {
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             AppIcon.install(frame);
+            if (java.awt.Desktop.isDesktopSupported()
+                    && java.awt.Desktop.getDesktop().isSupported(java.awt.Desktop.Action.APP_ABOUT)) {
+                // macOS: "About CausVane" in the application menu at the top of the screen
+                java.awt.Desktop.getDesktop().setAboutHandler(e -> AboutDialog.showAbout(frame));
+            }
         }
         // macOS: make the title bar match the theme of the content
         getRootPane().putClientProperty("apple.awt.windowAppearance",
@@ -228,7 +229,7 @@ public final class MainFrame {
         content.add(buildStatusBar(), BorderLayout.SOUTH);
         setContentPane(content);
 
-        installShortcuts();
+        frame.setJMenuBar(buildMenuBar());
         installFileDrop(getRootPane());
         cards.show(center, "welcome");
         updateActions();
@@ -587,28 +588,48 @@ public final class MainFrame {
         return bar;
     }
 
-    private void installShortcuts() {
-        int menuMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
-        JComponent root = getRootPane();
-        root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_O, menuMask), "open");
-        root.getActionMap().put("open", new AbstractAction() {
-            @Override public void actionPerformed(ActionEvent e) { chooseFile(); }
-        });
-        root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_K, menuMask), "palette");
-        root.getActionMap().put("palette", new AbstractAction() {
-            @Override public void actionPerformed(ActionEvent e) { openPalette(); }
-        });
-        root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "overview");
-        root.getActionMap().put("overview", new AbstractAction() {
-            @Override public void actionPerformed(ActionEvent e) { showOverview(); }
-        });
-        root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_F, menuMask), "find");
-        root.getActionMap().put("find", new AbstractAction() {
-            @Override public void actionPerformed(ActionEvent e) {
-                searchField.requestFocusInWindow();
-                searchField.selectAll();
-            }
-        });
+    /** The File, Edit, View and Help menus; they also carry the window's keyboard shortcuts. */
+    private javax.swing.JMenuBar buildMenuBar() {
+        return AppMenuBar.build(new AppMenuBar.Actions(
+                this::chooseFile,
+                () -> Settings.get().recentFiles(),
+                this::openFile,
+                this::clearRecentFiles,
+                () -> tailToggle.isEnabled(),
+                () -> tailToggle.isSelected(),
+                () -> tailToggle.doClick(),
+                () -> exportReport(ReportWriter.Format.MARKDOWN),
+                () -> exportReport(ReportWriter.Format.JSON),
+                this::copySummary,
+                () -> {
+                    searchField.requestFocusInWindow();
+                    searchField.selectAll();
+                },
+                () -> {
+                    searchField.setText("");
+                    severityChips[0].doClick();
+                    clearTimeRange();
+                },
+                this::showOverview,
+                () -> {
+                    for (int i = 0; i < severityChips.length; i++) {
+                        if (severityChips[i].isSelected()) {
+                            return i;
+                        }
+                    }
+                    return 0;
+                },
+                index -> severityChips[index].doClick(),
+                () -> rawToggle.isSelected() ? "raw" : "plain",
+                this::showLogView,
+                () -> Theme.mode() == Theme.Mode.DARK,
+                this::switchTheme,
+                this::openPalette,
+                this::showGlossary,
+                () -> AboutDialog.showShortcuts(frame),
+                () -> AboutDialog.showAbout(frame),
+                () -> frame.dispatchEvent(new java.awt.event.WindowEvent(frame, java.awt.event.WindowEvent.WINDOW_CLOSING)),
+                () -> result != null));
     }
 
     /** Accepts file drops on every component of the window. */
