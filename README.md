@@ -90,8 +90,8 @@ name, any action, and recent files, in three sections. Type a few letters and pr
 
 Also: light and dark themes with neutral surfaces and bright, clearly different colours for meaning (violet
 for fatal, red for errors, amber for warnings, blue for actions, teal chips for names of files and code in the
-explanations; the light / dark switch changes only the colours, instantly and in the same window, the way
-VS Code does: the open file, search, selection, scroll positions, dividers, folded sections and keyboard focus
+explanations; the light / dark switch changes only the colours, instantly and in the same window:
+the open file, search, selection, scroll positions, dividers, folded sections and keyboard focus
 all stay as they were; follows the macOS appearance at first start, then remembers your choice), compressed `.gz` logs (recognised by content, decompressed to a
 private temporary file, up to 8 GB; not watched live), and settings remembered between launches (theme, view,
 lines around, window position, last folder, up to 8 recent files) in the operating system's per-user preferences.
