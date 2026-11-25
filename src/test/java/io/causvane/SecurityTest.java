@@ -1,7 +1,6 @@
 package io.causvane;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.causvane.cli.CliRunner;
 import io.causvane.explain.ErrorExplainer;
 import io.causvane.explain.Explanation;
 import io.causvane.io.ContextBuilder;
@@ -33,15 +32,19 @@ class SecurityTest {
 
     private static final char ESC = 0x1B;
 
-    private static String runCli(String... args) {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        PrintStream stream = new PrintStream(out, true, StandardCharsets.UTF_8);
-        new CliRunner(stream, stream).run(args);
-        return out.toString(StandardCharsets.UTF_8);
+    /** What the window can produce from a log: the saved Markdown report and the copied ticket summary. */
+    private static String reportOf(Path log) throws IOException {
+        AnalysisResult result = new LogSession(log).load(null);
+        StringBuilder text = new StringBuilder();
+        ReportWriter.Format.MARKDOWN.writer().write(result, result.groups(), text);
+        for (ErrorGroup group : result.groups()) {
+            text.append(SummaryFormatter.errorSummary(result, group));
+        }
+        return text.toString();
     }
 
     @Test
-    void terminalEscapeSequencesInALogNeverReachTheTerminal(@TempDir Path dir) throws IOException {
+    void terminalEscapeSequencesInALogNeverReachTheWindowOrReports(@TempDir Path dir) throws IOException {
         Path log = dir.resolve("escape.log");
         Files.writeString(log, "2026-03-14 10:00:00 INFO before" + ESC + "]0;pwned title\u0007\n"
                 + "2026-03-14 10:00:01 ERROR payment failed " + ESC + "[2J" + ESC + "[1;1H" + ESC + "[8mhidden\n"
@@ -49,13 +52,13 @@ class SecurityTest {
                 + "\tat com.acme.Pay.run(Pay.java:7)\n"
                 + "{\"level\":\"error\",\"message\":\"json \\u001b[31mred\\u001b[0m\",\"stack\":\"Error: x\\u001b[2J\\n    at f (/app/a.js:1:2)\"}\n");
 
-        String text = runCli(log.toString(), "--no-color", "--context", "3", "--top", "5");
+        String text = reportOf(log);
         assertTrue(text.contains("Pay.java:7"));
         assertTrue(text.contains("a.js:1"));
-        assertEquals(-1, text.indexOf(ESC), "raw ESC must not be printed");
-        assertEquals(-1, text.indexOf('\u009B'), "one-byte CSI must not be printed");
-        assertEquals(-1, text.indexOf('\u0007'), "BEL must not be printed");
-        assertEquals(-1, text.indexOf('‮'), "direction override must not be printed");
+        assertEquals(-1, text.indexOf(ESC), "raw ESC must not reach a report");
+        assertEquals(-1, text.indexOf('\u009B'), "one-byte CSI must not reach a report");
+        assertEquals(-1, text.indexOf('\u0007'), "BEL must not reach a report");
+        assertEquals(-1, text.indexOf('‮'), "direction override must not reach a report");
 
         LogSession session = new LogSession(log);
         AnalysisResult result = session.load(null);
@@ -154,29 +157,6 @@ class SecurityTest {
     }
 
     @Test
-    void cliRefusesToOverwriteTheLogOrAnExistingFile(@TempDir Path dir) throws IOException {
-        Path log = dir.resolve("app.log");
-        String content = "2026-03-14 10:00:00 ERROR something broke\n";
-        Files.writeString(log, content);
-        Path existing = dir.resolve("report.md");
-        Files.writeString(existing, "keep me");
-        PrintStream sink = new PrintStream(new ByteArrayOutputStream());
-
-        assertEquals(2, new CliRunner(sink, sink).run(new String[] {log.toString(), "-o", log.toString(), "--force"}));
-        assertEquals(content, Files.readString(log), "the analyzed log must never be replaced");
-
-        assertEquals(2, new CliRunner(sink, sink).run(new String[] {log.toString(), "-o", existing.toString()}));
-        assertEquals("keep me", Files.readString(existing));
-
-        assertEquals(0, new CliRunner(sink, sink).run(new String[] {log.toString(), "-o", existing.toString(), "--force"}));
-        assertTrue(Files.readString(existing).contains("something broke"));
-
-        Path fresh = dir.resolve("new-report.md");
-        assertEquals(0, new CliRunner(sink, sink).run(new String[] {log.toString(), "-o", fresh.toString(), "--format", "markdown"}));
-        assertTrue(Files.readString(fresh).startsWith("# CausVane Report"));
-    }
-
-    @Test
     void aLogWithEndlessDistinctErrorsCannotGrowTheResultWithoutBound(@TempDir Path dir) throws IOException {
         StringBuilder sb = new StringBuilder();
         int distinct = 12_500;
@@ -191,7 +171,8 @@ class SecurityTest {
         assertEquals(distinct, result.errorCount(), "every occurrence is still counted");
         assertEquals(10_000, result.groups().size());
         assertEquals(distinct - 10_000, result.unlistedOccurrences());
-        String text = runCli(log.toString(), "--no-color", "--top", "0");
-        assertTrue(text.contains("2,500 further occurrences are counted above but not listed"));
+        StringBuilder report = new StringBuilder();
+        ReportWriter.Format.MARKDOWN.writer().write(result, result.groups(), report);
+        assertTrue(report.toString().contains("Not listed (over the listing limit) | 2,500 occurrences"), "the report says what was left out");
     }
 }

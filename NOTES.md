@@ -1,453 +1,110 @@
-# CausVane: installing, running and publishing notes
+# CausVane: installing, running and releasing
 
-Everything starts from one file: `target/CausVane.jar`. It contains the app and
-all its libraries, and it is the same file for macOS, Windows and Linux.
+CausVane is a desktop application: it always opens a window, and there is nothing
+to type in a terminal to install or use it.
 
-Build it with:
-
-```bash
-mvn clean package
-```
-
-Commands marked **(tested)** were run on this Mac. The rest are standard but have
-not been run here.
-
----
-
-Contents: [Installing](#installing-causvane) · [1. Running it](#1-running-it) ·
-[2. Native app](#2-native-app-with-its-own-name-and-icon-no-java-required) ·
-[Checking a computer](#checking-that-it-works-on-a-given-computer) ·
-[3. Publishing](#3-ways-to-publish-it) · [4. New versions](#4-releasing-a-new-version)
+Contents: [Installing](#installing-causvane) · [Using it](#using-it) ·
+[Developing it](#developing-it-in-intellij) · [Releasing a new version](#releasing-a-new-version)
 
 ---
 
 ## Installing CausVane
 
-There are two ways to install it. Pick one per computer.
+Download the file for your system from the latest release on GitHub:
+**https://github.com/AhmedAbdelaty22/CausVane/releases/latest**
 
-| | Option A: native app | Option B: the JAR |
+| System | File | What to do |
 |---|---|---|
-| What you copy | An app built for that system | One file, `CausVane.jar`, the same for every system |
-| Needs Java installed | No, Java is bundled | Yes, Java 21 or newer |
-| Name and icon in Dock / Start menu | CausVane | Icon yes; some systems label it "java" |
-| Size | About 80 MB | 3.5 MB |
-| Must be built on | The same kind of system it will run on | Anywhere |
+| macOS | `CausVane-macOS.zip` | Double-click the zip, then drag **CausVane** into **Applications**. |
+| Windows | `CausVane-Windows.zip` | Right-click the zip, choose **Extract All**, and move the **CausVane** folder to where you keep programs. Start `CausVane.exe` inside it. |
+| Linux | `CausVane-Linux.tar.gz` | Open it with your archive manager, extract the **CausVane** folder, and double-click `CausVane/bin/CausVane`. |
 
-CausVane keeps no settings, database or background service. Installing is copying
-files, and uninstalling is deleting them.
+Each app includes its own Java, so nothing else needs to be installed.
 
-Only the macOS steps below were carried out on a real machine. The Windows and
-Linux steps are the standard procedure for each system but have not been run.
+**The first start.** The apps are not signed with a paid developer certificate, so
+each system asks once whether to trust them:
 
-### macOS
+- **macOS:** right-click **CausVane** in Applications, choose **Open**, then **Open**
+  again in the dialog. From then on it opens normally.
+- **Windows:** if a blue "Windows protected your PC" box appears, click
+  **More info**, then **Run anyway**.
 
-**Option A: native app**
+**Keeping it handy.**
 
-1. Build it (once per version), from the project folder:
+- macOS: right-click its Dock icon while it is running, then **Options → Keep in Dock**.
+- Windows: right-click `CausVane.exe` and choose **Pin to Start** or **Pin to taskbar**.
+- Linux: most desktops let you right-click the launcher and add it to favourites.
 
-   ```bash
-   mvn clean package && sh packaging/build-app.sh
-   ```
+**Updating** is the same as installing: replace the app with the one from a newer
+release. Settings are kept.
 
-   This creates `dist/CausVane.app` **(tested)**.
-2. Drag `dist/CausVane.app` into the **Applications** folder.
-3. Open it from Launchpad or Spotlight. To keep it in the Dock, right-click its Dock
-   icon and choose Options, then Keep in Dock.
-4. If the app was copied from another Mac or downloaded, macOS blocks the first
-   launch because it is not signed by an Apple developer account. Right-click the
-   app, choose **Open**, then **Open** again. This is needed once.
-5. Optional, to use the command line from any folder, add this line to `~/.zshrc`
-   and open a new terminal:
-
-   ```bash
-   alias causvane="/Applications/CausVane.app/Contents/MacOS/CausVane"
-   ```
-
-   Then `causvane analyze app.log` works anywhere.
-
-**Option B: the JAR**
-
-1. Install Java 21 or newer if `java -version` does not show it: download the macOS
-   `.pkg` from https://adoptium.net and run it.
-2. Copy `CausVane.jar` anywhere, for example your Applications or Documents folder.
-3. Double-click it, or run `java -jar CausVane.jar`.
-
-**Uninstall:** drag `CausVane.app` (or the JAR) to the Trash. Remove the alias line
-if you added it.
-
-### Windows
-
-**Option A: native app**
-
-1. On a Windows PC with JDK 21+ and Maven, from the project folder:
-
-   ```bat
-   mvn clean package
-   ```
-
-   ```bat
-   packaging\build-app.bat
-   ```
-
-   This creates the folder `dist\CausVane` containing `CausVane.exe` (the window)
-   and `CausVaneCLI.exe` (the same program for use in a terminal).
-2. Copy the whole `dist\CausVane` folder to where programs live, for example
-   `C:\Program Files\CausVane` (needs administrator rights) or
-   `%LOCALAPPDATA%\Programs\CausVane` (no rights needed). Keep the folder
-   together; the `.exe` does not work on its own.
-3. Right-click `CausVane.exe` and choose **Pin to Start** or **Pin to taskbar**,
-   or **Send to → Desktop (create shortcut)**.
-4. The first launch may show a blue "Windows protected your PC" box, because the
-   program is not signed. Click **More info**, then **Run anyway**.
-5. Optional, for the command line from any folder: add the install folder to the
-   PATH (Start → "Edit environment variables for your account" → Path → New), then
-   use `CausVaneCLI analyze app.log`.
-
-For a proper installer with a Start-menu entry and an entry under "Installed apps",
-install the WiX Toolset, change `app-image` to `msi` in `packaging\build-app.bat`,
-and run it again. It produces `dist\CausVane-2.1.0.msi`; double-click to install.
-
-**Option B: the JAR**
-
-1. Install Java 21 or newer: download the Windows `.msi` from https://adoptium.net.
-   In the installer, enable **Associate .jar** and **Set JAVA_HOME / add to PATH**.
-2. Copy `CausVane.jar` anywhere and double-click it.
-3. If double-clicking does nothing, open a terminal in that folder and run
-   `java -jar CausVane.jar` to see the reason.
-
-**Uninstall:** delete the install folder and any shortcuts, or use "Installed apps"
-if you used the `.msi`. Remove the PATH entry if you added one.
-
-### Linux
-
-**Option A: native app**
-
-1. On a Linux machine with JDK 21+ and Maven, from the project folder:
-
-   ```bash
-   mvn clean package && sh packaging/build-app.sh
-   ```
-
-   This creates the folder `dist/CausVane` with the launcher `bin/CausVane`.
-2. Copy it into place and make the command available (no root needed):
-
-   ```bash
-   mkdir -p ~/.local/opt ~/.local/bin && cp -r dist/CausVane ~/.local/opt/ && ln -sf ~/.local/opt/CausVane/bin/CausVane ~/.local/bin/causvane
-   ```
-
-   `causvane` now starts the window, and `causvane analyze app.log` runs in the
-   terminal (if `~/.local/bin` is on your PATH, which is the default on most
-   distributions).
-3. To get an entry with the icon in the applications menu, save this as
-   `~/.local/share/applications/causvane.desktop`, replacing `YOU` with your user
-   name:
-
-   ```ini
-   [Desktop Entry]
-   Type=Application
-   Name=CausVane
-   Comment=Finds, explains and pinpoints errors in application logs
-   Exec=/home/YOU/.local/opt/CausVane/bin/CausVane %f
-   Icon=/home/YOU/.local/opt/CausVane/lib/CausVane.png
-   Categories=Development;Utility;
-   Terminal=false
-   ```
-
-For a system package instead, run `sh packaging/build-app.sh deb` (Debian, Ubuntu;
-needs `fakeroot`) or `sh packaging/build-app.sh rpm` (Fedora, RHEL; needs
-`rpm-build`), then install the file it puts in `dist/` with
-`sudo apt install ./dist/<file>.deb` or `sudo dnf install ./dist/<file>.rpm`. The
-package adds the menu entry itself.
-
-**Option B: the JAR**
-
-1. Install Java 21 or newer. It must not be a "headless" package, or the window
-   cannot open:
-   - Debian / Ubuntu: `sudo apt install openjdk-21-jre`
-   - Fedora / RHEL: `sudo dnf install java-21-openjdk`
-2. Copy `CausVane.jar` anywhere and run `java -jar CausVane.jar`.
-
-**Uninstall:** `rm -rf ~/.local/opt/CausVane ~/.local/bin/causvane ~/.local/share/applications/causvane.desktop`,
-or remove the package with `apt remove causvane` / `dnf remove causvane`.
-
-### After installing
-
-- Confirm it works on that computer with the self-test described under
-  [Checking that it works on a given computer](#checking-that-it-works-on-a-given-computer).
-- **Updating** to a new version is the same as installing: replace the app (or the
-  JAR) with the new one. Nothing needs migrating.
-- **Installing for a team:** build the native app once per operating system and
-  share that build, or share the JAR and have each person install Java.
+**Uninstalling:** move CausVane from Applications to the Trash (macOS), or delete the
+CausVane folder and any shortcuts (Windows, Linux). CausVane installs no service,
+database or background process.
 
 ---
 
-## 1. Running it
+## Using it
 
-### Any desktop with Java 21 or newer
+- Open a log with **Open**, by dropping the file on the window, or by choosing
+  **Open With → CausVane** on the file. Compressed `.gz` logs open directly.
+- **Watch live** follows a log that is still being written.
+- **More → Save a report** saves a Markdown or JSON report;
+  **Copy for a ticket** copies a summary ready to paste.
 
-Check Java first:
+Memory use does not grow with the size of the log, so large files open normally.
 
-```bash
-java -version
-```
-
-If it is missing or older than 21, install a JDK from https://adoptium.net (free,
-all platforms).
-
-| What you want | Command |
-|---|---|
-| Open the GUI **(tested)** | `java -jar CausVane.jar` |
-| Open the GUI on a file **(tested)** | `java -jar CausVane.jar app.log` |
-| Analyze in the terminal **(tested)** | `java -jar CausVane.jar analyze app.log` |
-| All options | `java -jar CausVane.jar --help` |
-
-### macOS
-
-- Terminal: the commands above.
-- Double-click: works if a JDK is installed. If macOS blocks it the first time,
-  right-click the JAR, choose Open, then confirm.
-- No Java on the machine: build the native app (section 2).
-
-### Windows
-
-- PowerShell or cmd: `java -jar CausVane.jar`
-- Double-click: works when `.jar` files are associated with Java. If nothing
-  happens, start it from a terminal once to see the error.
-- A window with no console: `javaw -jar CausVane.jar`
-- Optional `CausVane.bat` next to the JAR, so you can type `CausVane app.log`:
-
-  ```bat
-  @echo off
-  java -jar "%~dp0CausVane.jar" %*
-  ```
-
-### Linux
-
-- Desktop: `java -jar CausVane.jar`
-- Optional launcher script, saved as `CausVane` next to the JAR and made
-  executable with `chmod +x CausVane`:
-
-  ```bash
-  #!/bin/sh
-  exec java -jar "$(dirname "$0")/CausVane.jar" "$@"
-  ```
-
-- The JDK must not be a "headless" build for the GUI (on Debian/Ubuntu install
-  `openjdk-21-jre`, not `openjdk-21-jre-headless`).
-
-### Servers, SSH sessions, CI (no display)
-
-The GUI cannot start without a display; the app says so and exits. Use the CLI:
-
-```bash
-java -jar CausVane.jar analyze /var/log/app/app.log --min-level ERROR --top 5
-java -jar CausVane.jar analyze app.log --format json -o report.json
-java -jar CausVane.jar analyze app.log --follow
-```
-
-A common support workflow: run `analyze --format markdown -o report.md` on the
-server, or copy the log to your laptop and open it in the GUI.
-
-### WSL (Windows Subsystem for Linux)
-
-- CLI works like any Linux server.
-- GUI works on Windows 11 (WSLg). On Windows 10 it is simpler to run the JAR
-  from Windows itself and open the file through `\\wsl$\...`.
-
-### Docker (CLI only)
-
-Useful when the machine has Docker but no Java. Save as `Dockerfile` in the
-project root:
-
-```dockerfile
-FROM eclipse-temurin:21-jre
-COPY target/CausVane.jar /opt/CausVane.jar
-ENTRYPOINT ["java", "-jar", "/opt/CausVane.jar", "analyze"]
-```
-
-```bash
-docker build -t causvane .
-docker run --rm -v /var/log/app:/logs:ro causvane /logs/app.log --no-color
-```
-
-### Large files
-
-Memory use does not grow with file size, so the default heap is normally fine.
-A 55 MB / 668,000-line log was analyzed with `-Xmx256m` **(tested)**.
+Everything the window shows is described in the README and in
+`docs/CausVane-Documentation.pdf`.
 
 ---
 
-## 2. Native app with its own name and icon (no Java required)
+## Developing it in IntelliJ
 
-Run from the JAR, the program appears as a Java process: the window and Dock show
-the CausVane icon, but macOS still labels the Dock entry "java". A native build
-fixes that. It is a normal application called **CausVane**, with the icon in
-Finder / Explorer, the Dock and the task switcher, and it bundles its own Java so
-users install nothing else.
+1. Open the project folder in IntelliJ IDEA. It is a Maven project and needs
+   JDK 21 or newer.
+2. Run the shared run configuration **CausVane** (main class `io.causvane.Main`)
+   with the green ▶ button. The window opens straight from the compiled code;
+   nothing is installed on the computer.
+3. Run the tests from the **Maven** tool window: **CausVane → Lifecycle → package**
+   runs all of them and builds `target/CausVane.jar`, which the release apps are
+   made from.
 
-`jpackage` (part of the JDK) only builds for the operating system it runs on, so
-each platform needs its own build.
+The desktop apps for macOS, Windows and Linux are not built on your computer.
+GitHub builds them, each on its own system, when a release is published (see below).
 
-| Platform | Command (from the project root, after `mvn clean package`) | Result |
-|---|---|---|
-| macOS **(tested, 79 MB)** | `sh packaging/build-app.sh` | `dist/CausVane.app` |
-| Linux | `sh packaging/build-app.sh` | `dist/CausVane/bin/CausVane` |
-| Windows | `packaging\build-app.bat` | `dist\CausVane\CausVane.exe` |
+**The icon** is drawn in code by `io.causvane.gui.AppIcon`, so the window always has
+it. The files in `packaging/` (`CausVane.icns`, `.ico`, `.png`) are exports of that
+drawing, used by GitHub's build for each system's app. `packaging/IconExport.java`
+regenerates them after the design changes.
 
-On macOS, drag `dist/CausVane.app` into Applications to install it. The app also
-works as the CLI: `dist/CausVane.app/Contents/MacOS/CausVane analyze app.log`.
+**What keeps it working the same on every system:**
 
-For an installer instead of a bare app, pass a type: `sh packaging/build-app.sh dmg`
-(macOS, also `pkg`), `deb` or `rpm` (Linux, needs `fakeroot` / `rpm-build`). On
-Windows change `app-image` to `msi` in the `.bat` file (needs the WiX Toolset).
-
-**The icon.** It is drawn in code by `io.causvane.gui.AppIcon`, so the running
-window always has it. The files in `packaging/` (`CausVane.icns`, `.ico`, `.png`)
-are exports of that drawing for the native builds. After changing the design,
-regenerate them:
-
-```bash
-java -cp target/CausVane.jar packaging/IconExport.java packaging
-```
-
-```bash
-iconutil -c icns packaging/CausVane.iconset -o packaging/CausVane.icns && rm -rf packaging/CausVane.iconset
-```
-
-**Signing.** Unsigned apps trigger warnings on other people's machines:
-
-- macOS: Gatekeeper blocks unsigned downloads. Proper fix is an Apple Developer
-  ID (99 USD/year) plus notarization. Workaround for colleagues: right-click, Open.
-- Windows: SmartScreen warns on unsigned installers. Proper fix is a code-signing
-  certificate. Workaround: "More info", then "Run anyway".
-
----
-
-## Checking that it works on a given computer
-
-CausVane has a built-in check. On any Windows, macOS or Linux machine with a
-desktop, run:
-
-```bash
-java -jar CausVane.jar self-test samples/checkout-db-failover.log
-```
-
-It opens the real window, loads the file, confirms that errors were listed, one is
-selected and the window painted, then closes and prints one line:
-
-```
-CausVane self-test passed on Windows 11 amd64, Java 21.0.5: window opened, 7 errors listed, ...
-```
-
-Exit code 0 means it works on that system; 1 means it does not, with the reason.
-
-Status of each system:
-
-| System | Status |
-|---|---|
-| macOS (Apple Silicon, Java 25) | Self-test passed, from the JAR and from `CausVane.app` |
-| Windows | Not run yet. Code audited and adjusted for Windows; run the self-test to confirm |
-| Linux | Not run yet. Code audited and adjusted for Linux; run the self-test to confirm |
-
-**Automatic check on all three.** `.github/workflows/build.yml` makes GitHub run,
-on Linux, Windows and macOS for every push: the 157 tests, the CLI on every sample,
-the GUI self-test, and the native app build. It starts working as soon as the
-project is pushed to a GitHub repository (section 3, option B); each run also
-attaches the built app for each system as a download.
-
-What was done so the same JAR behaves the same everywhere:
-
-- Windows log files in UTF-16 (PowerShell `>` output) are detected and read, as are
-  Windows line endings and `C:\...` paths in stack traces.
+- Windows log files in UTF-16 (as PowerShell writes them) are detected and read, as
+  are Windows line endings and `C:\...` paths in stack traces.
 - No arrow or symbol characters that some systems' fonts lack; those are drawn as shapes.
 - Numbers and dates do not change with the system language.
-- The terminal output switches to plain ASCII on consoles that cannot show box characters.
-- The window never opens larger than the screen.
-- The Windows build includes `CausVaneCLI.exe`, because a windowed `.exe` cannot
-  print to a terminal.
-
-Known cosmetic difference: on Linux, when run from the JAR, some desktops group
-the window under a generic Java name in the dock. The native build does not have
-this.
+- The window never opens larger than the screen, and its layout adapts to any size
+  down to 720 × 520.
 
 ---
 
-## 3. Ways to publish it
+## Releasing a new version
 
-Nothing has been published yet. The project is not even a git repository, and
-publishing is something you should trigger yourself. Options, simplest first:
+The repository is **https://github.com/AhmedAbdelaty22/CausVane**.
 
-### A. Share the JAR directly
+1. Change the version number in four places: `<version>` in `pom.xml`, `VERSION` in
+   `src/main/java/io/causvane/Main.java`, and `--app-version` in
+   `packaging/build-app.sh` and `packaging/build-app.bat`.
+2. Run the tests in IntelliJ (Maven → Lifecycle → package), then commit and push.
+3. On GitHub, open **Releases → Draft a new release**, create the tag (for example
+   `v2.3.0`), write the notes, and click **Publish release**.
 
-Send `CausVane.jar` over a shared drive, internal wiki or chat. Recipients need
-Java 21+. Good for a single team. No setup.
+Publishing starts `.github/workflows/build.yml`: GitHub runs all the tests on
+Linux, Windows and macOS, builds the desktop app on each, and attaches
+`CausVane-macOS.zip`, `CausVane-Windows.zip` and `CausVane-Linux.tar.gz` to the
+release after all three pass. The table of downloads in
+`.github/RELEASE_NOTES.md` can be pasted into the release notes.
 
-### B. GitHub repository with Releases (recommended)
-
-Gives you version history, a download page and a place for bug reports.
-
-1. Decide on a licence first if the repository will be public (MIT and Apache-2.0
-   are the usual choices). The two libraries used, FlatLaf and Jackson, are both
-   Apache-2.0, so either is compatible.
-2. Create the repository and push (needs the `gh` tool and a GitHub account):
-
-   ```bash
-   git init && git add . && git commit -m "CausVane 1.0.0"
-   ```
-
-   ```bash
-   gh repo create CausVane --private --source . --push
-   ```
-
-   Use `--public` instead of `--private` to make it visible to everyone.
-3. Publish a release with the JAR attached:
-
-   ```bash
-   gh release create v1.0.0 target/CausVane.jar --title "CausVane 1.0.0" --notes "First release"
-   ```
-
-Before going public, read through `samples/` once more: the logs are invented,
-but confirm nothing in the repository is internal to your company.
-
-### C. Automatic installers for all three systems (GitHub Actions)
-
-Because `jpackage` cannot cross-build, the usual approach is a workflow that runs
-on `macos-latest`, `windows-latest` and `ubuntu-latest`, each running
-`mvn package` and then `jpackage`, and uploads the `.dmg`, `.msi` and `.deb` to
-the release. This builds on option B.
-
-### D. Package managers
-
-Lets users install and update with one command. Each needs a GitHub release to
-point at.
-
-- macOS: a Homebrew tap (`brew install yourname/tap/causvane`).
-- Windows: Scoop bucket or `winget` manifest.
-- Linux: attach the `.deb` / `.rpm` from option C.
-
-Worth it only once you have more than a handful of users.
-
-### E. Docker image
-
-Push the image from section 1 to Docker Hub or GitHub Container Registry
-(`docker push`). Suits teams that analyze logs on servers or in CI. CLI only.
-
-### F. Maven Central / GitHub Packages
-
-This publishes the code as a library for other Java projects to depend on. It is
-the wrong channel for an end-user application; skip it unless someone wants to
-embed the parser in their own tool.
-
-### Suggested path
-
-Start with A for your own team today. Move to B when you want versioned
-downloads. Add C when people without Java need it.
-
----
-
-## 4. Releasing a new version
-
-1. Change `<version>` in `pom.xml` and `VERSION` in
-   `src/main/java/io/causvane/Main.java`.
-2. `mvn clean package` (runs the 157 tests).
-3. Publish the new `target/CausVane.jar` through whichever channel you chose.
+Before going further public, read through `samples/` once more: the logs are
+invented, but confirm nothing in the repository is internal to your company.

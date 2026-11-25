@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 
 /**
  * Everything CausVane read, as a list of facts, each with a sentence saying what it means. One list for
- * the whole file and one for a single problem. The window, the terminal and the reports all show these
+ * the whole file and one for a single problem. The window and the saved reports both show these
  * same facts, so the wording stays the same everywhere.
  */
 public final class LogFacts {

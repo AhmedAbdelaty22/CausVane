@@ -5,10 +5,9 @@
 | File | For | How to start it |
 |---|---|---|
 | `CausVane-macOS.zip` | macOS | Unzip it and move **CausVane** to Applications. The first time, right-click the app and choose **Open**, because it isn't signed by Apple. |
-| `CausVane-Windows.zip` | Windows | Unzip it and run `CausVane.exe` inside the `CausVane` folder. |
-| `CausVane-Linux.tar.gz` | Linux | Extract it and run `CausVane/bin/CausVane`. |
-| `CausVane.jar` | Any system with Java 21 or newer | `java -jar CausVane.jar` |
+| `CausVane-Windows.zip` | Windows | Right-click it, choose **Extract All**, and start `CausVane.exe` inside the `CausVane` folder. |
+| `CausVane-Linux.tar.gz` | Linux | Extract it with your archive manager and double-click `CausVane/bin/CausVane`. |
 
-The macOS, Windows and Linux apps include Java, so nothing else needs to be installed.
+Each app includes its own Java, so nothing else needs to be installed.
 
 See the [README](https://github.com/AhmedAbdelaty22/CausVane#readme) for what CausVane does and how to use it.

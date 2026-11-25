@@ -15,7 +15,7 @@ import java.util.prefs.Preferences;
  * recently opened files. Stored with the operating system's per-user preferences (on macOS a file under
  * ~/Library/Preferences, on Windows the user's registry, on Linux a file under ~/.java).
  *
- * <p>With {@code -Dcausvane.noPersist=true} (used by the self-test) nothing is read or written.
+ * <p>With {@code -Dcausvane.noPersist=true} (used by automated checks) nothing is read or written.
  * Storage problems never stop the program: the setting is simply not remembered.
  */
 final class Settings {

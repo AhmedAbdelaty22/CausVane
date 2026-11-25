@@ -10,7 +10,7 @@
     <packaging>jar</packaging>
 
     <name>CausVane</name>
-    <description>Desktop GUI and CLI that pinpoints root-cause errors in application logs of any language</description>
+    <description>Desktop application that pinpoints and explains root-cause errors in application logs of any language</description>
 
     <properties>
         <maven.compiler.release>21</maven.compiler.release>
@@ -81,7 +81,7 @@
                     </archive>
                 </configuration>
             </plugin>
-            <!-- Single executable fat JAR: java -jar target/CausVane.jar -->
+            <!-- One self-contained JAR (target/CausVane.jar), packaged into the desktop apps for each system -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>

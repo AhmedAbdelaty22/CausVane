@@ -2,7 +2,6 @@ package io.causvane.explain;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.causvane.cli.CliRunner;
 import io.causvane.explain.IncidentLinker.Incident;
 import io.causvane.explain.IncidentLinker.Part;
 import io.causvane.io.LogSession;
@@ -73,7 +72,7 @@ class IncidentLinkerTest {
     }
 
     @Test
-    void incidentsAppearInTheTerminalReportsAndSummary() throws IOException {
+    void incidentsAppearInTheReportsAndSummary() throws IOException {
         AnalysisResult r = analyze("checkout-db-failover.log");
 
         StringBuilder markdown = new StringBuilder();
@@ -91,13 +90,6 @@ class IncidentLinkerTest {
 
         String summary = SummaryFormatter.errorSummary(r, at(r, "CallNotPermittedException", "OrderService.java:131"));
         assertTrue(summary.contains("Probably a knock-on effect of the database connection was cut while in use"), summary);
-
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        PrintStream stream = new PrintStream(out, true, StandardCharsets.UTF_8);
-        new CliRunner(stream, stream).run(new String[] {"samples/checkout-db-failover.log", "--no-color", "--top", "0"});
-        String text = out.toString(StandardCharsets.UTF_8);
-        assertTrue(text.contains("Probable incidents"));
-        assertTrue(text.contains("First failure  2026-11-09 14:05:17.000"));
     }
 
     @Test

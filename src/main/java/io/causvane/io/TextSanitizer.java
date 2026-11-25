@@ -4,7 +4,8 @@ package io.causvane.io;
  * Neutralises characters in log text that could act on whatever displays them rather than be shown.
  *
  * <p>A log file is untrusted input. Terminal escape sequences inside it can rewrite the screen, change
- * the window title or hide text when the line is printed by the CLI; bidirectional override characters
+ * the window title or hide text when a copied summary or saved report is later shown in a terminal;
+ * bidirectional override characters
  * can make text read differently from what it says. Both are replaced with the visible replacement
  * character, so the content is still shown but can no longer act.
  */

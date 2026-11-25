@@ -1,6 +1,6 @@
 # CausVane
 
-Desktop GUI and CLI for support engineers: open any application log and get the
+Desktop application for support engineers: open any application log and get the
 deduplicated errors, each pinpointed to the exact file, function and line of its
 root cause. It works on the logs of any application, whatever language or
 framework it was built with, in plain-text or JSON form.
@@ -13,31 +13,20 @@ input, permissions, deployment problems, crashes and more).
 Full documentation, with diagrams of how it works, is in
 [docs/CausVane-Documentation.pdf](docs/CausVane-Documentation.pdf).
 
-## Build
+## Install
 
-Requires JDK 21+ and Maven.
+Download the app for macOS, Windows or Linux from the
+[latest release](https://github.com/AhmedAbdelaty22/CausVane/releases/latest). Each one includes its own
+Java, so there is nothing else to install; `NOTES.md` has the steps for each system.
 
-```bash
-mvn clean package
-```
+## Develop
 
-This runs the tests and produces one self-contained JAR: `target/CausVane.jar`.
+Open the project in IntelliJ IDEA (JDK 21 or newer) and run the **CausVane** run configuration (main class
+`io.causvane.Main`). The window opens straight from the compiled code; nothing is installed. Maven's
+`package` phase runs the tests and builds `target/CausVane.jar`, from which GitHub builds the desktop apps
+when a release is published.
 
-## Run
-
-```bash
-java -jar target/CausVane.jar                        # GUI
-java -jar target/CausVane.jar samples/api-gateway-cert-expiry.log   # GUI, file opened
-java -jar target/CausVane.jar analyze samples/checkout-db-failover.log
-java -jar target/CausVane.jar --help
-```
-
-Double-clicking the JAR also opens the GUI.
-
-For a real desktop application named CausVane with its own icon and no Java
-requirement, run `sh packaging/build-app.sh` (see `NOTES.md`, section 2).
-
-### GUI
+## The window
 
 The window is built for people who have never read a log. It has four parts:
 
@@ -91,19 +80,9 @@ Also: light and dark themes with neutral surfaces and bright, clearly different 
 for fatal, red for errors, amber for warnings, blue for actions, teal chips for names of files and code in the
 explanations; the light / dark switch changes only the colours, instantly and in the same window, the way
 VS Code does: the open file, search, selection, scroll positions, dividers, folded sections and keyboard focus
-all stay as they were; follows the macOS appearance at first start, then remembers your choice;
-`-Dcausvane.theme=light|dark` forces one), compressed `.gz` logs (recognised by content, decompressed to a
+all stay as they were; follows the macOS appearance at first start, then remembers your choice), compressed `.gz` logs (recognised by content, decompressed to a
 private temporary file, up to 8 GB; not watched live), and settings remembered between launches (theme, view,
 lines around, window position, last folder, up to 8 recent files) in the operating system's per-user preferences.
-
-### CLI
-
-```bash
-java -jar target/CausVane.jar analyze app.log --min-level ERROR --top 5 --context 5
-java -jar target/CausVane.jar analyze app.log --grep c90b12aa3e7745f1
-java -jar target/CausVane.jar analyze app.log --format json -o report.json
-java -jar target/CausVane.jar analyze app.log --follow
-```
 
 ## How it works
 
@@ -114,7 +93,7 @@ java -jar target/CausVane.jar analyze app.log --follow
 | `io` | `LogSession` streams the file, supports tailing, and serves line ranges through a sparse `LineIndex`. |
 | `explain` | `ErrorExplainer` matches the root cause against the knowledge base and writes the plain-language `Explanation`. Add a rule with one `add(...)` call in `registerRules()`. |
 | `report` | Markdown / JSON reports and clipboard summaries. |
-| `gui`, `cli` | The Swing + FlatLaf workspace and the terminal front end. |
+| `gui` | The Swing + FlatLaf window. |
 
 Files are read as a stream; only error samples (25 per error, 600 lines each) and
 one byte offset per 256 lines are kept in memory, so file size is not a limit.
@@ -134,7 +113,7 @@ one byte offset per 256 lines are kept in memory, so file size is not a limit.
 - **Untrusted input.** Log text is treated as hostile: control and terminal escape characters are
   neutralised on reading, log content is escaped in Markdown reports, and the number of distinct
   errors listed is capped at 10,000 (everything is still counted).
-- `--output` never replaces the log being analyzed, and replaces another existing file only with `--force`.
+- Saving a report never replaces the log being analyzed, and the window asks before replacing another file.
 - Files are decoded as UTF-8. Lines longer than 64 KB are truncated.
 
 To treat more packages as framework code, pass extra prefixes to

@@ -1,6 +1,5 @@
 package io.causvane;
 
-import io.causvane.cli.CliRunner;
 import io.causvane.io.ContextBuilder;
 import io.causvane.io.LogEncoding;
 import io.causvane.io.LogSession;
@@ -108,30 +107,19 @@ class PortabilityTest {
     }
 
     @Test
-    void consoleOutputFallsBackToAsciiOnLegacyCodePages() {
-        String text = "  12 │ at a → b ×3 … done — ok · café";
-        assertEquals(text, CliRunner.forConsole(text, StandardCharsets.UTF_8));
-        String ascii = CliRunner.forConsole(text, StandardCharsets.US_ASCII);
-        assertEquals("  12 | at a -> b x3 ... done - ok . caf?", ascii);
-        assertTrue(StandardCharsets.US_ASCII.newEncoder().canEncode(ascii));
-    }
-
-    @Test
-    void outputDoesNotDependOnTheSystemLanguage() {
+    void outputDoesNotDependOnTheSystemLanguage() throws IOException {
         Locale original = Locale.getDefault();
         try {
             for (Locale locale : new Locale[] {Locale.forLanguageTag("ar-EG"), Locale.forLanguageTag("tr-TR"),
                     Locale.forLanguageTag("hi-IN-u-nu-deva"), Locale.GERMANY}) {
                 Locale.setDefault(locale);
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                PrintStream stream = new PrintStream(out, true, StandardCharsets.UTF_8);
-                int exit = new CliRunner(stream, stream).run(
-                        new String[] {Path.of("src", "test", "resources", "fixtures", "java-spring-app.log").toString(), "--no-color", "-n", "1"});
-                String text = out.toString(StandardCharsets.UTF_8);
-                assertEquals(0, exit);
-                assertTrue(text.contains("  1  ERROR       3  OrderProcessingException"), locale + ":\n" + text);
-                assertTrue(text.contains("2026-03-14 09:16:03.118"), locale.toString());
-                assertTrue(text.contains(">>>      29 │"), locale.toString());
+                AnalysisResult result = new LogSession(Path.of("src", "test", "resources", "fixtures", "java-spring-app.log")).load(null);
+                StringBuilder report = new StringBuilder();
+                io.causvane.report.ReportWriter.Format.MARKDOWN.writer().write(result, result.groups(), report);
+                String text = report.toString();
+                assertTrue(text.contains("OrderProcessingException"), locale + ":\n" + text);
+                assertTrue(text.contains("2026-03-14 09:16:03.118"), locale + ": dates keep Western digits");
+                assertTrue(text.contains("| 3 |") || text.contains("×3") || text.contains(" 3 "), locale + ": counts keep Western digits");
                 assertFalse(text.contains("\r"), "one newline style only");
             }
         } finally {

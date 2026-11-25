@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.causvane.analysis.ErrorFilter;
 import io.causvane.analysis.ErrorFilter.TextMatcher;
-import io.causvane.cli.CliRunner;
 import io.causvane.io.ContextBuilder;
 import io.causvane.io.ContextBuilder.ContextLine;
 import io.causvane.io.LogSession;
@@ -33,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@DisplayName("End to end: sample logs, tailing, context, reports and CLI")
+@DisplayName("End to end: sample logs, tailing, context and reports")
 class EndToEndTest {
 
     private static final Path SAMPLES = Path.of("src", "test", "resources", "fixtures");
@@ -213,21 +212,5 @@ class EndToEndTest {
         String summary = SummaryFormatter.errorSummary(result, result.groups().get(0));
         assertTrue(summary.startsWith("**[ERROR] NullReferenceException at DiscountCalculator.cs:39**"));
         assertTrue(summary.contains("Acme.Billing.Services.DiscountCalculator.Apply"));
-    }
-
-    @Test
-    void cliPrintsPinpointsAndRejectsBadUsage() {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        ByteArrayOutputStream err = new ByteArrayOutputStream();
-        CliRunner cli = new CliRunner(new PrintStream(out, true, StandardCharsets.UTF_8), new PrintStream(err, true, StandardCharsets.UTF_8));
-        int exit = cli.run(new String[] {SAMPLES.resolve("python-django.log").toString(), "--min-level", "ERROR", "--no-color", "-n", "2"});
-        String text = out.toString(StandardCharsets.UTF_8);
-        assertEquals(0, exit);
-        assertTrue(text.contains("shipping.py:37"));
-        assertTrue(text.contains(">>>"));
-        assertFalse(text.contains("WARN "));
-
-        assertEquals(2, new CliRunner(new PrintStream(out), new PrintStream(err)).run(new String[] {"--bogus"}));
-        assertEquals(1, new CliRunner(new PrintStream(out), new PrintStream(err)).run(new String[] {"does-not-exist.log"}));
     }
 }

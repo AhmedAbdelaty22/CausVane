@@ -1,14 +1,15 @@
 package io.causvane;
 
-import io.causvane.cli.CliRunner;
 import io.causvane.gui.MainFrame;
 
 import java.awt.GraphicsEnvironment;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
 
-/** Entry point: launches the GUI by default, or the CLI for {@code analyze}. */
+/**
+ * Entry point: CausVane is a desktop application and always opens its window. When the system starts it
+ * with a log file (for example "Open With → CausVane"), the window opens on that file.
+ */
 public final class Main {
 
     public static final String APP_NAME = "CausVane";
@@ -20,39 +21,16 @@ public final class Main {
         // must be set before any AWT class loads: the application name shown in the macOS menu bar
         System.setProperty("apple.awt.application.name", APP_NAME);
         System.setProperty("apple.awt.application.appearance", "system");
-        if (args.length == 0) {
-            launchGui(null);
-            return;
-        }
-        switch (args[0]) {
-            case "-h", "--help", "help" -> System.out.print(CliRunner.USAGE);
-            case "-V", "--version" -> System.out.println("CausVane " + VERSION);
-            case "analyze" -> System.exit(new CliRunner().run(Arrays.copyOfRange(args, 1, args.length)));
-            case "self-test" -> {
-                if (GraphicsEnvironment.isHeadless() || args.length < 2) {
-                    System.err.println("CausVane: self-test needs a display and a log file: CausVane self-test <file>");
-                    System.exit(2);
-                }
-                configureNativeAccess();
-                System.exit(MainFrame.selfTest(Path.of(args[1])));
-            }
-            case "gui" -> launchGui(args.length > 1 ? Path.of(args[1]) : null);
-            default -> {
-                Path file = Path.of(args[0]);
-                if (args[0].startsWith("-") || !Files.isRegularFile(file)) {
-                    System.err.println("CausVane: unknown command or missing file: " + args[0]);
-                    System.err.print(CliRunner.USAGE);
-                    System.exit(2);
-                }
-                launchGui(file);
-            }
-        }
-    }
-
-    private static void launchGui(Path file) {
         if (GraphicsEnvironment.isHeadless()) {
-            System.err.println("CausVane: no display available. Use: CausVane analyze <file>");
+            System.err.println("CausVane is a desktop application and needs a screen to open its window.");
             System.exit(2);
+        }
+        Path file = null;
+        if (args.length > 0 && !args[0].startsWith("-")) {
+            Path candidate = Path.of(args[0]);
+            if (Files.isRegularFile(candidate)) {
+                file = candidate; // opened with a log file: show it straight away
+            }
         }
         configureNativeAccess();
         MainFrame.launch(file);
@@ -60,8 +38,8 @@ public final class Main {
 
     /**
      * FlatLaf loads a small native library for window polish. JDK 24+ prints warnings for native calls unless
-     * the JVM was started with native access enabled (the packaged JAR's manifest does that). When it was
-     * not, e.g. when run straight from an IDE, skip the native library instead of triggering the warnings.
+     * the JVM was started with native access enabled (the packaged app does that). When it was not, e.g.
+     * when run straight from an IDE, skip the native library instead of triggering the warnings.
      */
     private static void configureNativeAccess() {
         try {
