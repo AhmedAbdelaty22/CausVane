@@ -13,21 +13,28 @@ Contents: [Installing](#installing-causvane) · [Using it](#using-it) ·
 Download the file for your system from the latest release on GitHub:
 **https://github.com/AhmedAbdelaty22/CausVane/releases/latest**
 
+**Install it**, like any other program (recommended):
+
 | System | File | What to do |
 |---|---|---|
-| macOS | `CausVane-macOS.zip` | Double-click the zip, then drag **CausVane** into **Applications**. |
-| Windows | `CausVane-Windows.zip` | Right-click the zip, choose **Extract All**, and move the **CausVane** folder to where you keep programs. Start `CausVane.exe` inside it. |
-| Linux | `CausVane-Linux.tar.gz` | Open it with your archive manager, extract the **CausVane** folder, and double-click `CausVane/bin/CausVane`. |
+| Windows 10 and 11 | `CausVane-Windows-Setup.exe` | Double-click it and follow the steps. It installs for your user account without administrator rights, lets you choose the folder, and adds CausVane to the Start menu and the desktop. |
+| macOS (Apple Silicon) | `CausVane-macOS.dmg` | Double-click it; in the window that opens, drag **CausVane** onto **Applications**. |
+| Ubuntu, Debian | `CausVane-Linux.deb` | Double-click it: it opens in your software installer (Software, App Center). Click **Install**. CausVane appears in the applications menu. |
+| Fedora, RHEL, openSUSE | `CausVane-Linux.rpm` | Double-click it: it opens in your software installer. Click **Install**. |
 
-Each app includes its own Java, so nothing else needs to be installed.
+**Or run it without installing:** `CausVane-Windows-Portable.zip`, `CausVane-macOS.zip`
+and `CausVane-Linux.tar.gz` contain the same app. Unpack one and start CausVane
+from the folder; deleting the folder removes it again.
 
-**The first start.** The apps are not signed with a paid developer certificate, so
-each system asks once whether to trust them:
+Each download includes its own Java, so nothing else needs to be installed.
 
+**The first start.** The programs are not signed with a paid developer certificate,
+so each system asks once whether to trust them:
+
+- **Windows:** if a blue "Windows protected your PC" box appears when you run the
+  setup, click **More info**, then **Run anyway**.
 - **macOS:** right-click **CausVane** in Applications, choose **Open**, then **Open**
   again in the dialog. From then on it opens normally.
-- **Windows:** if a blue "Windows protected your PC" box appears, click
-  **More info**, then **Run anyway**.
 
 **Keeping it handy.**
 
@@ -35,22 +42,35 @@ each system asks once whether to trust them:
 - Windows: right-click `CausVane.exe` and choose **Pin to Start** or **Pin to taskbar**.
 - Linux: most desktops let you right-click the launcher and add it to favourites.
 
-**Updating** is the same as installing: replace the app with the one from a newer
-release. Settings are kept.
+**Updating:** install the newer version over the old one. On Windows the setup
+replaces the old version by itself; on macOS drag the new CausVane onto
+Applications and choose **Replace**; on Linux open the newer package the same way.
+Settings are kept. **Help → Check for Updates** opens the latest release.
 
-**Uninstalling:** move CausVane from Applications to the Trash (macOS), or delete the
-CausVane folder and any shortcuts (Windows, Linux). CausVane installs no service,
-database or background process.
+**Uninstalling:**
+
+- Windows: **Settings → Apps → Installed apps → CausVane → Uninstall**.
+- macOS: drag CausVane from Applications to the Trash.
+- Linux: remove it in your software installer (search for CausVane).
+- Portable copies: delete the folder.
+
+CausVane installs no service, database or background process.
 
 ---
 
 ## Using it
 
-- Open a log with **Open**, by dropping the file on the window, or by choosing
-  **Open With → CausVane** on the file. Compressed `.gz` logs open directly.
+- Open a log with **File → Open** (or the **Open** button), by dropping the file on
+  the window, or by choosing **Open With → CausVane** on the file. **File → Open Recent**
+  lists the last 8 files. Compressed `.gz` logs open directly.
 - **Watch live** follows a log that is still being written.
-- **More → Save a report** saves a Markdown or JSON report;
-  **Copy for a ticket** copies a summary ready to paste.
+- **File → Save Report** saves a Markdown or JSON report; **Edit → Copy for a Ticket**
+  copies a summary ready to paste.
+- The menu bar has **File**, **Edit**, **View** (overview, which problems to show, the
+  log view, the theme, Quick actions) and **Help** (the words explained, keyboard
+  shortcuts, documentation, what's new, check for updates, report a problem, About).
+  On macOS the menus are in the bar at the top of the screen, and **About CausVane**
+  is in the CausVane menu.
 
 Memory use does not grow with the size of the log, so large files open normally.
 
@@ -70,8 +90,10 @@ Everything the window shows is described in the README and in
    runs all of them and builds `target/CausVane.jar`, which the release apps are
    made from.
 
-The desktop apps for macOS, Windows and Linux are not built on your computer.
-GitHub builds them, each on its own system, when a release is published (see below).
+The installers and portable apps for macOS, Windows and Linux are not built on your
+computer: GitHub builds them, each on its own system, when a release is published (see
+below). `packaging/build-app.sh` (macOS, Linux) and `packaging/build-app.bat` (Windows)
+are the scripts it runs; they use `jpackage` from the JDK.
 
 **The icon** is drawn in code by `io.causvane.gui.AppIcon`, so the window always has
 it. The files in `packaging/` (`CausVane.icns`, `.ico`, `.png`) are exports of that
@@ -93,7 +115,8 @@ regenerates them after the design changes.
 
 The repository is **https://github.com/AhmedAbdelaty22/CausVane**.
 
-1. Change the version number in four places: `<version>` in `pom.xml`, `VERSION` in
+1. Change the version number in four places (the scripts' copy is in a `VERSION=` line
+   in `build-app.sh`): `<version>` in `pom.xml`, `VERSION` in
    `src/main/java/io/causvane/Main.java`, and `--app-version` in
    `packaging/build-app.sh` and `packaging/build-app.bat`.
 2. Run the tests in IntelliJ (Maven → Lifecycle → package), then commit and push.
@@ -101,9 +124,11 @@ The repository is **https://github.com/AhmedAbdelaty22/CausVane**.
    `v2.3.0`), write the notes, and click **Publish release**.
 
 Publishing starts `.github/workflows/build.yml`: GitHub runs all the tests on
-Linux, Windows and macOS, builds the desktop app on each, and attaches
-`CausVane-macOS.zip`, `CausVane-Windows.zip` and `CausVane-Linux.tar.gz` to the
-release after all three pass. The table of downloads in
+Linux, Windows and macOS, builds the installer and the portable app on each, and
+attaches them to the release after all three pass: `CausVane-Windows-Setup.exe`,
+`CausVane-macOS.dmg`, `CausVane-Linux.deb`, `CausVane-Linux.rpm`, and the portable
+`CausVane-Windows-Portable.zip`, `CausVane-macOS.zip` and `CausVane-Linux.tar.gz`.
+Every push builds them too, so a problem shows up before release day. The table of downloads in
 `.github/RELEASE_NOTES.md` can be pasted into the release notes.
 
 Before going further public, read through `samples/` once more: the logs are

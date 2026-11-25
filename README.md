@@ -15,20 +15,32 @@ Full documentation, with diagrams of how it works, is in
 
 ## Install
 
-Download the app for macOS, Windows or Linux from the
-[latest release](https://github.com/AhmedAbdelaty22/CausVane/releases/latest). Each one includes its own
-Java, so there is nothing else to install; `NOTES.md` has the steps for each system.
+Download CausVane from the [latest release](https://github.com/AhmedAbdelaty22/CausVane/releases/latest)
+and install it like any other program:
+
+- **Windows:** `CausVane-Windows-Setup.exe`, a setup program (no administrator rights needed; Start menu,
+  desktop shortcut, uninstall from Installed apps).
+- **macOS:** `CausVane-macOS.dmg`; drag CausVane onto Applications.
+- **Linux:** `CausVane-Linux.deb` (Ubuntu, Debian) or `CausVane-Linux.rpm` (Fedora, RHEL, openSUSE); open it
+  in your software installer.
+
+Portable versions that run without installing are there too. Each download includes its own Java, so
+there is nothing else to install; `NOTES.md` has the steps for each system.
 
 ## Develop
 
 Open the project in IntelliJ IDEA (JDK 21 or newer) and run the **CausVane** run configuration (main class
 `io.causvane.Main`). The window opens straight from the compiled code; nothing is installed. Maven's
 `package` phase runs the tests and builds `target/CausVane.jar`, from which GitHub builds the desktop apps
-when a release is published.
+when a release is published, together with the installers.
 
 ## The window
 
-The window is built for people who have never read a log. It has four parts:
+The window is built for people who have never read a log. Above it is a menu bar (on macOS, the bar at the
+top of the screen): **File** (open, open recent, watch live, save a report), **Edit** (copy for a ticket, find a
+problem), **View** (the overview, which problems to show, the log view, the theme, Quick actions) and **Help**
+(the words explained, keyboard shortcuts, documentation, what's new, check for updates, report a problem,
+About CausVane). The window itself has four parts:
 
 - **Toolbar:** Open (or drop a file anywhere, Ctrl/Cmd+O), *Find a problem* (words or a request or trace ID, Ctrl/Cmd+F;
   advanced: text between slashes such as `/timeout|refused/` is a regular expression), All / Fatal / Errors /

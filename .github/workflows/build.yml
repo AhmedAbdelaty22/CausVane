@@ -1,4 +1,5 @@
-# Builds and verifies CausVane on Linux, Windows and macOS, and attaches the native app for each.
+# Builds and verifies CausVane on Linux, Windows and macOS: the portable app and the installer for each,
+# attached to a release when one is published.
 name: build
 
 on:
@@ -34,50 +35,70 @@ jobs:
       - name: Unit and integration tests
         run: mvn -B clean package
 
-      - name: Native app (macOS, Linux)
+      # 1. The portable apps: unpack and run, nothing to install
+      - name: Portable app (macOS, Linux)
         if: runner.os != 'Windows'
         run: sh packaging/build-app.sh
 
-      - name: Native app (Windows)
+      - name: Portable app (Windows)
         if: runner.os == 'Windows'
         shell: cmd
         run: packaging\build-app.bat
 
-      - name: Native app was built
+      - name: Pack the portable apps
+        shell: bash
         run: |
+          mkdir -p release
           case "$RUNNER_OS" in
-            macOS)   test -x dist/CausVane.app/Contents/MacOS/CausVane ;;
-            Linux)   test -x dist/CausVane/bin/CausVane ;;
-            Windows) test -f dist/CausVane/CausVane.exe ;;
+            macOS)   test -x dist/CausVane.app/Contents/MacOS/CausVane
+                     ditto -c -k --keepParent dist/CausVane.app release/CausVane-macOS.zip ;;
+            Linux)   test -x dist/CausVane/bin/CausVane
+                     tar -czf release/CausVane-Linux.tar.gz -C dist CausVane ;;
+            Windows) test -f dist/CausVane/CausVane.exe
+                     pwsh -NoProfile -Command "Compress-Archive -Path dist/CausVane -DestinationPath release/CausVane-Windows-Portable.zip" ;;
           esac
 
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: CausVane-${{ runner.os }}
-          path: dist/
+      # 2. The installers, like other desktop applications: a setup program on Windows, a disk image on
+      #    macOS, and packages for the Linux software installers
+      - name: Installer tools (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update -q && sudo apt-get install -y -q rpm fakeroot
 
-      # The steps below run only when a release is published on GitHub.
-      - name: Package for release (macOS)
-        if: github.event_name == 'release' && runner.os == 'macOS'
-        run: |
-          mkdir release
-          ditto -c -k --keepParent dist/CausVane.app release/CausVane-macOS.zip
-
-      - name: Package for release (Linux)
-        if: github.event_name == 'release' && runner.os == 'Linux'
-        run: |
-          mkdir release
-          tar -czf release/CausVane-Linux.tar.gz -C dist CausVane
-
-      - name: Package for release (Windows)
-        if: github.event_name == 'release' && runner.os == 'Windows'
+      - name: Installer tools (Windows)
+        if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          New-Item -ItemType Directory release | Out-Null
-          Compress-Archive -Path dist/CausVane -DestinationPath release/CausVane-Windows.zip
+          if (-not (Get-Command candle.exe -ErrorAction SilentlyContinue)) {
+            choco install wixtoolset --version 3.14.1 -y --no-progress
+            $wix = Get-ChildItem "${env:ProgramFiles(x86)}\WiX Toolset*\bin" -Directory | Select-Object -First 1
+            "$($wix.FullName)" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          }
 
-      - name: Keep release files
-        if: github.event_name == 'release'
+      - name: Installers (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          sh packaging/build-app.sh dmg
+          mv dist/CausVane-*.dmg release/CausVane-macOS.dmg
+
+      - name: Installers (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sh packaging/build-app.sh deb
+          sh packaging/build-app.sh rpm
+          mv dist/causvane_*.deb release/CausVane-Linux.deb
+          mv dist/causvane-*.rpm release/CausVane-Linux.rpm
+
+      - name: Installers (Windows)
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: |
+          call packaging\build-app.bat exe || exit /b 1
+          for %%f in (dist\CausVane-*.exe) do move "%%f" release\CausVane-Windows-Setup.exe
+
+      - name: Everything was built
+        run: ls -l release && test "$(ls release | wc -l)" -ge 2
+
+      - name: Keep the downloads
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: release-${{ runner.os }}
