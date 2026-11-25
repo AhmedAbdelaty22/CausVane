@@ -31,10 +31,11 @@ case "$TYPE" in
     EXTRA="--mac-package-identifier io.causvane --mac-package-name CausVane" ;;
   deb)
     EXTRA="--linux-package-name causvane --linux-shortcut --linux-menu-group Development;Utility
-           --linux-app-category devel --linux-deb-maintainer causvane@users.noreply.github.com" ;;
+           --linux-app-category devel --linux-deb-maintainer causvane@users.noreply.github.com
+           --about-url https://github.com/AhmedAbdelaty22/CausVane" ;;
   rpm)
     EXTRA="--linux-package-name causvane --linux-shortcut --linux-menu-group Development;Utility
-           --linux-app-category Development/Tools" ;;
+           --linux-app-category Development/Tools --about-url https://github.com/AhmedAbdelaty22/CausVane" ;;
   *)
     echo "Unknown type: $TYPE (use app-image, dmg, pkg, deb or rpm)" >&2; exit 2 ;;
 esac
@@ -52,7 +53,6 @@ jpackage \
   --description "Finds, explains and pinpoints errors in application logs" \
   --vendor "CausVane" \
   --copyright "CausVane contributors" \
-  --about-url "https://github.com/AhmedAbdelaty22/CausVane" \
   --icon "$ICON" \
   --input "$STAGE" \
   --main-jar CausVane.jar \

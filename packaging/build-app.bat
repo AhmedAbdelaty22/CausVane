@@ -14,15 +14,15 @@ set TYPE=%1
 if "%TYPE%"=="" set TYPE=app-image
 if not exist target\CausVane.jar (echo Build the JAR first ^(Maven package phase^) & exit /b 1)
 set EXTRA=
-if /i "%TYPE%"=="exe" set EXTRA=--win-menu --win-menu-group CausVane --win-shortcut --win-dir-chooser --win-per-user-install --win-upgrade-uuid 68ee8a84-4b72-4fa1-9aca-7d67a569d87f
-if /i "%TYPE%"=="msi" set EXTRA=--win-menu --win-menu-group CausVane --win-shortcut --win-dir-chooser --win-per-user-install --win-upgrade-uuid 68ee8a84-4b72-4fa1-9aca-7d67a569d87f
+if /i "%TYPE%"=="exe" set EXTRA=--win-menu --win-menu-group CausVane --win-shortcut --win-dir-chooser --win-per-user-install --win-upgrade-uuid 68ee8a84-4b72-4fa1-9aca-7d67a569d87f --about-url https://github.com/AhmedAbdelaty22/CausVane
+if /i "%TYPE%"=="msi" set EXTRA=--win-menu --win-menu-group CausVane --win-shortcut --win-dir-chooser --win-per-user-install --win-upgrade-uuid 68ee8a84-4b72-4fa1-9aca-7d67a569d87f --about-url https://github.com/AhmedAbdelaty22/CausVane
 if /i "%TYPE%"=="app-image" if exist dist\CausVane rmdir /s /q dist\CausVane
 if exist dist\stage rmdir /s /q dist\stage
 mkdir dist\stage
 copy target\CausVane.jar dist\stage\ >nul
 jpackage --type %TYPE% --name CausVane --app-version 2.2.0 ^
   --description "Finds, explains and pinpoints errors in application logs" --vendor "CausVane" ^
-  --copyright "CausVane contributors" --about-url "https://github.com/AhmedAbdelaty22/CausVane" ^
+  --copyright "CausVane contributors" ^
   --icon packaging\CausVane.ico --input dist\stage --main-jar CausVane.jar ^
   --add-modules java.base,java.desktop,java.logging,java.sql ^
   --java-options "--enable-native-access=ALL-UNNAMED" --java-options "-Xmx1g" %EXTRA% --dest dist
