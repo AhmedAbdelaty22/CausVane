@@ -8,7 +8,7 @@ if exist dist\CausVane rmdir /s /q dist\CausVane
 if exist dist\stage rmdir /s /q dist\stage
 mkdir dist\stage
 copy target\CausVane.jar dist\stage\ >nul
-jpackage --type app-image --name CausVane --app-version 2.1.0 ^
+jpackage --type app-image --name CausVane --app-version 2.2.0 ^
   --description "Finds, explains and pinpoints errors in application logs" --vendor "CausVane" ^
   --icon packaging\CausVane.ico --input dist\stage --main-jar CausVane.jar ^
   --add-modules java.base,java.desktop,java.logging,java.sql ^

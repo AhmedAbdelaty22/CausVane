@@ -25,7 +25,7 @@ mkdir -p dist
 jpackage \
   --type "$TYPE" \
   --name CausVane \
-  --app-version 2.1.0 \
+  --app-version 2.2.0 \
   --description "Finds, explains and pinpoints errors in application logs" \
   --vendor "CausVane" \
   --icon "$ICON" \
