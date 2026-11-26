@@ -22,7 +22,7 @@ final class WelcomePanel extends JPanel {
 
     private final JPanel dropZone = new JPanel();
 
-    WelcomePanel(Runnable onOpen, java.util.List<java.nio.file.Path> recent,
+    WelcomePanel(Runnable onOpen, Runnable onPaste, java.util.List<java.nio.file.Path> recent,
                  java.util.function.Consumer<java.nio.file.Path> openRecent) {
         super(new GridBagLayout());
         setBackground(Theme.EDITOR);
@@ -44,15 +44,28 @@ final class WelcomePanel extends JPanel {
         open.setFont(open.getFont().deriveFont(Font.BOLD, 14f));
         open.setMargin(new java.awt.Insets(8, 22, 8, 22));
         open.addActionListener(e -> onOpen.run());
+        JButton paste = new JButton("Paste Log Text");
+        paste.putClientProperty(FlatClientProperties.BUTTON_TYPE, FlatClientProperties.BUTTON_TYPE_ROUND_RECT);
+        paste.setFont(paste.getFont().deriveFont(14f));
+        paste.setMargin(new java.awt.Insets(8, 22, 8, 22));
+        paste.setToolTipText("Analyse log lines copied from a chat, ticket or e-mail, without saving a file first");
+        paste.addActionListener(e -> onPaste.run());
+        javax.swing.JPanel buttons = new javax.swing.JPanel();
+        buttons.setOpaque(false);
+        buttons.setLayout(new BoxLayout(buttons, BoxLayout.X_AXIS));
+        buttons.add(open);
+        buttons.add(Box.createHorizontalStrut(10));
+        buttons.add(paste);
 
         boolean mac = System.getProperty("os.name", "").toLowerCase(java.util.Locale.ROOT).contains("mac");
         String key = mac ? "\u2318" : "Ctrl+";
-        JLabel hints = new JLabel(key + "O  open a file      " + key + "K  quick actions      " + key + "F  filter");
+        String shiftKey = mac ? "\u21e7\u2318" : "Ctrl+Shift+";
+        JLabel hints = new JLabel(key + "O  open a file      " + shiftKey + "V  paste log text      " + key + "K  quick actions");
         hints.setForeground(Theme.DIM);
         hints.setFont(hints.getFont().deriveFont(12f));
 
         for (Component c : new Component[] {arrow, Box.createVerticalStrut(6), title, Box.createVerticalStrut(8), subtitle,
-                Box.createVerticalStrut(24), open, Box.createVerticalStrut(22), hints}) {
+                Box.createVerticalStrut(24), buttons, Box.createVerticalStrut(22), hints}) {
             if (c instanceof javax.swing.JComponent jc) {
                 jc.setAlignmentX(Component.CENTER_ALIGNMENT);
             }

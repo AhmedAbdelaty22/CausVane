@@ -7,6 +7,7 @@ import io.causvane.analysis.ErrorFilter;
 import io.causvane.analysis.ErrorFilter.TextMatcher;
 import io.causvane.io.ContextBuilder;
 import io.causvane.io.LogSession;
+import io.causvane.io.PastedLog;
 import io.causvane.model.AnalysisResult;
 import io.causvane.model.ErrorGroup;
 import io.causvane.model.Severity;
@@ -99,7 +100,7 @@ public final class MainFrame {
     private final JTextField searchField = new JTextField(26);
     private static final Severity[] CHIP_LEVELS = {null, Severity.FATAL, Severity.ERROR, Severity.WARN};
     private static final String[] CHIP_NAMES = {"All", "Fatal", "Errors", "Warnings"};
-    private final WelcomePanel welcome = new WelcomePanel(this::chooseFile, Settings.get().recentFiles(), this::openFile);
+    private final WelcomePanel welcome = new WelcomePanel(this::chooseFile, this::pasteLog, Settings.get().recentFiles(), this::openFile);
     private JLabel brandLabel;
     private JButton quickButton;
     private JSplitPane mainSplit;
@@ -400,6 +401,23 @@ public final class MainFrame {
         return bar;
     }
 
+    /** The name the open log is shown under: its file name, or "Pasted log". */
+    private String shownName() {
+        return result == null ? "" : PastedLog.isPasted(result.file()) ? "Pasted log" : String.valueOf(result.file().getFileName());
+    }
+
+    /** Where to offer saving reports: next to the log, or for pasted text the last folder used. */
+    private Path saveFolder() {
+        if (result == null) {
+            return null;
+        }
+        if (PastedLog.isPasted(result.file())) {
+            Path last = Settings.get().lastFolder();
+            return last != null ? last : Path.of(System.getProperty("user.home"));
+        }
+        return result.file().toAbsolutePath().getParent();
+    }
+
     private JPanel buildMetrics() {
         timelineChart.onRangeSelected(this::setTimeRange);
         return summary;
@@ -592,6 +610,7 @@ public final class MainFrame {
     private javax.swing.JMenuBar buildMenuBar() {
         return AppMenuBar.build(new AppMenuBar.Actions(
                 this::chooseFile,
+                this::pasteLog,
                 () -> Settings.get().recentFiles(),
                 this::openFile,
                 this::clearRecentFiles,
@@ -663,6 +682,33 @@ public final class MainFrame {
 
     // ---------------------------------------------------------------- loading and tailing
 
+    /** The log on screen; a pasted one is deleted when another log is opened. */
+    private Path shownFile;
+
+    /**
+     * Analyses log text from the clipboard, for logs that arrive in a chat, ticket or e-mail. Opening a
+     * file works as before; this is a second way in.
+     */
+    private void pasteLog() {
+        String text;
+        try {
+            java.awt.datatransfer.Transferable content = Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null);
+            text = content != null && content.isDataFlavorSupported(DataFlavor.stringFlavor)
+                    ? (String) content.getTransferData(DataFlavor.stringFlavor) : null;
+        } catch (Exception e) {
+            text = null;
+        }
+        if (text == null || text.isBlank()) {
+            Toast.show(frame, "The clipboard has no text. Copy the log lines first, then paste.");
+            return;
+        }
+        try {
+            openFile(io.causvane.io.PastedLog.write(text));
+        } catch (IOException e) {
+            showError("Could not use the pasted text", e);
+        }
+    }
+
     private void chooseFile() {
         Path folder = session != null ? session.file().toAbsolutePath().getParent() : Settings.get().lastFolder();
         JFileChooser chooser = new JFileChooser(folder == null ? null : folder.toFile());
@@ -690,24 +736,32 @@ public final class MainFrame {
             tailToggle.setSelected(false);
             tailTimer.stop();
         }
+        boolean pasted = io.causvane.io.PastedLog.isPasted(file);
+        if (shownFile != null && !shownFile.equals(file)) {
+            io.causvane.io.PastedLog.delete(shownFile); // a pasted log is not kept once another one is opened
+        }
+        shownFile = file;
+        String label = pasted ? "Pasted log" : String.valueOf(file.getFileName());
         LogSession newSession = new LogSession(file);
         session = newSession;
-        Settings.get().addRecent(file);
+        if (!pasted) {
+            Settings.get().addRecent(file);
+        }
         result = null;
         selected = null;
         tableModel.setGroups(List.of());
         spotlight.clear();
-        contextViewer.showMessage("Analyzing " + file.getFileName() + "…");
+        contextViewer.showMessage("Analyzing " + label + "…");
         contextTitle.setText("THE LOG LINES, EXPLAINED");
-        summary.reading(String.valueOf(file.getFileName()));
+        summary.reading(label);
         overviewMode = true;
         showCard("overview");
-        overviewPanel.showMessage("Reading " + file.getFileName() + "…");
+        overviewPanel.showMessage("Reading " + label + "…");
         summary.setVisible(true);
-        storyView.showMessage("Reading " + file.getFileName() + "…");
+        storyView.showMessage("Reading " + label + "…");
         cards.show(center, "workspace");
-        setTitle(TITLE + " — " + file.getFileName());
-        status.setText("Analyzing " + file + "…");
+        setTitle(TITLE + " — " + label);
+        status.setText("Analyzing " + (pasted ? label : file) + "…");
         progress.setValue(0);
         progress.setVisible(true);
         updateActions();
@@ -724,7 +778,7 @@ public final class MainFrame {
                 long[] last = chunks.get(chunks.size() - 1);
                 if (session == newSession && last[1] > 0) {
                     progress.setValue((int) (last[0] * 1000 / last[1]));
-                    status.setText("Analyzing " + file.getFileName() + "… " + Formats.bytes(last[0]) + " of " + Formats.bytes(last[1]));
+                    status.setText("Analyzing " + label + "… " + Formats.bytes(last[0]) + " of " + Formats.bytes(last[1]));
                 }
             }
 
@@ -738,14 +792,15 @@ public final class MainFrame {
                     AnalysisResult loaded = get();
                     long millis = (System.nanoTime() - started) / 1_000_000;
                     applyResult(loaded);
-                    status.setText(file + "  ·  " + Formats.bytes(loaded.fileSize()) + "  ·  analyzed in " + millis + " ms");
+                    status.setText((pasted ? label + " (" + Formats.count(loaded.totalLines()) + " lines, kept only until you open another log)" : file)
+                            + "  ·  " + Formats.bytes(loaded.fileSize()) + "  ·  analyzed in " + millis + " ms");
                 } catch (CancellationException e) {
                     status.setText("Cancelled.");
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 } catch (ExecutionException e) {
                     cards.show(center, "welcome");
-                    showError("Could not read " + file.getFileName(), e.getCause());
+                    showError("Could not read " + label, e.getCause());
                 }
             }
         };
@@ -939,8 +994,8 @@ public final class MainFrame {
         if (result == null) {
             return;
         }
-        String base = result.file().getFileName().toString().replaceFirst("\\.[^.]+$", "");
-        Path exportFolder = result.file().toAbsolutePath().getParent();
+        String base = shownName().replaceFirst("\\.[^.]+$", "").replace(' ', '-');
+        Path exportFolder = saveFolder();
         JFileChooser chooser = new JFileChooser(exportFolder == null ? null : exportFolder.toFile());
         chooser.setDialogTitle("Export " + format.label() + " Report");
         chooser.setSelectedFile(new File(base + "-report." + format.extension()));
@@ -1082,6 +1137,8 @@ public final class MainFrame {
             }
         }
         commands.add(new CommandPalette.Command("Actions", "Open a log file…", key + "O", "browse load", this::chooseFile));
+        commands.add(new CommandPalette.Command("Actions", "Paste log text from the clipboard", (mac ? "\u21e7\u2318" : "Ctrl+Shift+") + "V",
+                "clipboard paste text chat ticket", this::pasteLog));
         if (result != null) {
             commands.add(new CommandPalette.Command("Actions", "Show the overview of the whole log", "Esc",
                     "summary story timeline health", this::showOverview));
@@ -1307,6 +1364,7 @@ public final class MainFrame {
             severityChips[i].setSelected(previous.severityChips[i].isSelected());
         }
         session = previous.session;
+        shownFile = previous.shownFile;
         selected = previous.selected;
         occurrence = previous.occurrence;
         overviewMode = previous.overviewMode;
@@ -1346,9 +1404,10 @@ public final class MainFrame {
         boolean loaded = result != null;
         moreButton.setEnabled(loaded);
         boolean archive = session != null && session.isCompressed();
-        tailToggle.setEnabled(session != null && !archive);
-        tailToggle.setToolTipText(archive
-                ? "Live tail is not available for a compressed (archived) log"
+        boolean pasted = shownFile != null && io.causvane.io.PastedLog.isPasted(shownFile);
+        tailToggle.setEnabled(session != null && !archive && !pasted);
+        tailToggle.setToolTipText(pasted ? "Watching live needs a log file; pasted text does not change"
+                : archive ? "Live tail is not available for a compressed (archived) log"
                 : "Watch the file and analyze new lines as they are written");
     }
 
