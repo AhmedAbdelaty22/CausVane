@@ -60,9 +60,10 @@ CausVane installs no service, database or background process.
 
 ## Using it
 
-- Open a log with **File → Open** (or the **Open** button), by dropping the file on
+- Open a log with **File → Open** (or **Open Log File** on the start screen), by dropping the file on
   the window, or by choosing **Open With → CausVane** on the file. Log text copied from
-  somewhere else can be pasted with **File → Paste Log Text** instead. **File → Open Recent**
+  somewhere else can be pasted into the box that **File → Paste Log Text** opens instead.
+  **× Close** beside the log's name (or **File → Close Log**) goes back to the start screen. **File → Open Recent**
   lists the last 8 files. Compressed `.gz` logs open directly.
 - **Watch live** follows a log that is still being written.
 - **Simple · Normal · Expert** in the toolbar sets how much technical detail is shown.

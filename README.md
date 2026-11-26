@@ -42,12 +42,13 @@ when a release is published, together with the installers.
 ## The window
 
 The window is built for people who have never read a log. Above it is a menu bar (on macOS, the bar at the
-top of the screen): **File** (open, paste log text, open recent, watch live, save a report), **Edit** (copy for a ticket, find a
+top of the screen): **File** (open, paste log text, open recent, close the log, watch live, save a report), **Edit** (copy for a ticket, find a
 problem), **View** (the overview, which problems to show, the log view, the detail level, the theme, Quick actions,
 Meeting Mode and saving the slides as PDF) and **Help** (the words explained, search the web for a problem, keyboard shortcuts, documentation, what's new, check for updates, report a problem,
 About CausVane). The window itself has four parts:
 
-- **Toolbar:** Open (or drop a file anywhere, Ctrl/Cmd+O), *Find a problem* (words or a request or trace ID, Ctrl/Cmd+F;
+- **Toolbar:** the open log's name with **× Close** (open a log from the start screen, File → Open or by
+  dropping it anywhere, Ctrl/Cmd+O), *Find a problem* (words or a request or trace ID, Ctrl/Cmd+F;
   advanced: text between slashes such as `/timeout|refused/` is a regular expression), All / Fatal / Errors /
   Warnings (one switch, with the number of problems of each), **Simple · Normal · Expert** (how much technical
   detail to show, see below), **Watch live** (follows a file that is
@@ -60,7 +61,7 @@ About CausVane). The window itself has four parts:
   left, times underneath and totals in the legend. Hover a bar to read its exact numbers in the chart's
   title; click a bar, or drag across several, to list only that period (the period chip in the toolbar goes back).
 - **Overview of the whole log** (shown when a file opens, and with Esc or the **← Overview** button at the top of a problem): how
-  serious it is, one paragraph on what went on, **Looks like:** what kind of application wrote the log, what happened in order, where to start (each with an
+  serious it is, one paragraph on what went on, **Looks like** (highlighted in a box): what kind of application wrote the log, what happened in order, where to start (each with an
   **Open ›** link to its problem), a **map of all problems** (a folding tree: each probable incident as a
   branch with its first failure, warning signs and knock-on effects, and every other problem under its kind), at a glance the busiest minute, the kinds of problem and the files of the
   code involved, and **everything read from the log**: every entry counted by level, the period covered,
@@ -88,7 +89,8 @@ About CausVane). The window itself has four parts:
 
 **Paste instead of a file.** A log copied from a chat, a ticket or a terminal can be pasted with
 **File → Paste Log Text** (Cmd+Shift+V / Ctrl+Shift+V), the **Paste Log Text** button on the start screen, or
-Quick actions; opening a file works as before. The text is kept in a private temporary file that only your
+Quick actions; opening a file works as before. A window opens with an empty box: paste the lines, check or trim
+them, then click **Analyze** (Cmd+Enter / Ctrl+Enter); it shows how many lines were pasted. The text is kept in a private temporary file that only your
 user account can read, deleted when another log is opened or CausVane quits.
 
 **Detail: Simple · Normal · Expert** (in the toolbar and under **View → Detail**, remembered between launches).
@@ -113,7 +115,9 @@ slides with large text: what happened, when, the impact, the likely cause, its k
 next. The arrow keys move between slides and Esc leaves; the slides follow the theme and the detail level.
 **Save as PDF** (on the slides, or **View → Save Meeting Slides as PDF…**) writes them as a PDF to send round.
 
-*Clear recent files* is on the start screen, in **More** and in Quick actions.
+**Closing a log.** While a log is open, the toolbar shows its name and a **× Close** button (also **File → Close Log**, Cmd+W / Ctrl+W, and Quick actions). Closing stops watching, releases the file and goes back to the start screen, where the recent files are listed again; a pasted log's private copy is deleted at once. To open another log, use the start screen, **File → Open** (Cmd+O / Ctrl+O), **Open Recent**, or drop a file on the window.
+
+*Clear recent files* is on the start screen, in **More** and in Quick actions. Every button has the same rounded look, tinted by what it does: blue to bring a log in or run the main action (Open Log File, Paste Log Text, Analyze), red to close or clear, green to share or save (Copy for a ticket, More, Save as PDF), indigo for the web (Search the web), amber for Watch live, and grey to move around or cancel.
 
 The window can be made larger or smaller by dragging its edges, down to 720 × 520, or maximized. The layout
 follows: the toolbar shortens its labels, the chart narrows, the facts wrap onto more lines, and in a narrow
