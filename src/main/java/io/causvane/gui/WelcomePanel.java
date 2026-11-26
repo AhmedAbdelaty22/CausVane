@@ -42,17 +42,17 @@ final class WelcomePanel extends JPanel {
         JButton open = new JButton("Open Log File");
         open.putClientProperty(FlatClientProperties.BUTTON_TYPE, FlatClientProperties.BUTTON_TYPE_ROUND_RECT);
         open.setFont(open.getFont().deriveFont(Font.BOLD, 14f));
-        open.setMargin(new java.awt.Insets(8, 22, 8, 22));
         open.addActionListener(e -> onOpen.run());
         JButton paste = new JButton("Paste Log Text");
         paste.putClientProperty(FlatClientProperties.BUTTON_TYPE, FlatClientProperties.BUTTON_TYPE_ROUND_RECT);
         paste.setFont(paste.getFont().deriveFont(14f));
-        paste.setMargin(new java.awt.Insets(8, 22, 8, 22));
         paste.setToolTipText("Analyse log lines copied from a chat, ticket or e-mail, without saving a file first");
         paste.addActionListener(e -> onPaste.run());
         javax.swing.JPanel buttons = new javax.swing.JPanel();
         buttons.setOpaque(false);
         buttons.setLayout(new BoxLayout(buttons, BoxLayout.X_AXIS));
+        Buttons.style(open, Buttons.Role.PRIMARY, true);
+        Buttons.style(paste, Buttons.Role.PRIMARY, true);
         buttons.add(open);
         buttons.add(Box.createHorizontalStrut(10));
         buttons.add(paste);
@@ -108,10 +108,9 @@ final class WelcomePanel extends JPanel {
             }
             JButton clear = new JButton("Clear recent files");
             clear.putClientProperty(FlatClientProperties.BUTTON_TYPE, FlatClientProperties.BUTTON_TYPE_BORDERLESS);
-            clear.setForeground(Theme.DIM);
-            clear.setFont(clear.getFont().deriveFont(11.5f));
             clear.setToolTipText("Forget the list of recently opened files (the files themselves are not touched)");
             clear.setAlignmentX(Component.CENTER_ALIGNMENT);
+            Buttons.style(clear, Buttons.Role.CLOSE);
             clear.addActionListener(e -> {
                 Settings.get().clearRecent();
                 clearRecent();

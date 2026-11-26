@@ -89,6 +89,11 @@ final class SpotlightPanel extends JPanel {
         back.setFont(back.getFont().deriveFont(Font.BOLD, 12f));
         back.setToolTipText("Back to the overview of the whole log (Esc)");
         back.setFocusable(false);
+        Buttons.style(back, Buttons.Role.NEUTRAL);
+        Buttons.style(previous, Buttons.Role.NEUTRAL);
+        Buttons.style(next, Buttons.Role.NEUTRAL);
+        Buttons.style(search, Buttons.Role.WEB);
+        Buttons.style(copy, Buttons.Role.SHARE);
         JPanel header = new JPanel();
         header.setOpaque(false);
         header.setLayout(new BoxLayout(header, BoxLayout.X_AXIS));

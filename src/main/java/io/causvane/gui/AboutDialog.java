@@ -60,6 +60,9 @@ final class AboutDialog {
         updates.addActionListener(e -> AppMenuBar.browse(Main.REPOSITORY + "/releases/latest"));
         JButton close = new JButton("Close");
         close.addActionListener(e -> dialog.dispose());
+        Buttons.style(site, Buttons.Role.WEB);
+        Buttons.style(updates, Buttons.Role.WEB);
+        Buttons.style(close, Buttons.Role.NEUTRAL);
         buttons.add(site);
         buttons.add(updates);
         buttons.add(close);
@@ -101,6 +104,7 @@ final class AboutDialog {
         buttons.setBorder(BorderFactory.createEmptyBorder(0, 16, 14, 16));
         JButton close = new JButton("Close");
         close.addActionListener(e -> dialog.dispose());
+        Buttons.style(close, Buttons.Role.NEUTRAL);
         buttons.add(close);
         show(dialog, body, buttons, close);
     }

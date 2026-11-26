@@ -81,7 +81,6 @@ final class PasteDialog {
         counter.setFont(counter.getFont().deriveFont(12f));
         JButton clear = new JButton("Clear");
         clear.putClientProperty(FlatClientProperties.BUTTON_TYPE, FlatClientProperties.BUTTON_TYPE_BORDERLESS);
-        clear.setForeground(Theme.DIM);
         clear.setEnabled(false);
         clear.addActionListener(e -> {
             text.setText("");
@@ -94,6 +93,9 @@ final class PasteDialog {
         analyze.setToolTipText("Find and explain the problems in this text (" + key + "Enter)");
         analyze.setEnabled(false);
 
+        Buttons.style(clear, Buttons.Role.CLOSE);
+        Buttons.style(cancel, Buttons.Role.NEUTRAL);
+        Buttons.style(analyze, Buttons.Role.PRIMARY);
         text.getDocument().addDocumentListener(new DocumentListener() {
             private void update() {
                 int length = text.getDocument().getLength();

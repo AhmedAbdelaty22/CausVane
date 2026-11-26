@@ -53,6 +53,8 @@ final class SearchDialog {
         JButton cancel = new JButton("Cancel");
         JButton search = new JButton("Search");
         search.putClientProperty(FlatClientProperties.BUTTON_TYPE, FlatClientProperties.BUTTON_TYPE_ROUND_RECT);
+        Buttons.style(cancel, Buttons.Role.NEUTRAL);
+        Buttons.style(search, Buttons.Role.WEB);
         Runnable go = () -> {
             String words = text.getText().replaceAll("\\s+", " ").strip();
             if (words.isEmpty()) {

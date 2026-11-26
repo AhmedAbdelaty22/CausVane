@@ -408,7 +408,7 @@ public final class MainFrame {
         rangeChip.setVisible(false);
         rangeChip.addActionListener(e -> clearTimeRange());
         bar.add(Box.createHorizontalStrut(6));
-        bar.add(rangeChip);
+        bar.add(outsideToolbarLook(rangeChip));
         bar.add(Box.createHorizontalGlue());
         detailSegments = segmented(detailChips, Detail.values().length, i -> {
             Detail level = Detail.values()[i];
@@ -420,14 +420,39 @@ public final class MainFrame {
         });
         bar.add(detailSegments);
         bar.add(Box.createHorizontalStrut(8));
-        bar.add(tailToggle);
+        bar.add(outsideToolbarLook(tailToggle));
         bar.add(Box.createHorizontalStrut(6));
-        bar.add(paletteButton);
+        bar.add(outsideToolbarLook(paletteButton));
         bar.add(Box.createHorizontalStrut(6));
-        bar.add(moreButton);
+        bar.add(outsideToolbarLook(moreButton));
         bar.add(Box.createHorizontalStrut(6));
-        bar.add(themeButton);
+        bar.add(outsideToolbarLook(themeButton));
+        // every button in the shared look, coloured by what it does
+        Buttons.style(closeX, Buttons.Role.CLOSE);
+        Buttons.style(tailToggle, Buttons.Role.LIVE);
+        Buttons.style(paletteButton, Buttons.Role.NEUTRAL);
+        Buttons.style(moreButton, Buttons.Role.SHARE);
+        Buttons.style(themeButton, Buttons.Role.NEUTRAL);
+        Buttons.style(rangeChip, Buttons.Role.NEUTRAL);
         return bar;
+    }
+
+    /**
+     * A toolbar draws its own buttons flat; holding a button in a small panel lets it keep the shared look.
+     */
+    private static JPanel outsideToolbarLook(javax.swing.AbstractButton button) {
+        JPanel holder = new JPanel();
+        holder.setOpaque(false);
+        holder.setLayout(new BoxLayout(holder, BoxLayout.X_AXIS));
+        holder.add(button);
+        holder.setMaximumSize(holder.getPreferredSize());
+        button.addPropertyChangeListener("text", e -> holder.setMaximumSize(holder.getPreferredSize()));
+        button.addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override public void componentShown(java.awt.event.ComponentEvent e) { holder.setVisible(true); }
+            @Override public void componentHidden(java.awt.event.ComponentEvent e) { holder.setVisible(false); }
+        });
+        holder.setVisible(button.isVisible());
+        return holder;
     }
 
     /** A row of toggle buttons drawn as one rounded control, like the severity switch. */
@@ -649,8 +674,7 @@ public final class MainFrame {
 
         ButtonGroup views = new ButtonGroup();
         for (JToggleButton toggle : new JToggleButton[] {plainToggle, rawToggle}) {
-            toggle.putClientProperty(FlatClientProperties.BUTTON_TYPE, FlatClientProperties.BUTTON_TYPE_ROUND_RECT);
-            toggle.setFont(toggle.getFont().deriveFont(12f));
+            Buttons.style(toggle, Buttons.Role.NEUTRAL);
             views.add(toggle);
         }
         plainToggle.setToolTipText("The error and what happened around it, told in plain sentences");

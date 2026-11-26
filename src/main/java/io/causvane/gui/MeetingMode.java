@@ -329,11 +329,15 @@ final class MeetingMode {
             x -= width;
             areas[i].setBounds(x, footer - sm.getAscent() - Math.round(6 * s), width, height);
             boolean enabled = !(i == 0 && index == 0) && !(i == 1 && index == slides.size() - 1);
-            g.setColor(Theme.CARD);
-            g.fillRoundRect(areas[i].x, areas[i].y, areas[i].width, areas[i].height, height / 2, height / 2);
-            g.setColor(Theme.CARD_BORDER);
-            g.drawRoundRect(areas[i].x, areas[i].y, areas[i].width, areas[i].height, height / 2, height / 2);
-            g.setColor(enabled ? Theme.TEXT : Theme.DIM);
+            Buttons.Role role = i == 2 ? Buttons.Role.SHARE : i == 3 ? Buttons.Role.CLOSE : Buttons.Role.NEUTRAL;
+            boolean neutral = role == Buttons.Role.NEUTRAL;
+            boolean dark = Theme.mode() == Theme.Mode.DARK;
+            Color tone = Buttons.color(role);
+            g.setColor(neutral ? Theme.CARD : Buttons.mix(Theme.CARD, tone, dark ? 0.16f : 0.10f));
+            g.fillRoundRect(areas[i].x, areas[i].y, areas[i].width, areas[i].height, height, height);
+            g.setColor(neutral ? Theme.CARD_BORDER : Buttons.mix(Theme.CARD, tone, dark ? 0.55f : 0.45f));
+            g.drawRoundRect(areas[i].x, areas[i].y, areas[i].width, areas[i].height, height, height);
+            g.setColor(!enabled ? Theme.DIM : neutral ? Theme.TEXT : tone);
             g.drawString(labels[i], x + pad, footer);
             x -= Math.round(10 * s);
         }
