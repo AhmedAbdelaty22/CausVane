@@ -13,7 +13,7 @@ set -e
 cd "$(dirname "$0")/.."
 
 TYPE="${1:-app-image}"
-VERSION=3.0.0
+VERSION=3.1.0
 JAR=target/CausVane.jar
 [ -f "$JAR" ] || { echo "Build the JAR first (Maven package phase)" >&2; exit 1; }
 
