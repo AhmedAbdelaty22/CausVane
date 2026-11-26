@@ -55,6 +55,8 @@ final class AppMenuBar {
             BooleanSupplier dark,
             Runnable switchTheme,
             Runnable quickActions,
+            Runnable meeting,
+            Runnable meetingPdf,
             Runnable glossary,
             Runnable searchWeb,
             BooleanSupplier problemSelected,
@@ -180,9 +182,16 @@ final class AppMenuBar {
         JMenuItem theme = item("", KeyStroke.getKeyStroke(KeyEvent.VK_T, menu | InputEvent.SHIFT_DOWN_MASK), a.switchTheme());
         view.add(theme);
         view.add(item("Quick Actions…", KeyStroke.getKeyStroke(KeyEvent.VK_K, menu), a.quickActions()));
+        view.addSeparator();
+        JMenuItem meeting = item("Meeting Mode", KeyStroke.getKeyStroke(KeyEvent.VK_M, menu | InputEvent.SHIFT_DOWN_MASK), a.meeting());
+        JMenuItem meetingPdf = item("Save Meeting Slides as PDF…", null, a.meetingPdf());
+        view.add(meeting);
+        view.add(meetingPdf);
         onOpen(view, () -> {
             boolean loaded = a.fileOpen().getAsBoolean();
             overview.setEnabled(loaded);
+            meeting.setEnabled(loaded);
+            meetingPdf.setEnabled(loaded);
             int chosen = a.severity().getAsInt();
             for (int i = 0; i < severities.length; i++) {
                 severities[i].setEnabled(loaded);

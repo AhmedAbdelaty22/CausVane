@@ -448,6 +448,21 @@ public final class MainFrame {
         return segments;
     }
 
+    /** The log as six full-screen slides for a meeting. */
+    private void meetingMode() {
+        if (result == null) {
+            Toast.show(frame, "Open a log first; meeting mode shows it as slides");
+            return;
+        }
+        MeetingMode.show(frame, io.causvane.explain.Briefing.build(result, incidentList, MeetingMode.level()), shownName(), saveFolder());
+    }
+
+    private void saveMeetingPdf() {
+        if (result == null) {
+            return;
+        }
+        MeetingMode.savePdf(frame, io.causvane.explain.Briefing.build(result, incidentList, MeetingMode.level()), shownName(), saveFolder());
+    }
 
     /** The name the open log is shown under: its file name, or "Pasted log". */
     private String shownName() {
@@ -721,6 +736,8 @@ public final class MainFrame {
                 () -> Theme.mode() == Theme.Mode.DARK,
                 this::switchTheme,
                 this::openPalette,
+                this::meetingMode,
+                this::saveMeetingPdf,
                 this::showGlossary,
                 this::searchWeb,
                 () -> selected != null,
@@ -1247,6 +1264,12 @@ public final class MainFrame {
         if (session != null && !session.isCompressed()) {
             commands.add(new CommandPalette.Command("Actions", tailToggle.isSelected() ? "Stop watching the file" : "Watch the file for new problems",
                     "live tail", "follow tail live", tailToggle::doClick));
+        }
+        if (result != null) {
+            commands.add(new CommandPalette.Command("Actions", "Meeting mode: show the log as slides", (mac ? "\u21e7\u2318" : "Ctrl+Shift+") + "M",
+                    "present presentation slides meeting screen share full screen", this::meetingMode));
+            commands.add(new CommandPalette.Command("Actions", "Save the meeting slides as PDF…", "",
+                    "present presentation slides export pdf", this::saveMeetingPdf));
         }
         for (Detail level : Detail.values()) {
             if (level != Detail.level()) {

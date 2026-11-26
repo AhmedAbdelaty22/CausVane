@@ -80,6 +80,7 @@ final class AboutDialog {
                 {"Esc", "Back to the overview of the whole log"},
                 {key + "1 … " + key + "4", "Show all problems, fatal, errors or warnings only"},
                 {shift + key + "T", "Switch between the light and dark theme"},
+                {shift + key + "M", "Meeting mode: the log as full-screen slides (arrow keys move, Esc leaves)"},
                 {key + "/", "This list"},
         };
         StringBuilder html = new StringBuilder("<html><body style='font-size: 12px'><table cellspacing='0' cellpadding='4'>");
