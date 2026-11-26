@@ -13,7 +13,7 @@ import java.nio.file.Path;
 public final class Main {
 
     public static final String APP_NAME = "CausVane";
-    public static final String VERSION = "2.3.0";
+    public static final String VERSION = "3.0.0";
     /** Where CausVane is published: releases, documentation and problem reports. */
     public static final String REPOSITORY = "https://github.com/AhmedAbdelaty22/CausVane";
 
