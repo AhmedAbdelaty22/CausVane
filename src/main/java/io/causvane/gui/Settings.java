@@ -188,6 +188,21 @@ final class Settings {
         write("logView", view);
     }
 
+    /** How much technical detail to show: Normal unless another level was chosen. */
+    Detail detail() {
+        String value = read("detail");
+        for (Detail level : Detail.values()) {
+            if (level.name().equalsIgnoreCase(String.valueOf(value))) {
+                return level;
+            }
+        }
+        return Detail.NORMAL;
+    }
+
+    void detail(Detail level) {
+        write("detail", level.name().toLowerCase(java.util.Locale.ROOT));
+    }
+
     /** The last window position and size, if it is still at least partly on a connected screen. */
     Rectangle windowBounds() {
         String value = read(BOUNDS);

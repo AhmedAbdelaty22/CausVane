@@ -177,8 +177,8 @@ final class ProblemTree {
     }
 
     private static Node problem(ErrorGroup g, Map<ErrorGroup, Explanation> explained, String prefix) {
-        String detail = esc(g.displayType()) + (g.pinpoint() != null ? " at&nbsp;<span class='code'>&nbsp;" + esc(g.location()) + "&nbsp;</span>" : "")
-                + " &nbsp;&middot;&nbsp; " + Formats.count(g.count()) + (g.count() == 1 ? " time" : " times")
+        String detail = (Detail.simple() ? "" : esc(g.displayType()) + (g.pinpoint() != null ? " at&nbsp;<span class='code'>&nbsp;" + esc(g.location()) + "&nbsp;</span>" : "")
+                + " &nbsp;&middot;&nbsp; ") + Formats.count(g.count()) + (g.count() == 1 ? " time" : " times")
                 + (g.firstSeen() != null ? " &nbsp;&middot;&nbsp; from " + CLOCK.format(g.firstSeen()) : "");
         return new Node("problem:" + g.id(), prefix + plain(explained.get(g)), detail, Theme.severity(g.severity()), g, List.of());
     }

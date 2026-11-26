@@ -128,7 +128,7 @@ final class TableRenderers {
             }
             g2.setFont(meaningFont);
             g2.setColor(Theme.DIM);
-            g2.drawString(clip(issue.meaning().isBlank() ? "" : issue.title(), meaningMetrics, width), x,
+            g2.drawString(clip(issue.meaning().isBlank() || Detail.simple() ? "" : issue.title(), meaningMetrics, width), x,
                     top + titleMetrics.getHeight() + meaningMetrics.getAscent());
             g2.dispose();
         }

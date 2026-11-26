@@ -30,7 +30,8 @@ final class ErrorTree {
     /** A step of the tree. {@code html} is already escaped; {@code key} is set when the node folds. */
     private record Node(String key, String html, String detail, Color color, List<Node> children) {}
 
-    private final Set<String> open = new HashSet<>();
+    /** Branches the reader opened or closed, compared with how they start out. */
+    private final Set<String> toggled = new HashSet<>();
     private String shownFor;
 
     /** Folds library runs again whenever another occurrence is shown; keeps the reader's choices otherwise. */
@@ -38,16 +39,15 @@ final class ErrorTree {
         String key = group.id() + "@" + event.lineNumber();
         if (!key.equals(shownFor)) {
             shownFor = key;
-            open.clear();
-            open.add("path");
+            toggled.clear();
         }
     }
 
     boolean click(String link) {
         if (link.startsWith("et:")) {
             String key = link.substring(3);
-            if (!open.remove(key)) {
-                open.add(key);
+            if (!toggled.remove(key)) {
+                toggled.add(key);
             }
             return true;
         }
@@ -218,7 +218,7 @@ final class ErrorTree {
 
     private void row(StringBuilder sb, Node node, String indent, String branch, boolean top) {
         boolean folds = node.key() != null && !node.children().isEmpty();
-        boolean expanded = node.children().isEmpty() ? false : !folds || open.contains(node.key());
+        boolean expanded = node.children().isEmpty() ? false : !folds || (startsOpen(node.key()) != toggled.contains(node.key()));
         sb.append("<table cellspacing='0' cellpadding='0' width='100%'><tr>");
         if (!top) {
             int depth = count(indent, BAR) + count(indent, GAP) + 1;
@@ -240,6 +240,11 @@ final class ErrorTree {
         for (int i = 0; i < node.children().size(); i++) {
             row(sb, node.children().get(i), childIndent, i == node.children().size() - 1 ? END : MID, false);
         }
+    }
+
+    /** "How the code got there" starts open; in Expert detail the library runs inside it do too. */
+    private static boolean startsOpen(String key) {
+        return "path".equals(key) || Detail.expert();
     }
 
     private static int count(String text, String part) {

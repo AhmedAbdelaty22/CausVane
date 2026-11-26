@@ -56,6 +56,9 @@ final class StoryView extends JScrollPane {
         StringBuilder sb = new StringBuilder("<html><body><table width='100%' cellspacing='0' cellpadding='0'>");
         String group = null;
         for (Step step : steps) {
+            if (Detail.simple() && (step.kind() == Kind.CALLED_FROM || step.kind() == Kind.STARTS_HERE)) {
+                continue; // places in the code: shown at Normal and Expert detail
+            }
             String next = switch (step.kind()) {
                 case BEFORE -> "JUST BEFORE";
                 case AFTER -> "JUST AFTER";
@@ -76,7 +79,7 @@ final class StoryView extends JScrollPane {
             } else {
                 sb.append("<span class='").append(context ? "ctx" : start ? "start" : "").append("'>")
                         .append(rich(step.sentence(), context)).append("</span>");
-                boolean showOriginal = !context && !step.original().isBlank()
+                boolean showOriginal = !context && !Detail.simple() && !step.original().isBlank()
                         && (step.kind() == Kind.STARTS_HERE || step.kind() == Kind.ERROR
                         || step.kind() == Kind.CAUSE || step.kind() == Kind.ROOT_CAUSE);
                 if (showOriginal) {

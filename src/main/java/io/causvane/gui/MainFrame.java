@@ -114,6 +114,9 @@ public final class MainFrame {
     private JPanel severitySegments;
     private final JToggleButton[] severityChips = new JToggleButton[CHIP_LEVELS.length];
     private final JToggleButton tailToggle = new JToggleButton("Watch live");
+    /** Simple · Normal · Expert: how much technical detail to show. */
+    private final JToggleButton[] detailChips = new JToggleButton[Detail.values().length];
+    private JPanel detailSegments;
     private final JSpinner contextSpinner = new JSpinner(new SpinnerNumberModel(Settings.get().contextLinesOr(8), 0, 500, 1));
     private final JButton moreButton = new JButton("More", new Glyphs.Triangle(Glyphs.Triangle.DOWN));
     private final TimelineChart timelineChart = new TimelineChart();
@@ -152,6 +155,7 @@ public final class MainFrame {
     private java.time.LocalDateTime rangeTo;
     private final JButton rangeChip = new JButton();
     private List<io.causvane.explain.IncidentLinker.Incident> incidentList = List.of();
+    private io.causvane.explain.LogOverview.Overview wholeOverview;
     private Map<String, io.causvane.explain.IncidentLinker.Membership> incidents = Map.of();
     private int occurrence;
     /** Guards against selection events fired while the table is being repopulated. */
@@ -391,6 +395,16 @@ public final class MainFrame {
         bar.add(Box.createHorizontalStrut(6));
         bar.add(rangeChip);
         bar.add(Box.createHorizontalGlue());
+        detailSegments = segmented(detailChips, Detail.values().length, i -> {
+            Detail level = Detail.values()[i];
+            JToggleButton chip = new JToggleButton(level.label());
+            chip.setToolTipText("Detail: " + level.hint());
+            chip.setSelected(level == Detail.level());
+            chip.addActionListener(e -> setDetail(level));
+            return chip;
+        });
+        bar.add(detailSegments);
+        bar.add(Box.createHorizontalStrut(8));
         bar.add(tailToggle);
         bar.add(Box.createHorizontalStrut(6));
         bar.add(paletteButton);
@@ -400,6 +414,40 @@ public final class MainFrame {
         bar.add(themeButton);
         return bar;
     }
+
+    /** A row of toggle buttons drawn as one rounded control, like the severity switch. */
+    private JPanel segmented(JToggleButton[] chips, int count, java.util.function.IntFunction<JToggleButton> make) {
+        ButtonGroup group = new ButtonGroup();
+        JPanel segments = new JPanel() {
+            @Override
+            protected void paintComponent(java.awt.Graphics g) {
+                java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
+                g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(Theme.mode() == Theme.Mode.DARK ? Theme.EDITOR : new java.awt.Color(0xEDEEF0));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+                g2.setColor(Theme.CARD_BORDER);
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 10, 10);
+                g2.dispose();
+            }
+        };
+        segments.setOpaque(false);
+        segments.setLayout(new BoxLayout(segments, BoxLayout.X_AXIS));
+        segments.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+        for (int i = 0; i < count; i++) {
+            JToggleButton chip = make.apply(i);
+            chip.putClientProperty(FlatClientProperties.BUTTON_TYPE, FlatClientProperties.BUTTON_TYPE_BORDERLESS);
+            chip.putClientProperty(FlatClientProperties.STYLE, "arc: 8; margin: 3,10,3,10; selectedBackground: "
+                    + Theme.hex(Theme.CARD) + "; selectedForeground: " + Theme.hex(Theme.TEXT) + "; foreground: "
+                    + Theme.hex(Theme.DIM) + "; hoverBackground: " + Theme.hex(Theme.HOVER_STRONG));
+            chip.setFocusable(false);
+            group.add(chip);
+            chips[i] = chip;
+            segments.add(chip);
+        }
+        segments.setMaximumSize(segments.getPreferredSize());
+        return segments;
+    }
+
 
     /** The name the open log is shown under: its file name, or "Pasted log". */
     private String shownName() {
@@ -416,6 +464,23 @@ public final class MainFrame {
             return last != null ? last : Path.of(System.getProperty("user.home"));
         }
         return result.file().toAbsolutePath().getParent();
+    }
+
+    /** Shows more or less technical detail everywhere in the window, and remembers the choice. */
+    private void setDetail(Detail level) {
+        if (level != Detail.level()) {
+            Detail.set(level);
+        }
+        detailChips[level.ordinal()].setSelected(true);
+        spotlight.refresh();
+        overviewPanel.refresh();
+        table.repaint();
+        if (result != null && wholeOverview != null) {
+            summary.show(result, incidentList, overview, wholeOverview);
+            summary.revalidate();
+        }
+        refreshContext();
+        Toast.show(frame, level.label() + " detail: " + level.hint().substring(0, 1).toLowerCase(java.util.Locale.ROOT) + level.hint().substring(1));
     }
 
     private JPanel buildMetrics() {
@@ -641,6 +706,8 @@ public final class MainFrame {
                 index -> severityChips[index].doClick(),
                 () -> rawToggle.isSelected() ? "raw" : "plain",
                 this::showLogView,
+                Detail::level,
+                this::setDetail,
                 () -> Theme.mode() == Theme.Mode.DARK,
                 this::switchTheme,
                 this::openPalette,
@@ -857,6 +924,7 @@ public final class MainFrame {
         tableModel.setIncidents(incidents);
         overview = describe(fresh, incidentList);
         io.causvane.explain.LogOverview.Overview whole = io.causvane.explain.LogOverview.of(fresh, incidentList);
+        wholeOverview = whole;
         summary.show(fresh, incidentList, overview, whole);
         overviewPanel.show(fresh, whole, incidentList);
         if (overviewMode) {
@@ -1163,6 +1231,12 @@ public final class MainFrame {
             commands.add(new CommandPalette.Command("Actions", tailToggle.isSelected() ? "Stop watching the file" : "Watch the file for new problems",
                     "live tail", "follow tail live", tailToggle::doClick));
         }
+        for (Detail level : Detail.values()) {
+            if (level != Detail.level()) {
+                commands.add(new CommandPalette.Command("Actions", "Show " + level.label() + " detail", "",
+                        "detail simple normal expert technical plain beginner level", () -> setDetail(level)));
+            }
+        }
         commands.add(new CommandPalette.Command("Actions",
                 Theme.mode() == Theme.Mode.DARK ? "Switch to the light theme" : "Switch to the dark theme", "", "appearance dark light", this::switchTheme));
         commands.add(new CommandPalette.Command("Actions", "Explain the words used here", "", "help glossary", this::showGlossary));
@@ -1200,6 +1274,9 @@ public final class MainFrame {
         quickButton.setText(level == 0 ? "Quick actions" : "");
         moreButton.setText(level == 2 ? "" : "More");
         tailToggle.setText(level == 0 ? "Watch live" : "Live");
+        if (detailSegments != null) {
+            detailSegments.setVisible(level < 2); // still in View → Detail in a narrow window
+        }
         for (int i = 0; i < CHIP_LEVELS.length; i++) {
             boolean counted = result != null;
             String name = level == 2 && CHIP_LEVELS[i] != null ? "" : CHIP_NAMES[i];
@@ -1314,7 +1391,6 @@ public final class MainFrame {
         setContentPane(new JPanel());
         SwingUtilities.updateComponentTreeUI(frame); // the window's own parts in the new look
         MainFrame next = new MainFrame(frame);
-        next.spotlight.technical(spotlight.technical());
         next.spotlight.incidentAll(spotlight.incidentAll());
         next.adopt(this);
         frame.validate();

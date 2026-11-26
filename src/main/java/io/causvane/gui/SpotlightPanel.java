@@ -43,8 +43,6 @@ final class SpotlightPanel extends JPanel {
     private final JLabel subline = new JLabel(" ");
     private final JButton copy = new JButton("Copy for a ticket");
     private final JButton back = new JButton("\u2190  Overview");
-    /** Whether the technical details are unfolded; kept while moving between problems. */
-    private boolean technical;
     /** Whether the incident timeline lists every problem or only the main steps. */
     private boolean incidentAll;
     /** "The error, step by step" and which of its branches are open. */
@@ -180,11 +178,6 @@ final class SpotlightPanel extends JPanel {
                     show(shownGroup, occurrence, shownIncident);
                     javax.swing.SwingUtilities.invokeLater(() -> scroll().getViewport().setViewPosition(new java.awt.Point(0, at)));
                 }
-            } else if (e.getDescription().equals("technical")) {
-                technical = !technical;
-                if (shownGroup != null) {
-                    show(shownGroup, occurrence, shownIncident);
-                }
             }
         });
         html.setOpaque(false);
@@ -203,13 +196,13 @@ final class SpotlightPanel extends JPanel {
         return html;
     }
 
-    /** Whether "the path through the code" is unfolded; carried over when the theme changes. */
-    boolean technical() {
-        return technical;
-    }
-
-    void technical(boolean unfolded) {
-        technical = unfolded;
+    /** Draws the shown problem again, for example after the detail level changed. */
+    void refresh() {
+        if (shownGroup != null) {
+            int at = scroll().getViewport().getViewPosition().y;
+            show(shownGroup, occurrence, shownIncident);
+            javax.swing.SwingUtilities.invokeLater(() -> scroll().getViewport().setViewPosition(new java.awt.Point(0, at)));
+        }
     }
 
     /** Whether the whole incident is listed; carried over when the theme changes. */
@@ -276,8 +269,10 @@ final class SpotlightPanel extends JPanel {
                 : group.count() == 1 || group.firstSeen().equals(group.lastSeen())
                 ? "  ·  " + Formats.timestamp(group.firstSeen())
                 : "  ·  " + Formats.timestamp(group.firstSeen()) + " to " + Formats.timestamp(group.lastSeen());
-        subline.setText(group.displayType() + (group.pinpoint() != null ? " at " + group.location() : "")
-                + "  ·  " + Formats.count(group.count()) + (group.count() == 1 ? " time" : " times") + when);
+        String technicalName = Detail.simple() ? ""
+                : (Detail.expert() && group.errorType() != null ? group.errorType() : group.displayType())
+                + (group.pinpoint() != null ? " at " + group.location() : "") + "  ·  ";
+        subline.setText(technicalName + Formats.count(group.count()) + (group.count() == 1 ? " time" : " times") + when);
         subline.setToolTipText(Theme.literal(group.errorType()));
         pills.removeAll();
         pills.add(new Pill(event.severity().name(), Theme.severity(event.severity()), false));
@@ -287,7 +282,7 @@ final class SpotlightPanel extends JPanel {
         pills.revalidate();
         pills.repaint();
         errorTree.prepare(group, event);
-        html.setText(render(group, event, explanation, incident, technical, incidentAll, errorTree.html(event)));
+        html.setText(render(group, event, explanation, incident, incidentAll, Detail.simple() ? "" : errorTree.html(event)));
         html.setCaretPosition(0);
     }
 
@@ -296,41 +291,72 @@ final class SpotlightPanel extends JPanel {
     }
 
     private static String render(ErrorGroup group, LogEvent event, Explanation explanation,
-                                 IncidentLinker.Membership incident, boolean technical, boolean incidentAll, String treeHtml) {
+                                 IncidentLinker.Membership incident, boolean incidentAll, String treeHtml) {
         ParsedTrace trace = event.trace();
         StackFrame pin = trace == null ? null : trace.pinpoint();
         StringBuilder sb = new StringBuilder("<html><body>");
         if (incident != null) {
             incident(sb, group, incident, incidentAll);
         }
-        sb.append("<p class='lead'>").append(rich(explanation.meaning()));
+        boolean simple = Detail.simple();
+        boolean expert = Detail.expert();
+        java.util.function.Function<String, String> words = simple ? SpotlightPanel::plain : SpotlightPanel::rich;
+        sb.append("<p class='lead'>").append(words.apply(explanation.meaning()));
         if (explanation.detail() != null) {
-            sb.append(" <b>").append(rich(explanation.detail())).append("</b>");
+            sb.append(" <b>").append(words.apply(explanation.detail())).append("</b>");
         }
         sb.append("</p>");
+        if (expert) {
+            // the technical picture first: the error tree with every step open, then the facts
+            sb.append(treeHtml);
+            facts(sb, group, event, explanation, false);
+        }
         sb.append("<p class='sub'>WHAT TO DO</p><ol>");
-        explanation.nextSteps().forEach(step -> sb.append("<li>").append(rich(step)).append("</li>"));
+        explanation.nextSteps().forEach(step -> sb.append("<li>").append(words.apply(step)).append("</li>"));
         sb.append("</ol>");
         if (!explanation.likelyCauses().isEmpty()) {
             sb.append("<p class='sub'>WHY IT USUALLY HAPPENS</p><ul>");
-            explanation.likelyCauses().forEach(cause -> sb.append("<li>").append(rich(cause)).append("</li>"));
+            explanation.likelyCauses().forEach(cause -> sb.append("<li>").append(words.apply(cause)).append("</li>"));
             sb.append("</ul>");
         }
-        if (!explanation.context().isEmpty()) {
+        if (!explanation.context().isEmpty() && !simple) {
             sb.append("<p class='sub'>IN THIS LOG</p>");
             for (String line : explanation.context()) {
-                sb.append("<p>").append(rich(line)).append("</p>");
+                sb.append("<p>").append(words.apply(line)).append("</p>");
             }
         }
-        sb.append("<p class='sub'>EVERYTHING THE LOG SAYS ABOUT IT</p><table cellspacing='0' cellpadding='0'>");
+        if (!expert) {
+            facts(sb, group, event, explanation, simple);
+            sb.append(treeHtml);
+        }
+        if (simple) {
+            sb.append("<p class='dim'>Showing plain words only. Switch the detail to Normal or Expert to see error names, "
+                    + "code locations and the error step by step.</p>");
+        }
+        return sb.append("</body></html>").toString();
+    }
+
+    /** Facts a reader can use without knowing the code; the rest are shown at Normal and Expert detail. */
+    private static final java.util.Set<String> PLAIN_FACTS =
+            java.util.Set.of("How serious", "Kind of problem", "How often", "Requests affected");
+
+    private static void facts(StringBuilder sb, ErrorGroup group, LogEvent event, Explanation explanation, boolean simple) {
+        sb.append("<p class='sub'>").append(simple ? "THE BASICS" : "EVERYTHING THE LOG SAYS ABOUT IT")
+                .append("</p><table cellspacing='0' cellpadding='0'>");
         for (LogFacts.Fact fact : LogFacts.forProblem(group, event, explanation)) {
-            String value = factValue(fact.value());
+            if (simple && !PLAIN_FACTS.contains(fact.label())) {
+                continue;
+            }
+            String value = simple ? esc(fact.value()) : factValue(fact.value());
             sb.append("<tr><td class='k' valign='top' nowrap>").append(esc(fact.label())).append("</td><td width='14'></td><td class='fact' valign='top'>").append(value)
                     .append("<br><span class='expl'>").append(esc(fact.meaning())).append("</span></td></tr>");
         }
         sb.append("</table>");
-        sb.append(treeHtml);
-        return sb.append("</body></html>").toString();
+    }
+
+    /** Text with its `quoted` code parts kept as ordinary words, for Simple detail. */
+    private static String plain(String s) {
+        return esc(s.replace("`", ""));
     }
 
     /** Rows of the incident timeline shown before "show the whole incident". */
@@ -440,9 +466,9 @@ final class SpotlightPanel extends JPanel {
                 .append(part == IncidentLinker.Part.LEAD ? "&#9679;" : "&#9675;").append("</font></td>")
                 .append("<td valign='top' class='fact'><font color='").append(Theme.hex(color)).append("'><b>").append(role)
                 .append("</b></font>&nbsp;&nbsp;").append(current || part == IncidentLinker.Part.LEAD ? "<b>" : "").append(esc(meaning))
-                .append(current || part == IncidentLinker.Part.LEAD ? "</b>" : "").append("<br><span class='tech'>").append(esc(g.displayType()))
-                .append(g.pinpoint() != null ? " at&nbsp;<span class='code'>&nbsp;" + esc(g.location()) + "&nbsp;</span>" : "")
-                .append(" &nbsp;&middot;&nbsp; ").append(Formats.count(g.count())).append(g.count() == 1 ? " time" : " times")
+                .append(current || part == IncidentLinker.Part.LEAD ? "</b>" : "").append("<br><span class='tech'>").append(Detail.simple() ? "" : esc(g.displayType())
+                        + (g.pinpoint() != null ? " at&nbsp;<span class='code'>&nbsp;" + esc(g.location()) + "&nbsp;</span>" : "")
+                        + " &nbsp;&middot;&nbsp; ").append(Formats.count(g.count())).append(g.count() == 1 ? " time" : " times")
                 .append(when.isEmpty() ? "" : " &nbsp;&middot;&nbsp; " + esc(when)).append("</span></td>")
                 .append("<td valign='top' align='right' width='92' nowrap>")
                 .append(current ? "<span class='dim'>&#9664; you are here</span>" : "<a href='group:" + esc(g.id()) + "'>Open&nbsp;&rsaquo;</a>")

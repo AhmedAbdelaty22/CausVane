@@ -90,6 +90,18 @@ final class OverviewPanel extends JScrollPane {
         return html;
     }
 
+    /** Facts about the whole log that only matter to someone reading the code; left out at Simple detail. */
+    private static final java.util.Set<String> TECHNICAL_FACTS = java.util.Set.of("Stack traces", "Trace IDs", "JSON entries");
+
+    /** Draws the overview again, for example after the detail level changed. */
+    void refresh() {
+        if (shownResult != null) {
+            int at = html.getVisibleRect().y;
+            show(shownResult, shownOverview, shownIncidents);
+            javax.swing.SwingUtilities.invokeLater(() -> html.scrollRectToVisible(new java.awt.Rectangle(0, at, 1, html.getVisibleRect().height)));
+        }
+    }
+
     void showMessage(String message) {
         html.setText("<html><body><span class='dim'>" + esc(message) + "</span></body></html>");
     }
@@ -150,7 +162,7 @@ final class OverviewPanel extends JScrollPane {
             row(sb, "Kinds of problem", overview.byKind().entrySet().stream().limit(6)
                     .map(e -> e.getKey() + " " + e.getValue()).collect(Collectors.joining("  ·  ")), null);
         }
-        if (!overview.places().isEmpty()) {
+        if (!overview.places().isEmpty() && !Detail.simple()) {
             row(sb, "Where in the code", overview.places().stream()
                     .map(p -> p.file() + " (" + Formats.count(p.occurrences()) + "×)").collect(Collectors.joining("  ·  ")), null);
         }
@@ -158,6 +170,9 @@ final class OverviewPanel extends JScrollPane {
 
         sb.append("<div class='sub'>EVERYTHING READ FROM THE LOG</div><table cellspacing='0' cellpadding='0'>");
         for (LogFacts.Fact fact : LogFacts.forLog(result, incidents.size())) {
+            if (Detail.simple() && TECHNICAL_FACTS.contains(fact.label())) {
+                continue;
+            }
             row(sb, fact.label(), fact.value(), fact.meaning());
         }
         sb.append("</table>");
@@ -168,6 +183,9 @@ final class OverviewPanel extends JScrollPane {
 
     /** The technical name and place, kept small under the plain sentence. */
     private static String technical(ErrorGroup g) {
+        if (Detail.simple()) {
+            return Formats.count(g.count()) + (g.count() == 1 ? " time" : " times");
+        }
         return esc(g.displayType()) + (g.pinpoint() != null ? " at&nbsp;<span class='code'>&nbsp;" + esc(g.location()) + "&nbsp;</span>" : "");
     }
 

@@ -223,7 +223,7 @@ final class SummaryStrip extends JPanel {
                     : " – " + SECONDS.format(top.lastSeen())), Theme.DIM, Font.PLAIN, "When it first and last happened", 14));
         }
         more.add(label(explanation.category(), Theme.DIM, Font.PLAIN, "The kind of problem", 14));
-        if (top.pinpoint() != null) {
+        if (top.pinpoint() != null && !Detail.simple()) {
             JLabel where = label(top.location(), Theme.CODE, Font.PLAIN, "Where in the code it started", 0);
             where.setFont(Theme.mono(11.5f));
             where.setOpaque(true);

@@ -50,6 +50,8 @@ final class AppMenuBar {
             IntConsumer showSeverity,
             Supplier<String> logView,
             Consumer<String> showLogView,
+            Supplier<Detail> detail,
+            Consumer<Detail> showDetail,
             BooleanSupplier dark,
             Runnable switchTheme,
             Runnable quickActions,
@@ -160,6 +162,19 @@ final class AppMenuBar {
         view.add(plain);
         view.add(raw);
         view.addSeparator();
+        JMenu detailMenu = menu("Detail", KeyEvent.VK_D);
+        ButtonGroup detailGroup = new ButtonGroup();
+        JRadioButtonMenuItem[] details = new JRadioButtonMenuItem[Detail.values().length];
+        for (Detail level : Detail.values()) {
+            JRadioButtonMenuItem entry = new JRadioButtonMenuItem(level.label());
+            entry.setToolTipText(level.hint());
+            entry.addActionListener(e -> a.showDetail().accept(level));
+            detailGroup.add(entry);
+            detailMenu.add(entry);
+            details[level.ordinal()] = entry;
+        }
+        view.add(detailMenu);
+        view.addSeparator();
         JMenuItem theme = item("", KeyStroke.getKeyStroke(KeyEvent.VK_T, menu | InputEvent.SHIFT_DOWN_MASK), a.switchTheme());
         view.add(theme);
         view.add(item("Quick Actions…", KeyStroke.getKeyStroke(KeyEvent.VK_K, menu), a.quickActions()));
@@ -172,6 +187,7 @@ final class AppMenuBar {
                 severities[i].setSelected(i == chosen);
             }
             ("raw".equals(a.logView().get()) ? raw : plain).setSelected(true);
+            details[a.detail().get().ordinal()].setSelected(true);
             theme.setText(a.dark().getAsBoolean() ? "Switch to Light Theme" : "Switch to Dark Theme");
         });
         theme.setText(a.dark().getAsBoolean() ? "Switch to Light Theme" : "Switch to Dark Theme");
