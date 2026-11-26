@@ -71,7 +71,7 @@ final class AboutDialog {
         String shift = AppMenuBar.mac() ? "⇧" : "Shift+";
         String[][] rows = {
                 {key + "O", "Open a log file"},
-                {shift + key + "V", "Paste log text from the clipboard"},
+                {shift + key + "V", "Paste log text into a box and analyse it"},
                 {key + "W", "Close the log and go back to the start screen"},
                 {key + "S", "Save a report as Markdown"},
                 {shift + key + "S", "Save a report as JSON"},

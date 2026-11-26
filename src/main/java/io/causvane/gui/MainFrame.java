@@ -850,27 +850,17 @@ public final class MainFrame {
     private Path shownFile;
 
     /**
-     * Analyses log text from the clipboard, for logs that arrive in a chat, ticket or e-mail. Opening a
+     * Opens a box to paste log text into, for logs that arrive in a chat, ticket or e-mail. Opening a
      * file works as before; this is a second way in.
      */
     private void pasteLog() {
-        String text;
-        try {
-            java.awt.datatransfer.Transferable content = Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null);
-            text = content != null && content.isDataFlavorSupported(DataFlavor.stringFlavor)
-                    ? (String) content.getTransferData(DataFlavor.stringFlavor) : null;
-        } catch (Exception e) {
-            text = null;
-        }
-        if (text == null || text.isBlank()) {
-            Toast.show(frame, "The clipboard has no text. Copy the log lines first, then paste.");
-            return;
-        }
-        try {
-            openFile(io.causvane.io.PastedLog.write(text));
-        } catch (IOException e) {
-            showError("Could not use the pasted text", e);
-        }
+        PasteDialog.show(frame, text -> {
+            try {
+                openFile(PastedLog.write(text));
+            } catch (IOException e) {
+                showError("Could not use the pasted text", e);
+            }
+        });
     }
 
     private void chooseFile() {
@@ -1307,7 +1297,7 @@ public final class MainFrame {
             commands.add(new CommandPalette.Command("Actions", "Close this log", key + "W", "close start screen another file new",
                     this::closeLog));
         }
-        commands.add(new CommandPalette.Command("Actions", "Paste log text from the clipboard", (mac ? "\u21e7\u2318" : "Ctrl+Shift+") + "V",
+        commands.add(new CommandPalette.Command("Actions", "Paste log text…", (mac ? "\u21e7\u2318" : "Ctrl+Shift+") + "V",
                 "clipboard paste text chat ticket", this::pasteLog));
         if (result != null) {
             commands.add(new CommandPalette.Command("Actions", "Show the overview of the whole log", "Esc",

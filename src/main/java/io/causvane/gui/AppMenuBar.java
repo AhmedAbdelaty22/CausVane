@@ -81,7 +81,7 @@ final class AppMenuBar {
         // ---------------------------------------------------------------- File
         JMenu file = menu("File", KeyEvent.VK_F);
         file.add(item("Open…", KeyStroke.getKeyStroke(KeyEvent.VK_O, menu), a.open()));
-        file.add(item("Paste Log Text", KeyStroke.getKeyStroke(KeyEvent.VK_V, menu | InputEvent.SHIFT_DOWN_MASK), a.paste()));
+        file.add(item("Paste Log Text…", KeyStroke.getKeyStroke(KeyEvent.VK_V, menu | InputEvent.SHIFT_DOWN_MASK), a.paste()));
         JMenu recent = menu("Open Recent", KeyEvent.VK_R);
         file.add(recent);
         JMenuItem close = item("Close Log", KeyStroke.getKeyStroke(KeyEvent.VK_W, menu), a.close());
