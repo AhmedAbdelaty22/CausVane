@@ -61,14 +61,18 @@ CausVane installs no service, database or background process.
 ## Using it
 
 - Open a log with **File → Open** (or the **Open** button), by dropping the file on
-  the window, or by choosing **Open With → CausVane** on the file. **File → Open Recent**
+  the window, or by choosing **Open With → CausVane** on the file. Log text copied from
+  somewhere else can be pasted with **File → Paste Log Text** instead. **File → Open Recent**
   lists the last 8 files. Compressed `.gz` logs open directly.
 - **Watch live** follows a log that is still being written.
+- **Simple · Normal · Expert** in the toolbar sets how much technical detail is shown.
+- **View → Meeting Mode** shows the log as six full-screen slides, which can be saved as a PDF.
+- **Search the web** on a problem looks it up online after showing exactly what will be sent.
 - **File → Save Report** saves a Markdown or JSON report; **Edit → Copy for a Ticket**
   copies a summary ready to paste.
 - The menu bar has **File**, **Edit**, **View** (overview, which problems to show, the
-  log view, the theme, Quick actions) and **Help** (the words explained, keyboard
-  shortcuts, documentation, what's new, check for updates, report a problem, About).
+  log view, the detail level, the theme, Quick actions, Meeting Mode) and **Help** (the
+  words explained, search the web, keyboard shortcuts, documentation, what's new, check for updates, report a problem, About).
   On macOS the menus are in the bar at the top of the screen, and **About CausVane**
   is in the CausVane menu.
 
@@ -121,7 +125,7 @@ The repository is **https://github.com/AhmedAbdelaty22/CausVane**.
    `packaging/build-app.sh` and `packaging/build-app.bat`.
 2. Run the tests in IntelliJ (Maven → Lifecycle → package), then commit and push.
 3. On GitHub, open **Releases → Draft a new release**, create the tag (for example
-   `v2.3.0`), write the notes, and click **Publish release**.
+   `v3.0.0`), write the notes, and click **Publish release**.
 
 Publishing starts `.github/workflows/build.yml`: GitHub runs all the tests on
 Linux, Windows and macOS, builds the installer and the portable app on each, and
