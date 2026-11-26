@@ -188,6 +188,15 @@ final class Settings {
         write("logView", view);
     }
 
+    /** The search site chosen last time. */
+    io.causvane.explain.WebSearch.Engine searchEngine() {
+        return io.causvane.explain.WebSearch.engine(read("searchEngine"));
+    }
+
+    void searchEngine(io.causvane.explain.WebSearch.Engine engine) {
+        write("searchEngine", engine.name().toLowerCase(java.util.Locale.ROOT));
+    }
+
     /** How much technical detail to show: Normal unless another level was chosen. */
     Detail detail() {
         String value = read("detail");

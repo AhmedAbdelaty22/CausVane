@@ -466,6 +466,15 @@ public final class MainFrame {
         return result.file().toAbsolutePath().getParent();
     }
 
+    /** Looks the selected problem up online, after showing exactly what will be sent. */
+    private void searchWeb() {
+        if (selected == null) {
+            Toast.show(frame, "Select a problem first, then search the web for it");
+            return;
+        }
+        SearchDialog.show(frame, selected);
+    }
+
     /** Shows more or less technical detail everywhere in the window, and remembers the choice. */
     private void setDetail(Detail level) {
         if (level != Detail.level()) {
@@ -538,6 +547,7 @@ public final class MainFrame {
         spotlight.onReveal(this::reveal);
         spotlight.onBack(this::showOverview);
         spotlight.onCopy(this::copySummary);
+        spotlight.onSearch(this::searchWeb);
         table.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting() && !updatingTable) {
                 onSelectionChanged();
@@ -712,6 +722,8 @@ public final class MainFrame {
                 this::switchTheme,
                 this::openPalette,
                 this::showGlossary,
+                this::searchWeb,
+                () -> selected != null,
                 () -> AboutDialog.showShortcuts(frame),
                 () -> AboutDialog.showAbout(frame),
                 () -> frame.dispatchEvent(new java.awt.event.WindowEvent(frame, java.awt.event.WindowEvent.WINDOW_CLOSING)),
@@ -1222,6 +1234,10 @@ public final class MainFrame {
                 severityChips[0].doClick();
                 clearTimeRange();
             }));
+            if (selected != null) {
+                commands.add(new CommandPalette.Command("Actions", "Search the web for this problem…", "",
+                        "google bing duckduckgo stack overflow online internet look up", this::searchWeb));
+            }
             commands.add(new CommandPalette.Command("Actions", "Copy a summary for a ticket", "", "clipboard share", this::copySummary));
             for (ReportWriter.Format format : ReportWriter.Format.values()) {
                 commands.add(new CommandPalette.Command("Actions", "Save a report as " + format.label() + "…", "",

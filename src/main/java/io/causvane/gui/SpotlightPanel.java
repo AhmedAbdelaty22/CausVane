@@ -42,6 +42,7 @@ final class SpotlightPanel extends JPanel {
     private final JLabel occurrenceLabel = new JLabel();
     private final JLabel subline = new JLabel(" ");
     private final JButton copy = new JButton("Copy for a ticket");
+    private final JButton search = new JButton("Search the web");
     private final JButton back = new JButton("\u2190  Overview");
     /** Whether the incident timeline lists every problem or only the main steps. */
     private boolean incidentAll;
@@ -72,6 +73,11 @@ final class SpotlightPanel extends JPanel {
         copy.setFont(copy.getFont().deriveFont(11.5f));
         copy.setToolTipText("Copy a short, ready-to-paste summary of this problem");
         copy.setEnabled(false);
+        search.putClientProperty(com.formdev.flatlaf.FlatClientProperties.BUTTON_TYPE,
+                com.formdev.flatlaf.FlatClientProperties.BUTTON_TYPE_ROUND_RECT);
+        search.setFont(search.getFont().deriveFont(11.5f));
+        search.setToolTipText("Look this problem up online; you see and can edit exactly what is sent first");
+        search.setEnabled(false);
         occurrenceLabel.setForeground(Theme.DIM);
         previous.setToolTipText("Previous occurrence");
         next.setToolTipText("Next occurrence");
@@ -96,6 +102,8 @@ final class SpotlightPanel extends JPanel {
         header.add(Box.createHorizontalStrut(4));
         header.add(next);
         header.add(Box.createHorizontalStrut(10));
+        header.add(search);
+        header.add(Box.createHorizontalStrut(6));
         header.add(copy);
         headline.setFont(headline.getFont().deriveFont(Font.BOLD, 18f));
         headline.setForeground(Theme.TEXT);
@@ -225,6 +233,11 @@ final class SpotlightPanel extends JPanel {
         back.addActionListener(e -> action.run());
     }
 
+    /** What the "Search the web" button does. */
+    void onSearch(Runnable action) {
+        search.addActionListener(e -> action.run());
+    }
+
     /** What the "Copy for a ticket" button does. */
     void onCopy(Runnable action) {
         copy.addActionListener(e -> action.run());
@@ -233,6 +246,7 @@ final class SpotlightPanel extends JPanel {
     void clear() {
         shownGroup = null;
         copy.setEnabled(false);
+        search.setEnabled(false);
         subline.setText(" ");
         occurrences = 0;
         occurrenceLabel.setText("");
@@ -259,6 +273,7 @@ final class SpotlightPanel extends JPanel {
         shownGroup = group;
         shownIncident = incident;
         copy.setEnabled(true);
+        search.setEnabled(true);
         occurrences = group.samples().size();
         occurrence = occurrenceIndex;
         LogEvent event = group.samples().get(occurrenceIndex);

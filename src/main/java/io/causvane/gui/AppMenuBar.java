@@ -56,6 +56,8 @@ final class AppMenuBar {
             Runnable switchTheme,
             Runnable quickActions,
             Runnable glossary,
+            Runnable searchWeb,
+            BooleanSupplier problemSelected,
             Runnable shortcuts,
             Runnable about,
             Runnable quit,
@@ -196,6 +198,9 @@ final class AppMenuBar {
         // ---------------------------------------------------------------- Help
         JMenu help = menu("Help", KeyEvent.VK_H);
         help.add(item("Explain the Words Used Here", null, a.glossary()));
+        JMenuItem searchWeb = item("Search the Web for This Problem…", null, a.searchWeb());
+        help.add(searchWeb);
+        onOpen(help, () -> searchWeb.setEnabled(a.problemSelected().getAsBoolean()));
         help.add(item("Keyboard Shortcuts", KeyStroke.getKeyStroke(KeyEvent.VK_SLASH, menu), a.shortcuts()));
         help.addSeparator();
         help.add(item("Documentation", null, () -> browse(Main.REPOSITORY + "/blob/main/docs/CausVane-Documentation.pdf")));
