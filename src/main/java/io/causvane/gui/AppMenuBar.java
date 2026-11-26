@@ -34,6 +34,7 @@ final class AppMenuBar {
     record Actions(
             Runnable open,
             Runnable paste,
+            Runnable close,
             Supplier<List<Path>> recentFiles,
             Consumer<Path> openRecent,
             Runnable clearRecent,
@@ -83,6 +84,8 @@ final class AppMenuBar {
         file.add(item("Paste Log Text", KeyStroke.getKeyStroke(KeyEvent.VK_V, menu | InputEvent.SHIFT_DOWN_MASK), a.paste()));
         JMenu recent = menu("Open Recent", KeyEvent.VK_R);
         file.add(recent);
+        JMenuItem close = item("Close Log", KeyStroke.getKeyStroke(KeyEvent.VK_W, menu), a.close());
+        file.add(close);
         file.addSeparator();
         JCheckBoxMenuItem watch = new JCheckBoxMenuItem("Watch Live");
         watch.setMnemonic(KeyEvent.VK_W);
@@ -99,6 +102,7 @@ final class AppMenuBar {
         }
         onOpen(file, () -> {
             boolean loaded = a.fileOpen().getAsBoolean();
+            close.setEnabled(loaded);
             watch.setEnabled(a.canWatch().getAsBoolean());
             watch.setSelected(a.watching().getAsBoolean());
             saveMd.setEnabled(loaded);

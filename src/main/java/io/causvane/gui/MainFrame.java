@@ -114,6 +114,10 @@ public final class MainFrame {
     private JPanel severitySegments;
     private final JToggleButton[] severityChips = new JToggleButton[CHIP_LEVELS.length];
     private final JToggleButton tailToggle = new JToggleButton("Watch live");
+    /** While a log is open: its name, and a clear button to close it. */
+    private final JLabel fileChip = new JLabel("");
+    private final JButton closeX = new JButton("\u00d7  Close");
+    private final JPanel fileBox = new JPanel();
     /** Simple · Normal · Expert: how much technical detail to show. */
     private final JToggleButton[] detailChips = new JToggleButton[Detail.values().length];
     private JPanel detailSegments;
@@ -281,10 +285,21 @@ public final class MainFrame {
         themeButton.setToolTipText(Theme.mode() == Theme.Mode.DARK ? "Switch to the light theme" : "Switch to the dark theme");
         themeButton.addActionListener(e -> switchTheme());
 
-        JButton open = new JButton("Open");
-        open.putClientProperty(FlatClientProperties.BUTTON_TYPE, FlatClientProperties.BUTTON_TYPE_ROUND_RECT);
-        open.setToolTipText("Open a log file (or drop one anywhere on the window)");
-        open.addActionListener(e -> chooseFile());
+
+        String closeKey = mac ? "\u2318W" : "Ctrl+W";
+        fileChip.putClientProperty(Theme.HTML_DISABLE, Boolean.TRUE); // the name comes from the file system
+        fileChip.setFont(fileChip.getFont().deriveFont(Font.BOLD));
+        fileChip.setForeground(Theme.TEXT);
+        fileChip.setBorder(BorderFactory.createEmptyBorder(0, 2, 0, 8));
+        closeX.putClientProperty(FlatClientProperties.BUTTON_TYPE, FlatClientProperties.BUTTON_TYPE_ROUND_RECT);
+        closeX.setFocusable(false);
+        closeX.setToolTipText("Close this log and go back to the start screen (" + closeKey + ")");
+        closeX.addActionListener(e -> closeLog());
+        fileBox.setOpaque(false);
+        fileBox.setLayout(new BoxLayout(fileBox, BoxLayout.X_AXIS));
+        fileBox.add(fileChip);
+        fileBox.add(closeX);
+        fileBox.setVisible(false);
 
         searchField.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Find a problem…");
         searchField.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
@@ -362,7 +377,7 @@ public final class MainFrame {
         moreButton.addActionListener(e -> moreMenu.show(moreButton, 0, moreButton.getHeight()));
 
         bar.add(brand);
-        bar.add(open);
+        bar.add(fileBox);
         bar.addSeparator();
         bar.add(searchField);
         bar.add(Box.createHorizontalStrut(4));
@@ -479,6 +494,58 @@ public final class MainFrame {
             return last != null ? last : Path.of(System.getProperty("user.home"));
         }
         return result.file().toAbsolutePath().getParent();
+    }
+
+    /**
+     * Closes the open log and goes back to the start screen, so another can be opened in the same window.
+     * The file stays on disk and in Open Recent; a pasted log's private copy is deleted now.
+     */
+    private void closeLog() {
+        if (session == null && result == null) {
+            return;
+        }
+        boolean pasted = shownFile != null && PastedLog.isPasted(shownFile);
+        String name = shownFile == null ? "The log" : pasted ? "Pasted log" : String.valueOf(shownFile.getFileName());
+        if (loader != null) {
+            loader.cancel(true);
+            loader = null;
+        }
+        if (tailToggle.isSelected()) {
+            tailToggle.setSelected(false);
+        }
+        tailTimer.stop();
+        if (session != null) {
+            session.close();
+            session = null;
+        }
+        if (shownFile != null) {
+            PastedLog.delete(shownFile);
+            shownFile = null;
+        }
+        result = null;
+        selected = null;
+        incidentList = List.of();
+        incidents = Map.of();
+        wholeOverview = null;
+        tableModel.setGroups(List.of());
+        spotlight.clear();
+        searchField.setText("");
+        severityChips[0].setSelected(true);
+        rangeFrom = null;
+        rangeTo = null;
+        rangeChip.setVisible(false);
+        timelineChart.clearSelection();
+        progress.setVisible(false);
+        summary.setVisible(false);
+        java.util.Arrays.fill(chipCounts, 0);
+        widthLevel = -1;
+        fitLayout(); // the severity switch drops the closed log's counts
+        welcome.showRecent(Settings.get().recentFiles());
+        cards.show(center, "welcome");
+        setTitle(TITLE);
+        status.setText(name + " closed. Open a log file or drop one anywhere on this window.");
+        updateActions();
+        Toast.show(frame, pasted ? "Pasted log closed; its text was deleted" : name + " closed; it is still in Open Recent");
     }
 
     /** Looks the selected problem up online, after showing exactly what will be sent. */
@@ -701,6 +768,7 @@ public final class MainFrame {
         return AppMenuBar.build(new AppMenuBar.Actions(
                 this::chooseFile,
                 this::pasteLog,
+                this::closeLog,
                 () -> Settings.get().recentFiles(),
                 this::openFile,
                 this::clearRecentFiles,
@@ -1235,6 +1303,10 @@ public final class MainFrame {
             }
         }
         commands.add(new CommandPalette.Command("Actions", "Open a log file…", key + "O", "browse load", this::chooseFile));
+        if (session != null || result != null) {
+            commands.add(new CommandPalette.Command("Actions", "Close this log", key + "W", "close start screen another file new",
+                    this::closeLog));
+        }
         commands.add(new CommandPalette.Command("Actions", "Paste log text from the clipboard", (mac ? "\u21e7\u2318" : "Ctrl+Shift+") + "V",
                 "clipboard paste text chat ticket", this::pasteLog));
         if (result != null) {
@@ -1314,6 +1386,8 @@ public final class MainFrame {
         quickButton.setText(level == 0 ? "Quick actions" : "");
         moreButton.setText(level == 2 ? "" : "More");
         tailToggle.setText(level == 0 ? "Watch live" : "Live");
+        fileChip.setVisible(level == 0); // in a narrower window the name stays in the title and status bar
+        fileBox.setMaximumSize(fileBox.getPreferredSize());
         if (detailSegments != null) {
             detailSegments.setVisible(level < 2); // still in View → Detail in a narrow window
         }
@@ -1519,6 +1593,16 @@ public final class MainFrame {
     private void updateActions() {
         boolean loaded = result != null;
         moreButton.setEnabled(loaded);
+        boolean hasLog = session != null || loaded;
+        fileBox.setVisible(hasLog);
+        if (hasLog && shownFile != null) {
+            boolean pasted = PastedLog.isPasted(shownFile);
+            String name = pasted ? "Pasted log" : String.valueOf(shownFile.getFileName());
+            fileChip.setText(name.length() > 32 ? name.substring(0, 31) + "\u2026" : name);
+            fileChip.setToolTipText(Theme.literal((pasted ? "Pasted text" : shownFile.toAbsolutePath().toString())
+                    + ". To open another log, close this one or drop a file on the window"));
+        }
+        fileBox.setMaximumSize(fileBox.getPreferredSize());
         boolean archive = session != null && session.isCompressed();
         boolean pasted = shownFile != null && io.causvane.io.PastedLog.isPasted(shownFile);
         tailToggle.setEnabled(session != null && !archive && !pasted);

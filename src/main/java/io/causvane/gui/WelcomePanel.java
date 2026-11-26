@@ -71,7 +71,24 @@ final class WelcomePanel extends JPanel {
             }
             dropZone.add(c);
         }
-        if (!recent.isEmpty()) {
+        this.openRecent = openRecent;
+        showRecent(recent);
+        add(dropZone);
+    }
+
+    private final java.util.List<Component> recentParts = new java.util.ArrayList<>();
+    private java.util.function.Consumer<java.nio.file.Path> openRecent;
+
+    /** Shows the recently opened files, for example again after a log was closed. */
+    void showRecent(java.util.List<java.nio.file.Path> recent) {
+        recentParts.forEach(dropZone::remove);
+        recentParts.clear();
+        if (recent.isEmpty()) {
+            revalidate();
+            repaint();
+            return;
+        }
+        {
             recentParts.add(dropZone.add(Box.createVerticalStrut(26)));
             JLabel heading = new JLabel("RECENT FILES");
             heading.setForeground(Theme.DIM);
@@ -86,7 +103,7 @@ final class WelcomePanel extends JPanel {
                 entry.setForeground(Theme.BLUE);
                 entry.setToolTipText(Theme.literal(file.toAbsolutePath().toString()));
                 entry.setAlignmentX(Component.CENTER_ALIGNMENT);
-                entry.addActionListener(e -> openRecent.accept(file));
+                entry.addActionListener(e -> this.openRecent.accept(file));
                 recentParts.add(dropZone.add(entry));
             }
             JButton clear = new JButton("Clear recent files");
@@ -102,10 +119,9 @@ final class WelcomePanel extends JPanel {
             recentParts.add(dropZone.add(Box.createVerticalStrut(4)));
             recentParts.add(dropZone.add(clear));
         }
-        add(dropZone);
+        revalidate();
+        repaint();
     }
-
-    private final java.util.List<Component> recentParts = new java.util.ArrayList<>();
 
     /** Removes the recent-files list from the screen, after the list was cleared. */
     void clearRecent() {

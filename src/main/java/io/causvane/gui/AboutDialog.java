@@ -72,6 +72,7 @@ final class AboutDialog {
         String[][] rows = {
                 {key + "O", "Open a log file"},
                 {shift + key + "V", "Paste log text from the clipboard"},
+                {key + "W", "Close the log and go back to the start screen"},
                 {key + "S", "Save a report as Markdown"},
                 {shift + key + "S", "Save a report as JSON"},
                 {shift + key + "C", "Copy a summary for a ticket"},
