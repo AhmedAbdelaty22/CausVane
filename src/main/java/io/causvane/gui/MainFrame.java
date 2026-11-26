@@ -923,6 +923,7 @@ public final class MainFrame {
         incidents = io.causvane.explain.IncidentLinker.index(incidentList);
         tableModel.setIncidents(incidents);
         overview = describe(fresh, incidentList);
+        spotlight.profile(io.causvane.analysis.TechDetector.profile(fresh));
         io.causvane.explain.LogOverview.Overview whole = io.causvane.explain.LogOverview.of(fresh, incidentList);
         wholeOverview = whole;
         summary.show(fresh, incidentList, overview, whole);

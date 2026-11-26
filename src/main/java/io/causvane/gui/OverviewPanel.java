@@ -44,6 +44,7 @@ final class OverviewPanel extends JScrollPane {
         String mono = Theme.mono(11f).getFamily();
         css.addRule("body { color: " + Theme.hex(Theme.TEXT) + "; margin: 16px 22px 18px 20px; font-size: 13px; }");
         css.addRule(".title { color: " + Theme.hex(Theme.DIM) + "; font-weight: bold; font-size: 10.5px; }");
+        css.addRule(".looks { margin-top: 2px; margin-bottom: 4px; color: " + Theme.hex(Theme.TEXT) + "; }");
         css.addRule(".verdict { font-size: 15px; margin-top: 6px; margin-bottom: 4px; }");
         css.addRule(".sub { color: " + Theme.hex(Theme.DIM) + "; font-weight: bold; font-size: 10.5px; margin-top: 16px; margin-bottom: 5px; }");
         css.addRule(".time { color: " + Theme.hex(Theme.DIM) + "; font-family: '" + mono + "'; font-size: 11px; padding-top: 1px; }");
@@ -115,6 +116,11 @@ final class OverviewPanel extends JScrollPane {
         sb.append("<div class='title'>THE WHOLE LOG &nbsp;&middot;&nbsp; <font color='").append(Theme.hex(health(overview.health())))
                 .append("'>").append(overview.health().label().toUpperCase(Locale.ROOT)).append("</font></div>");
         sb.append("<div class='verdict'>").append(esc(overview.verdict())).append("</div>");
+        io.causvane.analysis.TechDetector.Profile profile = io.causvane.analysis.TechDetector.profile(result);
+        if (profile.sentence() != null) {
+            sb.append("<div class='looks'><b>Looks like:</b> ").append(esc(profile.sentence()))
+                    .append(" <span class='dim'>&nbsp;(recognised from the log itself)</span></div>");
+        }
 
         if (!overview.timeline().isEmpty()) {
             sb.append("<div class='sub'>WHAT HAPPENED, IN ORDER</div><table cellspacing='0' cellpadding='0' width='100%'>");

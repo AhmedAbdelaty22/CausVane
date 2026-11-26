@@ -14,6 +14,8 @@ import java.util.Map;
  * @param withStackTrace   entries that included a stack trace
  * @param withTraceId      entries that carried a trace or request ID
  * @param distinctTraceIds different trace IDs seen, counted up to {@link #TRACE_ID_LIMIT}
+ * @param technologies     technologies the log mentioned (frameworks, databases, ...), with how many
+ *                         entries mentioned each, most mentioned first
  */
 public record LogContents(
         Map<Severity, Long> byLevel,
@@ -22,7 +24,8 @@ public record LogContents(
         long structured,
         long withStackTrace,
         long withTraceId,
-        long distinctTraceIds) {
+        long distinctTraceIds,
+        Map<String, Long> technologies) {
 
     /** Different trace IDs are counted up to this number, to keep memory bounded. */
     public static final int TRACE_ID_LIMIT = 100_000;
@@ -33,6 +36,13 @@ public record LogContents(
             all.put(s, byLevel == null ? 0L : byLevel.getOrDefault(s, 0L));
         }
         byLevel = Map.copyOf(all);
+        technologies = technologies == null ? Map.of()
+                : java.util.Collections.unmodifiableMap(new java.util.LinkedHashMap<>(technologies));
+    }
+
+    public LogContents(Map<Severity, Long> byLevel, long timestamped, long multiLine, long structured,
+                       long withStackTrace, long withTraceId, long distinctTraceIds) {
+        this(byLevel, timestamped, multiLine, structured, withStackTrace, withTraceId, distinctTraceIds, Map.of());
     }
 
     public static LogContents empty() {

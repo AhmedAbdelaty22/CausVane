@@ -68,6 +68,7 @@ public final class LogAnalyzer implements Consumer<LogEvent> {
     private long withStackTrace;
     private long withTraceId;
     private final Set<String> traceIdsSeen = new HashSet<>();
+    private final TechDetector technologies = new TechDetector();
 
     public LogAnalyzer() {
         this(MAX_GROUPS, SAMPLE_SOFT_BUDGET, SAMPLE_HARD_BUDGET);
@@ -99,6 +100,7 @@ public final class LogAnalyzer implements Consumer<LogEvent> {
                 traceIdsSeen.add(event.traceId());
             }
         }
+        technologies.accept(event);
         LocalDateTime ts = event.timestamp();
         if (ts != null) {
             timestamped++;
@@ -160,7 +162,7 @@ public final class LogAnalyzer implements Consumer<LogEvent> {
             levels.put(s, byLevel[s.ordinal()]);
         }
         return new LogContents(levels, timestamped, multiLine, structured, withStackTrace, withTraceId,
-                traceIdsSeen.size());
+                traceIdsSeen.size(), technologies.hits());
     }
 
     /**

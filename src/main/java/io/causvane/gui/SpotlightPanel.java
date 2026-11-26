@@ -48,6 +48,8 @@ final class SpotlightPanel extends JPanel {
     /** "The error, step by step" and which of its branches are open. */
     private final ErrorTree errorTree = new ErrorTree();
     private ErrorGroup shownGroup;
+    /** What the application looks like, for advice about its own technologies. */
+    private io.causvane.analysis.TechDetector.Profile profile = io.causvane.analysis.TechDetector.Profile.none();
     private IncidentLinker.Membership shownIncident;
     private final JButton previous = new JButton(new Glyphs.Triangle(Glyphs.Triangle.LEFT));
     private final JButton next = new JButton(new Glyphs.Triangle(Glyphs.Triangle.RIGHT));
@@ -196,6 +198,10 @@ final class SpotlightPanel extends JPanel {
         return html;
     }
 
+    void profile(io.causvane.analysis.TechDetector.Profile detected) {
+        profile = detected == null ? io.causvane.analysis.TechDetector.Profile.none() : detected;
+    }
+
     /** Draws the shown problem again, for example after the detail level changed. */
     void refresh() {
         if (shownGroup != null) {
@@ -282,7 +288,7 @@ final class SpotlightPanel extends JPanel {
         pills.revalidate();
         pills.repaint();
         errorTree.prepare(group, event);
-        html.setText(render(group, event, explanation, incident, incidentAll, Detail.simple() ? "" : errorTree.html(event)));
+        html.setText(render(group, event, explanation, io.causvane.explain.TechAdvice.steps(group, explanation, profile), incident, incidentAll, Detail.simple() ? "" : errorTree.html(event)));
         html.setCaretPosition(0);
     }
 
@@ -290,7 +296,7 @@ final class SpotlightPanel extends JPanel {
         return (JScrollPane) javax.swing.SwingUtilities.getAncestorOfClass(JScrollPane.class, html);
     }
 
-    private static String render(ErrorGroup group, LogEvent event, Explanation explanation,
+    private static String render(ErrorGroup group, LogEvent event, Explanation explanation, List<String> techSteps,
                                  IncidentLinker.Membership incident, boolean incidentAll, String treeHtml) {
         ParsedTrace trace = event.trace();
         StackFrame pin = trace == null ? null : trace.pinpoint();
@@ -314,6 +320,14 @@ final class SpotlightPanel extends JPanel {
         sb.append("<p class='sub'>WHAT TO DO</p><ol>");
         explanation.nextSteps().forEach(step -> sb.append("<li>").append(words.apply(step)).append("</li>"));
         sb.append("</ol>");
+        if (!techSteps.isEmpty()) {
+            sb.append("<p class='sub'>FOR THE TECHNOLOGY THIS APP USES</p><ul>");
+            techSteps.forEach(step -> {
+                int colon = step.indexOf(": ");
+                sb.append("<li><b>").append(esc(step.substring(0, colon))).append("</b>: ").append(words.apply(step.substring(colon + 2))).append("</li>");
+            });
+            sb.append("</ul>");
+        }
         if (!explanation.likelyCauses().isEmpty()) {
             sb.append("<p class='sub'>WHY IT USUALLY HAPPENS</p><ul>");
             explanation.likelyCauses().forEach(cause -> sb.append("<li>").append(words.apply(cause)).append("</li>"));

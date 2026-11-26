@@ -95,6 +95,11 @@ public final class LogFacts {
         facts.add(new Fact("Language", languages.isEmpty() ? "Not recognised" : languages,
                 languages.isEmpty() ? "No stack trace showed which programming language the application is written in."
                         : "The programming language of the application, recognised from its stack traces."));
+        if (!c.technologies().isEmpty()) {
+            facts.add(new Fact("Technologies", String.join("  ·  ", c.technologies().keySet()),
+                    "Frameworks, databases and services the log mentions, from package names, start-up lines and messages. "
+                            + "The advice for each problem includes steps for these."));
+        }
         if (r.unlistedOccurrences() > 0) {
             facts.add(new Fact("Not listed", Formats.count(r.unlistedOccurrences()),
                     "Occurrences counted in the totals but not listed, because the log held more different problems than the list can keep."));
