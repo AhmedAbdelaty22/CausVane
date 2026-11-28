@@ -116,13 +116,12 @@ public final class MainFrame {
     private final JToggleButton tailToggle = new JToggleButton("Watch live");
     /** While a log is open: its name, and a clear button to close it. */
     private final JLabel fileChip = new JLabel("");
-    private final JButton closeX = new JButton("\u00d7  Close");
+    private final JButton closeX = new JButton("Close");
     private final JPanel fileBox = new JPanel();
-    /** Simple · Normal · Expert: how much technical detail to show. */
-    private final JToggleButton[] detailChips = new JToggleButton[Detail.values().length];
-    private JPanel detailSegments;
+    /** Simple · Normal · Expert: one small button showing the level, opening a menu of the three. */
+    private final JButton detailButton = new JButton();
     private final JSpinner contextSpinner = new JSpinner(new SpinnerNumberModel(Settings.get().contextLinesOr(8), 0, 500, 1));
-    private final JButton moreButton = new JButton("More", new Glyphs.Triangle(Glyphs.Triangle.DOWN));
+    private final JButton moreButton = new JButton();
     private final TimelineChart timelineChart = new TimelineChart();
     private final SummaryStrip summary = new SummaryStrip(timelineChart, this::reveal);
     private final JLabel contextTitle = new JLabel("WHAT THE LOG SAYS");
@@ -272,16 +271,11 @@ public final class MainFrame {
         brandLabel = brand;
 
         boolean mac = System.getProperty("os.name", "").toLowerCase(java.util.Locale.ROOT).contains("mac");
-        JButton paletteButton = new JButton("Quick actions", new Glyphs.Bolt());
-        paletteButton.setIconTextGap(6);
-        paletteButton.putClientProperty(FlatClientProperties.BUTTON_TYPE, FlatClientProperties.BUTTON_TYPE_ROUND_RECT);
-        paletteButton.setToolTipText("Find any action or any error by typing a few letters ("
-                + (mac ? "\u2318K" : "Ctrl+K") + ")");
+        JButton paletteButton = new JButton();
         paletteButton.addActionListener(e -> openPalette());
         quickButton = paletteButton;
 
         JButton themeButton = new JButton(new Glyphs.ThemeSwitch(Theme.mode() == Theme.Mode.DARK));
-        themeButton.putClientProperty(FlatClientProperties.BUTTON_TYPE, FlatClientProperties.BUTTON_TYPE_ROUND_RECT);
         themeButton.setToolTipText(Theme.mode() == Theme.Mode.DARK ? "Switch to the light theme" : "Switch to the dark theme");
         themeButton.addActionListener(e -> switchTheme());
 
@@ -291,8 +285,9 @@ public final class MainFrame {
         fileChip.setFont(fileChip.getFont().deriveFont(Font.BOLD));
         fileChip.setForeground(Theme.TEXT);
         fileChip.setBorder(BorderFactory.createEmptyBorder(0, 2, 0, 8));
-        closeX.putClientProperty(FlatClientProperties.BUTTON_TYPE, FlatClientProperties.BUTTON_TYPE_ROUND_RECT);
         closeX.setFocusable(false);
+        closeX.setIcon(new Glyphs.Line(Glyphs.Line.Kind.CLOSE));
+        closeX.setIconTextGap(4);
         closeX.setToolTipText("Close this log and go back to the start screen (" + closeKey + ")");
         closeX.addActionListener(e -> closeLog());
         fileBox.setOpaque(false);
@@ -370,17 +365,35 @@ public final class MainFrame {
             @Override public void popupMenuWillBecomeInvisible(javax.swing.event.PopupMenuEvent e) { }
             @Override public void popupMenuCanceled(javax.swing.event.PopupMenuEvent e) { }
         });
-        moreButton.putClientProperty(FlatClientProperties.BUTTON_TYPE, FlatClientProperties.BUTTON_TYPE_ROUND_RECT);
-        moreButton.setHorizontalTextPosition(SwingConstants.LEADING);
-        moreButton.setIconTextGap(6);
-        moreButton.setToolTipText("Copy, save a report, explain the words");
         moreButton.addActionListener(e -> moreMenu.show(moreButton, 0, moreButton.getHeight()));
 
+        // the detail level: one small button that names the level and opens a menu of the three
+        detailButton.setHorizontalTextPosition(SwingConstants.LEADING);
+        detailButton.setIcon(new Glyphs.Line(Glyphs.Line.Kind.DOWN));
+        detailButton.setIconTextGap(2);
+        detailButton.addActionListener(e -> detailMenu().show(detailButton, 0, detailButton.getHeight() + 2));
+        showDetailLevel();
+
+        // one look for every button; the tools at the right are icons, and say what they do when pointed at
+        Buttons.style(closeX, Buttons.Role.CLOSE);
+        Buttons.style(rangeChip, Buttons.Role.NEUTRAL);
+        Buttons.style(detailButton, Buttons.Role.NEUTRAL);
+        Buttons.tool(tailToggle, Buttons.Role.LIVE, Glyphs.Line.Kind.LIVE,
+                "Watch live: follow the file and analyze new lines as they are written");
+        Buttons.tool(paletteButton, Buttons.Role.NEUTRAL, Glyphs.Line.Kind.BOLT,
+                "Quick actions: find any action or problem by typing a few letters (" + (mac ? "\u2318K" : "Ctrl+K") + ")");
+        Buttons.tool(moreButton, Buttons.Role.NEUTRAL, Glyphs.Line.Kind.MORE,
+                "More: copy a summary, save a report, explain the words");
+        Buttons.style(themeButton, Buttons.Role.NEUTRAL);
+        themeButton.putClientProperty(FlatClientProperties.STYLE,
+                themeButton.getClientProperty(FlatClientProperties.STYLE) + " margin: 6,7,6,7;");
+        themeButton.setFocusable(false);
+
+        // three groups, each with room around it: the log on the left, finding in the middle, tools on the right
         bar.add(brand);
         bar.add(fileBox);
-        bar.addSeparator();
+        bar.add(divider());
         bar.add(searchField);
-        bar.add(Box.createHorizontalStrut(4));
         bar.add(Box.createHorizontalStrut(10));
         JPanel segments = new JPanel() {
             @Override
@@ -403,38 +416,60 @@ public final class MainFrame {
         segments.setMaximumSize(segments.getPreferredSize());
         bar.add(segments);
         severitySegments = segments;
-        rangeChip.putClientProperty(FlatClientProperties.BUTTON_TYPE, FlatClientProperties.BUTTON_TYPE_ROUND_RECT);
         rangeChip.setToolTipText("Showing only problems from this period. Click to show the whole log again.");
         rangeChip.setVisible(false);
         rangeChip.addActionListener(e -> clearTimeRange());
         bar.add(Box.createHorizontalStrut(6));
         bar.add(outsideToolbarLook(rangeChip));
         bar.add(Box.createHorizontalGlue());
-        detailSegments = segmented(detailChips, Detail.values().length, i -> {
-            Detail level = Detail.values()[i];
-            JToggleButton chip = new JToggleButton(level.label());
-            chip.setToolTipText("Detail: " + level.hint());
-            chip.setSelected(level == Detail.level());
-            chip.addActionListener(e -> setDetail(level));
-            return chip;
-        });
-        bar.add(detailSegments);
-        bar.add(Box.createHorizontalStrut(8));
+        bar.add(outsideToolbarLook(detailButton));
+        bar.add(divider());
         bar.add(outsideToolbarLook(tailToggle));
-        bar.add(Box.createHorizontalStrut(6));
+        bar.add(Box.createHorizontalStrut(4));
         bar.add(outsideToolbarLook(paletteButton));
-        bar.add(Box.createHorizontalStrut(6));
+        bar.add(Box.createHorizontalStrut(4));
         bar.add(outsideToolbarLook(moreButton));
-        bar.add(Box.createHorizontalStrut(6));
+        bar.add(Box.createHorizontalStrut(4));
         bar.add(outsideToolbarLook(themeButton));
-        // every button in the shared look, coloured by what it does
-        Buttons.style(closeX, Buttons.Role.CLOSE);
-        Buttons.style(tailToggle, Buttons.Role.LIVE);
-        Buttons.style(paletteButton, Buttons.Role.NEUTRAL);
-        Buttons.style(moreButton, Buttons.Role.SHARE);
-        Buttons.style(themeButton, Buttons.Role.NEUTRAL);
-        Buttons.style(rangeChip, Buttons.Role.NEUTRAL);
+
         return bar;
+    }
+
+    /** A thin vertical line with room on each side, between the toolbar's groups. */
+    private static JComponent divider() {
+        JComponent line = new JComponent() {
+            @Override
+            protected void paintComponent(java.awt.Graphics g) {
+                g.setColor(Theme.CARD_BORDER);
+                g.fillRect(getWidth() / 2, (getHeight() - 20) / 2, 1, 20);
+            }
+        };
+        Dimension size = new Dimension(25, 28);
+        line.setPreferredSize(size);
+        line.setMinimumSize(size);
+        line.setMaximumSize(size);
+        return line;
+    }
+
+    /** "Normal" on the detail button, with what each level means in its tooltip. */
+    private void showDetailLevel() {
+        Detail level = Detail.level();
+        detailButton.setText(level.label());
+        detailButton.setToolTipText("Detail: " + level.hint() + ". Click to choose Simple, Normal or Expert");
+    }
+
+    private JPopupMenu detailMenu() {
+        JPopupMenu menu = new JPopupMenu();
+        ButtonGroup group = new ButtonGroup();
+        for (Detail level : Detail.values()) {
+            javax.swing.JRadioButtonMenuItem item = new javax.swing.JRadioButtonMenuItem(
+                    "<html><b>" + level.label() + "</b><br><span style='font-size: 10px'>" + level.hint() + "</span></html>");
+            item.setSelected(level == Detail.level());
+            item.addActionListener(e -> setDetail(level));
+            group.add(item);
+            menu.add(item);
+        }
+        return menu;
     }
 
     /**
@@ -453,39 +488,6 @@ public final class MainFrame {
         });
         holder.setVisible(button.isVisible());
         return holder;
-    }
-
-    /** A row of toggle buttons drawn as one rounded control, like the severity switch. */
-    private JPanel segmented(JToggleButton[] chips, int count, java.util.function.IntFunction<JToggleButton> make) {
-        ButtonGroup group = new ButtonGroup();
-        JPanel segments = new JPanel() {
-            @Override
-            protected void paintComponent(java.awt.Graphics g) {
-                java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
-                g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(Theme.mode() == Theme.Mode.DARK ? Theme.EDITOR : new java.awt.Color(0xEDEEF0));
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
-                g2.setColor(Theme.CARD_BORDER);
-                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 10, 10);
-                g2.dispose();
-            }
-        };
-        segments.setOpaque(false);
-        segments.setLayout(new BoxLayout(segments, BoxLayout.X_AXIS));
-        segments.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
-        for (int i = 0; i < count; i++) {
-            JToggleButton chip = make.apply(i);
-            chip.putClientProperty(FlatClientProperties.BUTTON_TYPE, FlatClientProperties.BUTTON_TYPE_BORDERLESS);
-            chip.putClientProperty(FlatClientProperties.STYLE, "arc: 8; margin: 3,10,3,10; selectedBackground: "
-                    + Theme.hex(Theme.CARD) + "; selectedForeground: " + Theme.hex(Theme.TEXT) + "; foreground: "
-                    + Theme.hex(Theme.DIM) + "; hoverBackground: " + Theme.hex(Theme.HOVER_STRONG));
-            chip.setFocusable(false);
-            group.add(chip);
-            chips[i] = chip;
-            segments.add(chip);
-        }
-        segments.setMaximumSize(segments.getPreferredSize());
-        return segments;
     }
 
     /** The log as six full-screen slides for a meeting. */
@@ -587,7 +589,7 @@ public final class MainFrame {
         if (level != Detail.level()) {
             Detail.set(level);
         }
-        detailChips[level.ordinal()].setSelected(true);
+        showDetailLevel();
         spotlight.refresh();
         overviewPanel.refresh();
         table.repaint();
@@ -1397,13 +1399,11 @@ public final class MainFrame {
         }
         widthLevel = level;
         brandLabel.setText(level == 0 ? "CausVane" : "");
-        quickButton.setText(level == 0 ? "Quick actions" : "");
-        moreButton.setText(level == 2 ? "" : "More");
-        tailToggle.setText(level == 0 ? "Watch live" : "Live");
+
         fileChip.setVisible(level == 0); // in a narrower window the name stays in the title and status bar
         fileBox.setMaximumSize(fileBox.getPreferredSize());
-        if (detailSegments != null) {
-            detailSegments.setVisible(level < 2); // still in View → Detail in a narrow window
+        if (detailButton.getParent() != null) {
+            detailButton.getParent().setVisible(level < 2); // still in View → Detail in a narrow window
         }
         for (int i = 0; i < CHIP_LEVELS.length; i++) {
             boolean counted = result != null;

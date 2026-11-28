@@ -53,6 +53,10 @@ final class WelcomePanel extends JPanel {
         buttons.setLayout(new BoxLayout(buttons, BoxLayout.X_AXIS));
         Buttons.style(open, Buttons.Role.PRIMARY, true);
         Buttons.style(paste, Buttons.Role.PRIMARY, true);
+        open.setIcon(new Glyphs.Line(Glyphs.Line.Kind.OPEN));
+        paste.setIcon(new Glyphs.Line(Glyphs.Line.Kind.PASTE));
+        open.setIconTextGap(8);
+        paste.setIconTextGap(8);
         buttons.add(open);
         buttons.add(Box.createHorizontalStrut(10));
         buttons.add(paste);

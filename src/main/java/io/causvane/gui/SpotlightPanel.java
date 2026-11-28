@@ -43,7 +43,7 @@ final class SpotlightPanel extends JPanel {
     private final JLabel subline = new JLabel(" ");
     private final JButton copy = new JButton("Copy for a ticket");
     private final JButton search = new JButton("Search the web");
-    private final JButton back = new JButton("\u2190  Overview");
+    private final JButton back = new JButton("Overview");
     /** Whether the incident timeline lists every problem or only the main steps. */
     private boolean incidentAll;
     /** "The error, step by step" and which of its branches are open. */
@@ -52,8 +52,8 @@ final class SpotlightPanel extends JPanel {
     /** What the application looks like, for advice about its own technologies. */
     private io.causvane.analysis.TechDetector.Profile profile = io.causvane.analysis.TechDetector.Profile.none();
     private IncidentLinker.Membership shownIncident;
-    private final JButton previous = new JButton(new Glyphs.Triangle(Glyphs.Triangle.LEFT));
-    private final JButton next = new JButton(new Glyphs.Triangle(Glyphs.Triangle.RIGHT));
+    private final JButton previous = new JButton();
+    private final JButton next = new JButton();
     private int occurrence;
     private int occurrences;
 
@@ -65,50 +65,42 @@ final class SpotlightPanel extends JPanel {
                 BorderFactory.createMatteBorder(0, 0, 0, 0, Theme.CARD_BORDER),
                 BorderFactory.createEmptyBorder(12, 18, 6, 10)));
 
-        JLabel title = new JLabel("WHAT WENT WRONG");
-        title.setForeground(Theme.DIM);
-        title.setFont(title.getFont().deriveFont(Font.BOLD, 11f));
-        copy.putClientProperty(com.formdev.flatlaf.FlatClientProperties.BUTTON_TYPE,
-                com.formdev.flatlaf.FlatClientProperties.BUTTON_TYPE_ROUND_RECT);
-        copy.setFont(copy.getFont().deriveFont(11.5f));
         copy.setToolTipText("Copy a short, ready-to-paste summary of this problem");
         copy.setEnabled(false);
-        search.putClientProperty(com.formdev.flatlaf.FlatClientProperties.BUTTON_TYPE,
-                com.formdev.flatlaf.FlatClientProperties.BUTTON_TYPE_ROUND_RECT);
-        search.setFont(search.getFont().deriveFont(11.5f));
         search.setToolTipText("Look this problem up online; you see and can edit exactly what is sent first");
         search.setEnabled(false);
         occurrenceLabel.setForeground(Theme.DIM);
-        previous.setToolTipText("Previous occurrence");
-        next.setToolTipText("Next occurrence");
         previous.addActionListener(e -> onOccurrenceChange.accept(occurrence - 1));
         next.addActionListener(e -> onOccurrenceChange.accept(occurrence + 1));
 
-        back.putClientProperty(com.formdev.flatlaf.FlatClientProperties.BUTTON_TYPE,
-                com.formdev.flatlaf.FlatClientProperties.BUTTON_TYPE_ROUND_RECT);
-        back.setFont(back.getFont().deriveFont(Font.BOLD, 12f));
         back.setToolTipText("Back to the overview of the whole log (Esc)");
         back.setFocusable(false);
         Buttons.style(back, Buttons.Role.NEUTRAL);
-        Buttons.style(previous, Buttons.Role.NEUTRAL);
-        Buttons.style(next, Buttons.Role.NEUTRAL);
+        Buttons.tool(previous, Buttons.Role.NEUTRAL, Glyphs.Line.Kind.PREVIOUS, "Previous time it happened");
+        Buttons.tool(next, Buttons.Role.NEUTRAL, Glyphs.Line.Kind.NEXT, "Next time it happened");
         Buttons.style(search, Buttons.Role.WEB);
         Buttons.style(copy, Buttons.Role.SHARE);
+        // a small line icon before each label, the same family as the toolbar's
+        back.setIcon(new Glyphs.Line(Glyphs.Line.Kind.BACK));
+        search.setIcon(new Glyphs.Line(Glyphs.Line.Kind.WEB));
+        copy.setIcon(new Glyphs.Line(Glyphs.Line.Kind.COPY));
+        for (JButton b : new JButton[] {back, search, copy}) {
+            b.setIconTextGap(6);
+        }
         JPanel header = new JPanel();
         header.setOpaque(false);
         header.setLayout(new BoxLayout(header, BoxLayout.X_AXIS));
+        // one row: back on the left; on the right which time is shown, then the two actions
         header.add(back);
-        header.add(Box.createHorizontalStrut(12));
-        header.add(title);
         header.add(Box.createHorizontalGlue());
-        header.add(occurrenceLabel);
-        header.add(Box.createHorizontalStrut(8));
         header.add(previous);
-        header.add(Box.createHorizontalStrut(4));
-        header.add(next);
-        header.add(Box.createHorizontalStrut(10));
-        header.add(search);
         header.add(Box.createHorizontalStrut(6));
+        header.add(occurrenceLabel);
+        header.add(Box.createHorizontalStrut(6));
+        header.add(next);
+        header.add(Box.createHorizontalStrut(16));
+        header.add(search);
+        header.add(Box.createHorizontalStrut(8));
         header.add(copy);
         headline.setFont(headline.getFont().deriveFont(Font.BOLD, 18f));
         headline.setForeground(Theme.TEXT);

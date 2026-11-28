@@ -18,41 +18,6 @@ final class Glyphs {
 
     private Glyphs() {}
 
-    /** Solid triangle pointing left, right or down, in the button's text color. */
-    record Triangle(int direction) implements Icon {
-        static final int LEFT = 0;
-        static final int RIGHT = 1;
-        static final int DOWN = 2;
-        private static final int SIZE = 10;
-
-        @Override
-        public void paintIcon(Component c, Graphics g, int x, int y) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            Color color = c.isEnabled() ? c.getForeground() : UIManager.getColor("Label.disabledForeground");
-            g2.setColor(color == null ? Theme.DIM : color);
-            Path2D.Double path = new Path2D.Double();
-            switch (direction) {
-                case LEFT -> { path.moveTo(x + 7.5, y + 1); path.lineTo(x + 7.5, y + 9); path.lineTo(x + 1.5, y + 5); }
-                case RIGHT -> { path.moveTo(x + 2.5, y + 1); path.lineTo(x + 2.5, y + 9); path.lineTo(x + 8.5, y + 5); }
-                default -> { path.moveTo(x + 1.5, y + 3); path.lineTo(x + 8.5, y + 3); path.lineTo(x + 5, y + 7.5); }
-            }
-            path.closePath();
-            g2.fill(path);
-            g2.dispose();
-        }
-
-        @Override
-        public int getIconWidth() {
-            return SIZE;
-        }
-
-        @Override
-        public int getIconHeight() {
-            return SIZE;
-        }
-    }
-
     /** Sun (shown in the dark theme: "switch to light") or crescent moon ("switch to dark"). */
     record ThemeSwitch(boolean sun) implements Icon {
         private static final int SIZE = 16;
@@ -77,38 +42,6 @@ final class Glyphs {
                 moon.subtract(new java.awt.geom.Area(new java.awt.geom.Ellipse2D.Double(6, 0.5, 11, 11)));
                 g2.fill(moon);
             }
-            g2.dispose();
-        }
-
-        @Override
-        public int getIconWidth() {
-            return SIZE;
-        }
-
-        @Override
-        public int getIconHeight() {
-            return SIZE;
-        }
-    }
-
-    /** Lightning bolt: "quick actions". Drawn in the button's text colour. */
-    record Bolt() implements Icon {
-        private static final int SIZE = 14;
-
-        @Override
-        public void paintIcon(Component c, Graphics g, int x, int y) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setColor(c.isEnabled() ? c.getForeground() : UIManager.getColor("Label.disabledForeground"));
-            Path2D.Double path = new Path2D.Double();
-            path.moveTo(x + 8.5, y + 0.5);
-            path.lineTo(x + 2.0, y + 8.0);
-            path.lineTo(x + 6.5, y + 8.0);
-            path.lineTo(x + 5.0, y + 13.5);
-            path.lineTo(x + 12.0, y + 5.5);
-            path.lineTo(x + 7.5, y + 5.5);
-            path.closePath();
-            g2.fill(path);
             g2.dispose();
         }
 
@@ -192,6 +125,87 @@ final class Glyphs {
         @Override
         public int getIconHeight() {
             return 9;
+        }
+    }
+
+    /**
+     * One family of line icons for buttons: the same 16-point size, the same rounded stroke, drawn in the
+     * button's own text colour (dimmed when the button is disabled), so every icon in the window matches.
+     */
+    record Line(Kind kind) implements Icon {
+        enum Kind { OPEN, PASTE, CLOSE, LIVE, BOLT, MORE, COPY, WEB, BACK, PREVIOUS, NEXT, DOWN, DETAIL, SLIDES, SAVE }
+
+        private static final int SIZE = 16;
+
+        @Override
+        public void paintIcon(Component c, Graphics g, int x, int y) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
+            Color color = c == null || c.isEnabled() ? (c == null ? Theme.TEXT : c.getForeground())
+                    : UIManager.getColor("Label.disabledForeground");
+            g2.setColor(color == null ? Theme.DIM : color);
+            g2.translate(x, y);
+            g2.setStroke(new BasicStroke(1.6f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            Path2D.Double p = new Path2D.Double();
+            switch (kind) {
+                case OPEN -> { // a folder
+                    p.moveTo(2, 4.5); p.lineTo(6, 4.5); p.lineTo(7.5, 6); p.lineTo(14, 6); p.lineTo(14, 12.5); p.lineTo(2, 12.5); p.closePath();
+                }
+                case PASTE -> { // a clipboard
+                    p.append(new java.awt.geom.RoundRectangle2D.Double(3, 3.5, 10, 10.5, 2, 2), false);
+                    p.append(new java.awt.geom.RoundRectangle2D.Double(5.75, 2, 4.5, 2.6, 1.2, 1.2), false);
+                    p.moveTo(5.5, 8); p.lineTo(10.5, 8); p.moveTo(5.5, 10.8); p.lineTo(9, 10.8);
+                }
+                case CLOSE -> { p.moveTo(4.5, 4.5); p.lineTo(11.5, 11.5); p.moveTo(11.5, 4.5); p.lineTo(4.5, 11.5); }
+                case LIVE -> { // a pulse line
+                    p.moveTo(1.5, 8.5); p.lineTo(4.5, 8.5); p.lineTo(6.5, 3.5); p.lineTo(9.5, 12.5); p.lineTo(11.5, 8.5); p.lineTo(14.5, 8.5);
+                }
+                case BOLT -> {
+                    p.moveTo(9, 1.8); p.lineTo(3.5, 9); p.lineTo(7.5, 9); p.lineTo(6.5, 14.2); p.lineTo(12.5, 7); p.lineTo(8.5, 7); p.closePath();
+                }
+                case MORE -> {
+                    for (double cx : new double[] {3.5, 8, 12.5}) {
+                        g2.fill(new java.awt.geom.Ellipse2D.Double(cx - 1.3, 6.7, 2.6, 2.6));
+                    }
+                }
+                case COPY -> {
+                    p.append(new java.awt.geom.RoundRectangle2D.Double(5.5, 5.5, 8.5, 8.5, 2, 2), false);
+                    p.moveTo(10.5, 3.5); p.lineTo(10.5, 3); p.quadTo(10.5, 2, 9.5, 2); p.lineTo(3, 2); p.quadTo(2, 2, 2, 3); p.lineTo(2, 9.5); p.quadTo(2, 10.5, 3, 10.5); p.lineTo(3.5, 10.5);
+                }
+                case WEB -> { // a globe
+                    p.append(new java.awt.geom.Ellipse2D.Double(2, 2, 12, 12), false);
+                    p.append(new java.awt.geom.Ellipse2D.Double(5.2, 2, 5.6, 12), false);
+                    p.moveTo(2.3, 8); p.lineTo(13.7, 8);
+                }
+                case BACK -> { p.moveTo(13, 8); p.lineTo(3, 8); p.moveTo(7, 4); p.lineTo(3, 8); p.lineTo(7, 12); }
+                case PREVIOUS -> { p.moveTo(10, 3.5); p.lineTo(5.5, 8); p.lineTo(10, 12.5); }
+                case NEXT -> { p.moveTo(6, 3.5); p.lineTo(10.5, 8); p.lineTo(6, 12.5); }
+                case DOWN -> { p.moveTo(4.5, 6.5); p.lineTo(8, 10); p.lineTo(11.5, 6.5); }
+                case DETAIL -> { // three lines of different length: "how much to show"
+                    p.moveTo(2.5, 4.5); p.lineTo(13.5, 4.5); p.moveTo(2.5, 8); p.lineTo(10.5, 8); p.moveTo(2.5, 11.5); p.lineTo(7.5, 11.5);
+                }
+                case SLIDES -> { // a screen on a stand
+                    p.append(new java.awt.geom.RoundRectangle2D.Double(2, 2.5, 12, 8.5, 1.6, 1.6), false);
+                    p.moveTo(8, 11); p.lineTo(8, 14); p.moveTo(5.5, 14); p.lineTo(10.5, 14);
+                }
+                case SAVE -> { // arrow into a tray
+                    p.moveTo(8, 2.5); p.lineTo(8, 10); p.moveTo(5, 7); p.lineTo(8, 10); p.lineTo(11, 7);
+                    p.moveTo(2.5, 10.5); p.lineTo(2.5, 13.5); p.lineTo(13.5, 13.5); p.lineTo(13.5, 10.5);
+                }
+            }
+            g2.draw(p);
+            g2.dispose();
+        }
+
+        @Override
+        public int getIconWidth() {
+            return SIZE;
+        }
+
+        @Override
+        public int getIconHeight() {
+            return SIZE;
         }
     }
 }
